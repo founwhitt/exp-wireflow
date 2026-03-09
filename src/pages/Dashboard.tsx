@@ -1,15 +1,38 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, Download } from "lucide-react";
+import { Search, Filter, Download, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DepartmentBadge } from "@/components/DepartmentBadge";
 import { useWireRecords } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
+
+const DEFAULT_COL_WIDTHS: Record<string, number> = {
+  tid: 100, department: 130, customer: 130, address: 180, balance: 110,
+  agent: 110, status: 100, wiring_inst: 130, wiring_date: 120, adjustments: 100,
+  receipt: 80, amt_wired: 110, ar_date: 120, recon_notes: 160,
+};
+
+const COLUMNS = [
+  { key: "tid", label: "TID" },
+  { key: "department", label: "Department" },
+  { key: "customer", label: "Customer" },
+  { key: "address", label: "Property Address" },
+  { key: "balance", label: "Balance Due" },
+  { key: "agent", label: "Agent" },
+  { key: "status", label: "Status" },
+  { key: "wiring_inst", label: "Wiring Inst." },
+  { key: "wiring_date", label: "Wiring Date" },
+  { key: "adjustments", label: "Adjustments" },
+  { key: "receipt", label: "Receipt" },
+  { key: "amt_wired", label: "Amt Wired" },
+  { key: "ar_date", label: "AR Date" },
+  { key: "recon_notes", label: "Recon Notes" },
+];
 
 const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled"];
 
@@ -33,6 +56,11 @@ export default function Dashboard() {
   const { data: records, isLoading, error } = useWireRecords();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [colWidths, setColWidths] = useState<Record<string, number>>({ ...DEFAULT_COL_WIDTHS });
+
+  const handleResize = useCallback((key: string, width: number) => {
+    setColWidths((prev) => ({ ...prev, [key]: Math.max(50, width) }));
+  }, []);
 
   const filtered = (records ?? []).filter((r) => {
     const matchesStatus = statusFilter === "All" || r.status === statusFilter;
@@ -117,25 +145,28 @@ export default function Dashboard() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <ResizableTable colWidths={colWidths} onResize={handleResize}>
                 <TableHeader>
                   <TableRow className="bg-muted/40">
-                    <TableHead className="w-[100px]">TID</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Property Address</TableHead>
-                    <TableHead className="text-right">Balance Due</TableHead>
-                    <TableHead>Agent</TableHead>
-                    <TableHead>Status</TableHead>
-                    {/* Analyst post-send */}
-                    <TableHead>Wiring Inst.</TableHead>
-                    <TableHead>Wiring Date</TableHead>
-                    <TableHead className="text-right">Adjustments</TableHead>
-                    {/* Accounting */}
-                    <TableHead className="border-l-2 border-primary/20 bg-primary/5">Receipt</TableHead>
-                    <TableHead className="bg-primary/5 text-right">Amt Wired</TableHead>
-                    <TableHead className="bg-primary/5">AR Date</TableHead>
-                    <TableHead className="bg-primary/5">Recon Notes</TableHead>
+                    {COLUMNS.map((col, i) => {
+                      const isAccounting = ["receipt", "amt_wired", "ar_date", "recon_notes"].includes(col.key);
+                      const isRight = ["balance", "adjustments", "amt_wired"].includes(col.key);
+                      return (
+                        <ResizableTableHead
+                          key={col.key}
+                          colKey={col.key}
+                          width={colWidths[col.key]}
+                          onResize={handleResize}
+                          className={[
+                            isAccounting && col.key === "receipt" ? "border-l-2 border-primary/20 bg-primary/5" : "",
+                            isAccounting && col.key !== "receipt" ? "bg-primary/5" : "",
+                            isRight ? "text-right" : "",
+                          ].filter(Boolean).join(" ")}
+                        >
+                          {col.label}
+                        </ResizableTableHead>
+                      );
+                    })}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -143,7 +174,7 @@ export default function Dashboard() {
                     <InlineEditRow key={record.id} record={record} />
                   ))}
                 </TableBody>
-              </Table>
+              </ResizableTable>
             </div>
           )}
         </CardContent>
@@ -166,5 +197,73 @@ function SummaryCard({ label, value, color }: { label: string; value: number; co
         <p className={`text-2xl font-bold ${color ? colorMap[color] : "text-foreground"}`}>{value}</p>
       </CardContent>
     </Card>
+  );
+}
+
+function ResizableTable({
+  colWidths,
+  children,
+}: {
+  colWidths: Record<string, number>;
+  onResize: (key: string, width: number) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <table className="w-full caption-bottom text-sm" style={{ tableLayout: "fixed", minWidth: Object.values(colWidths).reduce((a, b) => a + b, 0) }}>
+      <colgroup>
+        {COLUMNS.map((col) => (
+          <col key={col.key} style={{ width: colWidths[col.key] }} />
+        ))}
+      </colgroup>
+      {children}
+    </table>
+  );
+}
+
+function ResizableTableHead({
+  colKey,
+  width,
+  onResize,
+  className = "",
+  children,
+}: {
+  colKey: string;
+  width: number;
+  onResize: (key: string, width: number) => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const startX = useRef(0);
+  const startW = useRef(0);
+
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      startX.current = e.clientX;
+      startW.current = width;
+      const onMouseMove = (ev: MouseEvent) => {
+        onResize(colKey, startW.current + (ev.clientX - startX.current));
+      };
+      const onMouseUp = () => {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+      };
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    },
+    [colKey, width, onResize]
+  );
+
+  return (
+    <th
+      className={`relative h-12 px-4 text-left align-middle font-medium text-muted-foreground select-none ${className}`}
+      style={{ width }}
+    >
+      <span className="truncate block">{children}</span>
+      <div
+        onMouseDown={onMouseDown}
+        className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 transition-colors"
+      />
+    </th>
   );
 }
