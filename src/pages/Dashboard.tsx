@@ -4,13 +4,30 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DepartmentBadge } from "@/components/DepartmentBadge";
 import { useWireRecords } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
 
 const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled"];
+
+function exportCSV(rows: any[]) {
+  const headers = ["TID","Department","WF Account","Customer","Property Address","Balance Due","Agent","Status","Wiring Institution","Wiring Date","Adjustments","Wire Receipt","Amount Wired","AR Date Received","Reconciliation Notes"];
+  const keys = ["tid","department","wf_account","customer_name","property_address","balance_due","agent_name","status","wiring_institution","wiring_date","adjustments","wire_receipt","amount_wired","ar_date_received","reconciliation_notes"] as const;
+  const csv = [headers.join(","), ...rows.map(r => keys.map(k => {
+    const v = r[k] ?? "";
+    return `"${String(v).replace(/"/g, '""')}"`;
+  }).join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `wire_records_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function Dashboard() {
   const { data: records, isLoading, error } = useWireRecords();
@@ -56,7 +73,7 @@ export default function Dashboard() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -79,6 +96,10 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
         </div>
+        <Button variant="outline" size="sm" onClick={() => exportCSV(filtered)} disabled={filtered.length === 0}>
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Data table */}
