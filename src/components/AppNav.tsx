@@ -40,14 +40,24 @@ export function AppNav() {
             Dashboard
           </NavLink>
           {isAdmin && (
-            <NavLink
-              to="/admin/users"
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              activeClassName="bg-secondary text-foreground"
-            >
-              <Shield className="h-4 w-4" />
-              Users
-            </NavLink>
+            <>
+              <NavLink
+                to="/admin/users"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                activeClassName="bg-secondary text-foreground"
+              >
+                <Shield className="h-4 w-4" />
+                Users
+              </NavLink>
+              <NavLink
+                to="/admin/wire-instructions"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                activeClassName="bg-secondary text-foreground"
+              >
+                <FileText className="h-4 w-4" />
+                Wire Inst.
+              </NavLink>
+            </>
           )}
         </nav>
 
