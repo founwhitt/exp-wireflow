@@ -92,7 +92,7 @@ export default function Dashboard() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-5 gap-2">
         <SummaryCard label="Total" value={counts.total} />
         <SummaryCard label="Pending" value={counts.pending} color="amber" />
         <SummaryCard label="Wired" value={counts.wired} color="blue" />
