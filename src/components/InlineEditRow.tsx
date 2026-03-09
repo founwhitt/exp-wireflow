@@ -41,7 +41,7 @@ export function InlineEditRow({ record }: { record: WireRecord }) {
             <StatusBadge status={record.status} />
           </SelectTrigger>
           <SelectContent>
-            {["Pending", "Wired", "Received", "Reconciled"].map((s) => (
+            {["Pending", "Wired", "Received", "Reconciled", "Other - See Notes"].map((s) => (
               <SelectItem key={s} value={s}>
                 <StatusBadge status={s} />
               </SelectItem>

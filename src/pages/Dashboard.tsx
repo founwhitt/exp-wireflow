@@ -191,6 +191,7 @@ function SummaryCard({ label, value, color, active, onClick }: { label: string; 
     blue: "text-blue-600",
     emerald: "text-emerald-600",
     purple: "text-purple-600",
+    rose: "text-rose-600",
   };
   return (
     <Card
