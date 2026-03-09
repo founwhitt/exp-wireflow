@@ -65,7 +65,73 @@ const mockDatabase: Record<string, TIDData> = {
 
 export function lookupTID(tid: string): TIDData | null {
   const normalized = tid.toUpperCase().trim();
-  return mockDatabase[normalized] ?? null;
+  if (!normalized) return null;
+
+  // Return hardcoded data if available
+  if (mockDatabase[normalized]) return mockDatabase[normalized];
+
+  // Generate plausible mock data for any TID
+  return generateMockData(normalized);
+}
+
+function generateMockData(tid: string): TIDData {
+  // Use a simple hash of the TID to seed deterministic but varied data
+  const hash = Array.from(tid).reduce((acc, c) => acc + c.charCodeAt(0), 0);
+
+  const customers = [
+    { name: "Summit Capital Partners", entity: "Summit Holdings Group", prefix: "SUM" },
+    { name: "Coastal Realty Trust", entity: "Coastal Development Inc", prefix: "CST" },
+    { name: "Vanguard Properties LLC", entity: "Vanguard Real Estate Corp", prefix: "VAN" },
+    { name: "Horizon Land Holdings", entity: "Horizon Capital Group", prefix: "HOR" },
+    { name: "Atlas Commercial Partners", entity: "Atlas RE Ventures", prefix: "ATL" },
+    { name: "Keystone Equity Group", entity: "Keystone Investments LLC", prefix: "KEY" },
+  ];
+
+  const addresses = [
+    "1200 Market Street, Suite 400, Philadelphia, PA 19107",
+    "500 Boylston Street, Boston, MA 02116",
+    "3000 Sand Hill Road, Menlo Park, CA 94025",
+    "200 S Wacker Drive, Chicago, IL 60606",
+    "1100 Peachtree Street NE, Atlanta, GA 30309",
+    "700 Louisiana Street, Houston, TX 77002",
+  ];
+
+  const states = ["Pennsylvania", "Massachusetts", "California", "Illinois", "Georgia", "Texas"];
+
+  const agents = [
+    "Michael Thompson", "Jessica Park", "Ryan O'Brien", "Laura Chen",
+    "Daniel Kim", "Samantha Wells", "Andrew Martinez", "Nicole Harris",
+  ];
+
+  const analysts = [
+    "James Rivera", "Maria Gonzalez", "Robert Kim", "Sarah Mitchell",
+    "Patricia Wong", "Christopher Lee",
+  ];
+
+  const i = hash % customers.length;
+  const customer = customers[i];
+  const amount = 50000 + (hash * 1337) % 450000;
+  const balanceDue = amount - (hash * 47) % 15000;
+  const suffix = tid.replace(/\D/g, "").slice(-4) || String(1000 + (hash % 9000));
+  const year = 2026;
+  const month = 1 + (hash % 12);
+  const day = 1 + (hash % 28);
+
+  return {
+    invoiceNumber: `INV-${year}-${suffix}`,
+    invoiceDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+    originalAmount: Math.round(amount * 100) / 100,
+    balanceDue: Math.round(balanceDue * 100) / 100,
+    customerName: customer.name,
+    entity: customer.entity,
+    customerIdPrefix: customer.prefix,
+    customerIdSuffix: suffix,
+    propertyAddress: addresses[i],
+    transactionState: states[i],
+    agentName: agents[hash % agents.length],
+    assignedAnalyst: analysts[hash % analysts.length],
+    dealNotes: `Auto-generated mock data for ${tid}. Replace with Task Center API integration.`,
+  };
 }
 
 export function getAvailableTIDs(): string[] {
