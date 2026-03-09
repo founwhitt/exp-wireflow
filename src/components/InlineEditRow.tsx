@@ -1,0 +1,159 @@
+import { useState } from "react";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { StatusBadge } from "@/components/StatusBadge";
+import { DepartmentBadge } from "@/components/DepartmentBadge";
+import { useUpdateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
+import { toast } from "sonner";
+
+export function InlineEditRow({ record }: { record: WireRecord }) {
+  const update = useUpdateWireRecord();
+
+  const save = (field: string, value: any) => {
+    update.mutate(
+      { id: record.id, [field]: value },
+      {
+        onError: (err: any) => toast.error(`Failed to update ${field}`, { description: err.message }),
+      }
+    );
+  };
+
+  return (
+    <TableRow className="group">
+      <TableCell className="font-mono text-xs font-semibold text-primary">{record.tid}</TableCell>
+      <TableCell>
+        <DepartmentBadge department={record.department} wfAccount={record.wf_account} />
+      </TableCell>
+      <TableCell className="max-w-[120px] truncate text-sm">{record.customer_name}</TableCell>
+      <TableCell className="max-w-[180px] truncate text-sm">{record.property_address}</TableCell>
+      <TableCell className="text-right font-mono text-sm">
+        {record.balance_due != null ? `$${Number(record.balance_due).toLocaleString()}` : "—"}
+      </TableCell>
+      <TableCell className="text-sm">{record.agent_name}</TableCell>
+      <TableCell>
+        <StatusBadge status={record.status} />
+      </TableCell>
+
+      {/* Analyst editable fields */}
+      <TableCell>
+        <EditableText
+          value={record.wiring_institution ?? ""}
+          placeholder="Institution"
+          onSave={(v) => save("wiring_institution", v)}
+        />
+      </TableCell>
+      <TableCell>
+        <EditableText
+          value={record.wiring_date ?? ""}
+          placeholder="YYYY-MM-DD"
+          onSave={(v) => save("wiring_date", v || null)}
+          type="date"
+        />
+      </TableCell>
+      <TableCell className="text-right">
+        <EditableText
+          value={record.adjustments?.toString() ?? "0"}
+          placeholder="0.00"
+          onSave={(v) => save("adjustments", parseFloat(v) || 0)}
+          type="number"
+          className="text-right"
+        />
+      </TableCell>
+
+      {/* Accounting fields — visually separated */}
+      <TableCell className="border-l-2 border-primary/20 bg-primary/5">
+        <Switch
+          checked={record.wire_receipt ?? false}
+          onCheckedChange={(v) => {
+            save("wire_receipt", v);
+            if (v) save("status", "Received");
+          }}
+        />
+      </TableCell>
+      <TableCell className="bg-primary/5">
+        <EditableText
+          value={record.amount_wired?.toString() ?? ""}
+          placeholder="0.00"
+          onSave={(v) => save("amount_wired", parseFloat(v) || null)}
+          type="number"
+          className="text-right"
+        />
+      </TableCell>
+      <TableCell className="bg-primary/5">
+        <EditableText
+          value={record.ar_date_received ?? ""}
+          placeholder="YYYY-MM-DD"
+          onSave={(v) => {
+            save("ar_date_received", v || null);
+            if (v) save("status", "Reconciled");
+          }}
+          type="date"
+        />
+      </TableCell>
+      <TableCell className="bg-primary/5">
+        <EditableText
+          value={record.reconciliation_notes ?? ""}
+          placeholder="Notes..."
+          onSave={(v) => save("reconciliation_notes", v)}
+        />
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function EditableText({
+  value,
+  placeholder,
+  onSave,
+  type = "text",
+  className = "",
+}: {
+  value: string;
+  placeholder: string;
+  onSave: (v: string) => void;
+  type?: string;
+  className?: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [local, setLocal] = useState(value);
+
+  if (!editing) {
+    return (
+      <button
+        className={`w-full min-w-[80px] rounded px-1.5 py-1 text-left text-sm transition-colors hover:bg-muted ${className}`}
+        onClick={() => {
+          setLocal(value);
+          setEditing(true);
+        }}
+      >
+        {value || <span className="text-muted-foreground/50">{placeholder}</span>}
+      </button>
+    );
+  }
+
+  return (
+    <Input
+      type={type}
+      value={local}
+      onChange={(e) => setLocal(e.target.value)}
+      onBlur={() => {
+        setEditing(false);
+        if (local !== value) onSave(local);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          setEditing(false);
+          if (local !== value) onSave(local);
+        }
+        if (e.key === "Escape") {
+          setEditing(false);
+          setLocal(value);
+        }
+      }}
+      autoFocus
+      className={`h-8 min-w-[80px] text-sm ${className}`}
+      placeholder={placeholder}
+    />
+  );
+}
