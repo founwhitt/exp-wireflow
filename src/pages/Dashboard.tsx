@@ -13,6 +13,22 @@ import { InlineEditRow } from "@/components/InlineEditRow";
 
 const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled"];
 
+function exportCSV(rows: any[]) {
+  const headers = ["TID","Department","WF Account","Customer","Property Address","Balance Due","Agent","Status","Wiring Institution","Wiring Date","Adjustments","Wire Receipt","Amount Wired","AR Date Received","Reconciliation Notes"];
+  const keys = ["tid","department","wf_account","customer_name","property_address","balance_due","agent_name","status","wiring_institution","wiring_date","adjustments","wire_receipt","amount_wired","ar_date_received","reconciliation_notes"] as const;
+  const csv = [headers.join(","), ...rows.map(r => keys.map(k => {
+    const v = r[k] ?? "";
+    return `"${String(v).replace(/"/g, '""')}"`;
+  }).join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `wire_records_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function Dashboard() {
   const { data: records, isLoading, error } = useWireRecords();
   const [search, setSearch] = useState("");
