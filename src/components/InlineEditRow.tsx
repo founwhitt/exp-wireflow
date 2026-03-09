@@ -71,13 +71,14 @@ export function InlineEditRow({ record }: { record: WireRecord }) {
           }}
         />
       </TableCell>
-      <TableCell className="bg-primary/5">
+      <TableCell className="bg-primary/5 text-right font-mono text-sm">
         <EditableText
           value={record.amount_wired?.toString() ?? ""}
           placeholder="0.00"
           onSave={(v) => save("amount_wired", parseFloat(v) || null)}
           type="number"
           className="text-right"
+          formatDisplay={(v) => v ? `$${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ""}
         />
       </TableCell>
       <TableCell className="bg-primary/5">
@@ -108,12 +109,14 @@ function EditableText({
   onSave,
   type = "text",
   className = "",
+  formatDisplay,
 }: {
   value: string;
   placeholder: string;
   onSave: (v: string) => void;
   type?: string;
   className?: string;
+  formatDisplay?: (v: string) => string;
 }) {
   const [editing, setEditing] = useState(false);
   const [local, setLocal] = useState(value);
@@ -127,7 +130,7 @@ function EditableText({
           setEditing(true);
         }}
       >
-        {value || <span className="text-muted-foreground/50">{placeholder}</span>}
+        {(formatDisplay ? formatDisplay(value) : value) || <span className="text-muted-foreground/50">{placeholder}</span>}
       </button>
     );
   }
