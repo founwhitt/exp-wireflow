@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_wire_instructions: {
+        Row: {
+          account_holder_address: string
+          account_name: string
+          account_number: string
+          bank_address: string
+          bank_name: string
+          confirmation_phone: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          pdf_path: string | null
+          routing_number: string
+          updated_at: string
+        }
+        Insert: {
+          account_holder_address: string
+          account_name: string
+          account_number: string
+          bank_address: string
+          bank_name: string
+          confirmation_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          pdf_path?: string | null
+          routing_number: string
+          updated_at?: string
+        }
+        Update: {
+          account_holder_address?: string
+          account_name?: string
+          account_number?: string
+          bank_address?: string
+          bank_name?: string
+          confirmation_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          pdf_path?: string | null
+          routing_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
