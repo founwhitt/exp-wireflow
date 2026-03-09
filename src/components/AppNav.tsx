@@ -17,7 +17,7 @@ export function AppNav() {
             <Send className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="text-lg font-bold tracking-tight text-foreground">
-            WireTrack
+            eXp WireFlow
           </span>
         </div>
 
