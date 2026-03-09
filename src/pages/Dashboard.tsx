@@ -93,7 +93,7 @@ export default function Dashboard() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-6 gap-2">
         <SummaryCard label="Total" value={counts.total} active={statusFilter === "All"} onClick={() => setStatusFilter("All")} />
         <SummaryCard label="Pending" value={counts.pending} color="amber" active={statusFilter === "Pending"} onClick={() => setStatusFilter("Pending")} />
         <SummaryCard label="Wired" value={counts.wired} color="blue" active={statusFilter === "Wired"} onClick={() => setStatusFilter("Wired")} />
