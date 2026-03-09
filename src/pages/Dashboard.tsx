@@ -28,6 +28,7 @@ const COLUMNS = [
   { key: "wiring_inst", label: "Wiring Inst." },
   { key: "wiring_date", label: "Wiring Date" },
   { key: "adjustments", label: "Adjustments" },
+  { key: "txn_notes", label: "Deal Notes" },
   { key: "receipt", label: "Receipt" },
   { key: "amt_wired", label: "Amt Wired" },
   { key: "ar_date", label: "AR Date" },
