@@ -31,7 +31,7 @@ function ProtectedRoutes() {
   return (
     <>
       <AppNav />
-      <main className="min-h-[calc(100vh-3.5rem)]">
+      <main className="h-[calc(100vh-3.5rem)] overflow-auto">
         <Routes>
           <Route path="/" element={<NewWire />} />
           <Route path="/dashboard" element={<Dashboard />} />

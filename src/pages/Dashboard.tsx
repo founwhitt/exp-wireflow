@@ -83,16 +83,16 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+    <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Wire Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-lg font-bold tracking-tight text-foreground">Wire Dashboard</h1>
+        <p className="text-xs text-muted-foreground">
           Track all wire records. Analysts edit deal data; Accounting finalizes reconciliation.
         </p>
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-5 gap-2">
         <SummaryCard label="Total" value={counts.total} />
         <SummaryCard label="Pending" value={counts.pending} color="amber" />
         <SummaryCard label="Wired" value={counts.wired} color="blue" />
@@ -101,20 +101,20 @@ export default function Dashboard() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search TID, customer, address, agent..."
-            className="pl-9"
+            className="h-8 pl-9 text-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="h-8 w-[130px] text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -124,31 +124,31 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" size="sm" onClick={() => exportCSV(filtered)} disabled={filtered.length === 0}>
+        <Button variant="outline" size="sm" className="h-8" onClick={() => exportCSV(filtered)} disabled={filtered.length === 0}>
           <Download className="h-4 w-4" />
-          Export CSV
+          Export
         </Button>
       </div>
 
       {/* Data table */}
-      <Card>
-        <CardContent className="p-0">
+      <Card className="min-h-0 flex-1 overflow-hidden">
+        <CardContent className="h-full p-0">
           {isLoading ? (
-            <div className="space-y-2 p-6">
-              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+            <div className="space-y-2 p-4">
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           ) : error ? (
-            <p className="p-6 text-center text-sm text-destructive">Error loading records: {(error as Error).message}</p>
+            <p className="p-4 text-center text-sm text-destructive">Error loading records: {(error as Error).message}</p>
           ) : filtered.length === 0 ? (
-            <p className="p-6 text-center text-sm text-muted-foreground">
+            <p className="p-4 text-center text-sm text-muted-foreground">
               {records?.length === 0 ? "No wire records yet. Create one from the New Wire page." : "No records match your filters."}
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="h-full overflow-auto">
               <ResizableTable colWidths={colWidths} onResize={handleResize}>
                 <TableHeader>
                   <TableRow className="bg-muted/40">
-                    {COLUMNS.map((col, i) => {
+                    {COLUMNS.map((col) => {
                       const isAccounting = ["receipt", "amt_wired", "ar_date", "recon_notes"].includes(col.key);
                       const isRight = ["balance", "adjustments", "amt_wired"].includes(col.key);
                       return (
@@ -192,9 +192,9 @@ function SummaryCard({ label, value, color }: { label: string; value: number; co
   };
   return (
     <Card>
-      <CardContent className="p-4">
-        <p className="text-xs font-medium text-muted-foreground">{label}</p>
-        <p className={`text-2xl font-bold ${color ? colorMap[color] : "text-foreground"}`}>{value}</p>
+      <CardContent className="px-3 py-2">
+        <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
+        <p className={`text-xl font-bold ${color ? colorMap[color] : "text-foreground"}`}>{value}</p>
       </CardContent>
     </Card>
   );
