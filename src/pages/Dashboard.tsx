@@ -83,7 +83,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+    <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Wire Dashboard</h1>
         <p className="text-sm text-muted-foreground">
