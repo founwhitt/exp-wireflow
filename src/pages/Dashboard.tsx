@@ -93,11 +93,11 @@ export default function Dashboard() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-5 gap-2">
-        <SummaryCard label="Total" value={counts.total} />
-        <SummaryCard label="Pending" value={counts.pending} color="amber" />
-        <SummaryCard label="Wired" value={counts.wired} color="blue" />
-        <SummaryCard label="Received" value={counts.received} color="emerald" />
-        <SummaryCard label="Reconciled" value={counts.reconciled} color="purple" />
+        <SummaryCard label="Total" value={counts.total} active={statusFilter === "All"} onClick={() => setStatusFilter("All")} />
+        <SummaryCard label="Pending" value={counts.pending} color="amber" active={statusFilter === "Pending"} onClick={() => setStatusFilter("Pending")} />
+        <SummaryCard label="Wired" value={counts.wired} color="blue" active={statusFilter === "Wired"} onClick={() => setStatusFilter("Wired")} />
+        <SummaryCard label="Received" value={counts.received} color="emerald" active={statusFilter === "Received"} onClick={() => setStatusFilter("Received")} />
+        <SummaryCard label="Reconciled" value={counts.reconciled} color="purple" active={statusFilter === "Reconciled"} onClick={() => setStatusFilter("Reconciled")} />
       </div>
 
       {/* Filters */}
