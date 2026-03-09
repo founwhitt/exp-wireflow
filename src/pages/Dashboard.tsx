@@ -34,7 +34,7 @@ const COLUMNS = [
   { key: "recon_notes", label: "Recon Notes" },
 ];
 
-const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled"];
+const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled", "Other - See Notes"];
 
 function exportCSV(rows: any[]) {
   const headers = ["TID","Department","WF Account","Customer","Property Address","Balance Due","Agent","Status","Wiring Institution","Wiring Date","Adjustments","Wire Receipt","Amount Wired","AR Date Received","Reconciliation Notes"];
