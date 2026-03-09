@@ -34,7 +34,7 @@ const COLUMNS = [
   { key: "recon_notes", label: "Recon Notes" },
 ];
 
-const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled"];
+const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled", "Other - See Notes"];
 
 function exportCSV(rows: any[]) {
   const headers = ["TID","Department","WF Account","Customer","Property Address","Balance Due","Agent","Status","Wiring Institution","Wiring Date","Adjustments","Wire Receipt","Amount Wired","AR Date Received","Reconciliation Notes"];
@@ -80,6 +80,7 @@ export default function Dashboard() {
     wired: records?.filter((r) => r.status === "Wired").length ?? 0,
     received: records?.filter((r) => r.status === "Received").length ?? 0,
     reconciled: records?.filter((r) => r.status === "Reconciled").length ?? 0,
+    other: records?.filter((r) => r.status === "Other - See Notes").length ?? 0,
   };
 
   return (
@@ -92,12 +93,13 @@ export default function Dashboard() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-6 gap-2">
         <SummaryCard label="Total" value={counts.total} active={statusFilter === "All"} onClick={() => setStatusFilter("All")} />
         <SummaryCard label="Pending" value={counts.pending} color="amber" active={statusFilter === "Pending"} onClick={() => setStatusFilter("Pending")} />
         <SummaryCard label="Wired" value={counts.wired} color="blue" active={statusFilter === "Wired"} onClick={() => setStatusFilter("Wired")} />
         <SummaryCard label="Received" value={counts.received} color="emerald" active={statusFilter === "Received"} onClick={() => setStatusFilter("Received")} />
         <SummaryCard label="Reconciled" value={counts.reconciled} color="purple" active={statusFilter === "Reconciled"} onClick={() => setStatusFilter("Reconciled")} />
+        <SummaryCard label="Other" value={counts.other} color="rose" active={statusFilter === "Other - See Notes"} onClick={() => setStatusFilter("Other - See Notes")} />
       </div>
 
       {/* Filters */}
@@ -189,6 +191,7 @@ function SummaryCard({ label, value, color, active, onClick }: { label: string; 
     blue: "text-blue-600",
     emerald: "text-emerald-600",
     purple: "text-purple-600",
+    rose: "text-rose-600",
   };
   return (
     <Card
