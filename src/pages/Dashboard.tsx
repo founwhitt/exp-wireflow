@@ -80,6 +80,7 @@ export default function Dashboard() {
     wired: records?.filter((r) => r.status === "Wired").length ?? 0,
     received: records?.filter((r) => r.status === "Received").length ?? 0,
     reconciled: records?.filter((r) => r.status === "Reconciled").length ?? 0,
+    other: records?.filter((r) => r.status === "Other - See Notes").length ?? 0,
   };
 
   return (
