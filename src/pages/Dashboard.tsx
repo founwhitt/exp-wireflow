@@ -80,6 +80,10 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
         </div>
+        <Button variant="outline" size="sm" onClick={() => exportCSV(filtered)} disabled={filtered.length === 0}>
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Data table */}
