@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -32,7 +33,21 @@ export function InlineEditRow({ record }: { record: WireRecord }) {
       </TableCell>
       <TableCell className="text-sm">{record.agent_name}</TableCell>
       <TableCell>
-        <StatusBadge status={record.status} />
+        <Select
+          value={record.status}
+          onValueChange={(v) => save("status", v)}
+        >
+          <SelectTrigger className="h-8 w-full border-none bg-transparent px-1 text-sm shadow-none hover:bg-muted">
+            <StatusBadge status={record.status} />
+          </SelectTrigger>
+          <SelectContent>
+            {["Pending", "Wired", "Received", "Reconciled"].map((s) => (
+              <SelectItem key={s} value={s}>
+                <StatusBadge status={s} />
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </TableCell>
 
       {/* Analyst editable fields */}
