@@ -21,7 +21,7 @@ export function InlineEditRow({ record }: { record: WireRecord }) {
 
   return (
     <TableRow className="group">
-      <TableCell className="font-mono text-xs font-semibold text-primary">{record.tid}</TableCell>
+      <TableCell className="font-mono text-sm font-semibold text-primary">{record.tid}</TableCell>
       <TableCell>
         <DepartmentBadge department={record.department} wfAccount={record.wf_account} />
       </TableCell>

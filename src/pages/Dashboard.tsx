@@ -193,8 +193,8 @@ function SummaryCard({ label, value, color }: { label: string; value: number; co
   return (
     <Card>
       <CardContent className="px-3 py-2">
-        <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
-        <p className={`text-xl font-bold ${color ? colorMap[color] : "text-foreground"}`}>{value}</p>
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+        <p className={`text-2xl font-bold ${color ? colorMap[color] : "text-foreground"}`}>{value}</p>
       </CardContent>
     </Card>
   );
