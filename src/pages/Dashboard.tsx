@@ -176,9 +176,42 @@ export default function Dashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((record) => (
-                    <InlineEditRow key={record.id} record={record} />
-                  ))}
+                  {filtered3694.length > 0 && (
+                    <>
+                      <TableRow>
+                        <TableCell colSpan={COLUMNS.length} className="bg-blue-50 py-2 font-semibold text-blue-800 border-b-2 border-blue-200">
+                          WF Account 3694 ({filtered3694.length} records)
+                        </TableCell>
+                      </TableRow>
+                      {filtered3694.map((record) => (
+                        <InlineEditRow key={record.id} record={record} />
+                      ))}
+                    </>
+                  )}
+                  {filtered8022.length > 0 && (
+                    <>
+                      <TableRow>
+                        <TableCell colSpan={COLUMNS.length} className="bg-emerald-50 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-200">
+                          WF Account 8022 ({filtered8022.length} records)
+                        </TableCell>
+                      </TableRow>
+                      {filtered8022.map((record) => (
+                        <InlineEditRow key={record.id} record={record} />
+                      ))}
+                    </>
+                  )}
+                  {filteredOther.length > 0 && (
+                    <>
+                      <TableRow>
+                        <TableCell colSpan={COLUMNS.length} className="bg-muted/60 py-2 font-semibold text-muted-foreground border-b-2 border-muted">
+                          Other Accounts ({filteredOther.length} records)
+                        </TableCell>
+                      </TableRow>
+                      {filteredOther.map((record) => (
+                        <InlineEditRow key={record.id} record={record} />
+                      ))}
+                    </>
+                  )}
                 </TableBody>
               </ResizableTable>
             </div>
