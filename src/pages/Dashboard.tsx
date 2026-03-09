@@ -85,8 +85,8 @@ export default function Dashboard() {
   return (
     <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
       <div>
-        <h1 className="text-lg font-bold tracking-tight text-foreground">Wire Dashboard</h1>
-        <p className="text-xs text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Wire Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
           Track all wire records. Analysts edit deal data; Accounting finalizes reconciliation.
         </p>
       </div>
@@ -193,8 +193,8 @@ function SummaryCard({ label, value, color }: { label: string; value: number; co
   return (
     <Card>
       <CardContent className="px-3 py-2">
-        <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
-        <p className={`text-xl font-bold ${color ? colorMap[color] : "text-foreground"}`}>{value}</p>
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+        <p className={`text-2xl font-bold ${color ? colorMap[color] : "text-foreground"}`}>{value}</p>
       </CardContent>
     </Card>
   );
