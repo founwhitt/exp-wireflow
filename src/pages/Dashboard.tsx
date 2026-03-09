@@ -99,6 +99,7 @@ export default function Dashboard() {
         <SummaryCard label="Wired" value={counts.wired} color="blue" active={statusFilter === "Wired"} onClick={() => setStatusFilter("Wired")} />
         <SummaryCard label="Received" value={counts.received} color="emerald" active={statusFilter === "Received"} onClick={() => setStatusFilter("Received")} />
         <SummaryCard label="Reconciled" value={counts.reconciled} color="purple" active={statusFilter === "Reconciled"} onClick={() => setStatusFilter("Reconciled")} />
+        <SummaryCard label="Other" value={counts.other} color="rose" active={statusFilter === "Other - See Notes"} onClick={() => setStatusFilter("Other - See Notes")} />
       </div>
 
       {/* Filters */}
