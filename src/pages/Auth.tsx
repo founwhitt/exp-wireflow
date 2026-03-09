@@ -53,7 +53,7 @@ export default function Auth() {
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
             <Send className="h-6 w-6 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">WireTrack</CardTitle>
+          <CardTitle className="text-2xl">eXp WireFlow</CardTitle>
           <CardDescription>
             {isSignUp ? "Create an account to get started" : "Sign in to your account"}
           </CardDescription>
