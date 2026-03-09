@@ -14,7 +14,7 @@ import { InlineEditRow } from "@/components/InlineEditRow";
 const DEFAULT_COL_WIDTHS: Record<string, number> = {
   tid: 100, department: 130, customer: 130, address: 180, balance: 110,
   agent: 110, status: 100, wiring_inst: 130, wiring_date: 120, adjustments: 100,
-  receipt: 80, amt_wired: 110, ar_date: 120, recon_notes: 160,
+  txn_notes: 160, receipt: 80, amt_wired: 110, ar_date: 120, recon_notes: 160,
 };
 
 const COLUMNS = [
@@ -28,6 +28,7 @@ const COLUMNS = [
   { key: "wiring_inst", label: "Wiring Inst." },
   { key: "wiring_date", label: "Wiring Date" },
   { key: "adjustments", label: "Adjustments" },
+  { key: "txn_notes", label: "Deal Notes" },
   { key: "receipt", label: "Receipt" },
   { key: "amt_wired", label: "Amt Wired" },
   { key: "ar_date", label: "AR Date" },

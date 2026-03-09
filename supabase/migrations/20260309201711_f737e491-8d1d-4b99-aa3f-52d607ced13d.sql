@@ -1,0 +1,1 @@
+ALTER TABLE public.wire_records ADD COLUMN IF NOT EXISTS transaction_notes text;

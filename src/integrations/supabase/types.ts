@@ -131,6 +131,7 @@ export type Database = {
           reconciliation_notes: string | null
           status: string
           tid: string
+          transaction_notes: string | null
           transaction_state: string | null
           updated_at: string
           wf_account: string
@@ -164,6 +165,7 @@ export type Database = {
           reconciliation_notes?: string | null
           status?: string
           tid: string
+          transaction_notes?: string | null
           transaction_state?: string | null
           updated_at?: string
           wf_account: string
@@ -197,6 +199,7 @@ export type Database = {
           reconciliation_notes?: string | null
           status?: string
           tid?: string
+          transaction_notes?: string | null
           transaction_state?: string | null
           updated_at?: string
           wf_account?: string
