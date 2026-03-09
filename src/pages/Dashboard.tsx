@@ -56,6 +56,11 @@ export default function Dashboard() {
   const { data: records, isLoading, error } = useWireRecords();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [colWidths, setColWidths] = useState<Record<string, number>>({ ...DEFAULT_COL_WIDTHS });
+
+  const handleResize = useCallback((key: string, width: number) => {
+    setColWidths((prev) => ({ ...prev, [key]: Math.max(50, width) }));
+  }, []);
 
   const filtered = (records ?? []).filter((r) => {
     const matchesStatus = statusFilter === "All" || r.status === statusFilter;
