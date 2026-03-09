@@ -9,6 +9,7 @@ import NewWire from "./pages/NewWire";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import AdminUsers from "./pages/AdminUsers";
+import AdminWireInstructions from "./pages/AdminWireInstructions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ function ProtectedRoutes() {
           <Route path="/" element={<NewWire />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/wire-instructions" element={<AdminWireInstructions />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
