@@ -183,7 +183,7 @@ export default function Dashboard() {
   );
 }
 
-function SummaryCard({ label, value, color }: { label: string; value: number; color?: string }) {
+function SummaryCard({ label, value, color, active, onClick }: { label: string; value: number; color?: string; active?: boolean; onClick?: () => void }) {
   const colorMap: Record<string, string> = {
     amber: "text-amber-600",
     blue: "text-blue-600",
@@ -191,7 +191,10 @@ function SummaryCard({ label, value, color }: { label: string; value: number; co
     purple: "text-purple-600",
   };
   return (
-    <Card>
+    <Card
+      className={`cursor-pointer transition-all hover:shadow-md ${active ? "ring-2 ring-primary shadow-md" : ""}`}
+      onClick={onClick}
+    >
       <CardContent className="px-3 py-2">
         <p className="text-xs font-medium text-muted-foreground">{label}</p>
         <p className={`text-2xl font-bold ${color ? colorMap[color] : "text-foreground"}`}>{value}</p>
