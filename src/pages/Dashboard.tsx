@@ -140,25 +140,28 @@ export default function Dashboard() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <ResizableTable colWidths={colWidths} onResize={handleResize}>
                 <TableHeader>
                   <TableRow className="bg-muted/40">
-                    <TableHead className="w-[100px]">TID</TableHead>
-                    <TableHead>Department</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Property Address</TableHead>
-                    <TableHead className="text-right">Balance Due</TableHead>
-                    <TableHead>Agent</TableHead>
-                    <TableHead>Status</TableHead>
-                    {/* Analyst post-send */}
-                    <TableHead>Wiring Inst.</TableHead>
-                    <TableHead>Wiring Date</TableHead>
-                    <TableHead className="text-right">Adjustments</TableHead>
-                    {/* Accounting */}
-                    <TableHead className="border-l-2 border-primary/20 bg-primary/5">Receipt</TableHead>
-                    <TableHead className="bg-primary/5 text-right">Amt Wired</TableHead>
-                    <TableHead className="bg-primary/5">AR Date</TableHead>
-                    <TableHead className="bg-primary/5">Recon Notes</TableHead>
+                    {COLUMNS.map((col, i) => {
+                      const isAccounting = ["receipt", "amt_wired", "ar_date", "recon_notes"].includes(col.key);
+                      const isRight = ["balance", "adjustments", "amt_wired"].includes(col.key);
+                      return (
+                        <ResizableTableHead
+                          key={col.key}
+                          colKey={col.key}
+                          width={colWidths[col.key]}
+                          onResize={handleResize}
+                          className={[
+                            isAccounting && col.key === "receipt" ? "border-l-2 border-primary/20 bg-primary/5" : "",
+                            isAccounting && col.key !== "receipt" ? "bg-primary/5" : "",
+                            isRight ? "text-right" : "",
+                          ].filter(Boolean).join(" ")}
+                        >
+                          {col.label}
+                        </ResizableTableHead>
+                      );
+                    })}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -166,7 +169,7 @@ export default function Dashboard() {
                     <InlineEditRow key={record.id} record={record} />
                   ))}
                 </TableBody>
-              </Table>
+              </ResizableTable>
             </div>
           )}
         </CardContent>
