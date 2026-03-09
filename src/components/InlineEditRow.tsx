@@ -28,7 +28,7 @@ export function InlineEditRow({ record }: { record: WireRecord }) {
       <TableCell className="max-w-[120px] truncate text-sm">{record.customer_name}</TableCell>
       <TableCell className="max-w-[180px] truncate text-sm">{record.property_address}</TableCell>
       <TableCell className="text-right font-mono text-sm">
-        {record.balance_due != null ? `$${Number(record.balance_due).toLocaleString()}` : "—"}
+        {record.balance_due != null ? `$${Number(record.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
       </TableCell>
       <TableCell className="text-sm">{record.agent_name}</TableCell>
       <TableCell>
