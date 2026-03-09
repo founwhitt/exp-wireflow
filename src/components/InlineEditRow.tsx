@@ -76,6 +76,15 @@ export function InlineEditRow({ record }: { record: WireRecord }) {
         />
       </TableCell>
 
+      {/* Deal/Transaction Notes — analyst field */}
+      <TableCell>
+        <EditableText
+          value={record.transaction_notes ?? ""}
+          placeholder="Notes..."
+          onSave={(v) => save("transaction_notes", v)}
+        />
+      </TableCell>
+
       {/* Accounting fields — visually separated */}
       <TableCell className="border-l-2 border-primary/20 bg-primary/5">
         <Switch
