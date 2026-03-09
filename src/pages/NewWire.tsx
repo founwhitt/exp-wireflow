@@ -12,13 +12,15 @@ import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircl
 import { toast } from "sonner";
 import { lookupTID, type TIDData } from "@/lib/mock-data";
 import { type Department, DEPARTMENTS, getWFAccount } from "@/lib/department-config";
-import { getWireInstructions, formatEmailBody } from "@/lib/wire-instructions";
+import { getWireInstructions, formatEmailBody, type WireInstructionDetails } from "@/lib/wire-instructions";
 import { useCreateWireRecord } from "@/hooks/useWireRecords";
+import { useCustomWireInstructions, type CustomWireInstruction } from "@/hooks/useCustomWireInstructions";
 import { EmailPreviewDialog } from "@/components/EmailPreviewDialog";
 
 export default function NewWire() {
   const navigate = useNavigate();
   const createRecord = useCreateWireRecord();
+  const { data: customInstructions } = useCustomWireInstructions();
   const [department, setDepartment] = useState<Department | "">("");
   const [tid, setTid] = useState("");
   const [tidData, setTidData] = useState<TIDData | null>(null);
@@ -26,6 +28,7 @@ export default function NewWire() {
   const [lookupError, setLookupError] = useState("");
   const [testMode, setTestMode] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedCustomId, setSelectedCustomId] = useState("");
 
   const handleLookup = () => {
     setLookupError("");
@@ -44,7 +47,35 @@ export default function NewWire() {
   };
 
   const wfAccount = department ? getWFAccount(department as Department) : null;
-  const wireDetails = wfAccount ? getWireInstructions(wfAccount) : null;
+  const isCustom = wfAccount === "custom";
+
+  const selectedCustom = isCustom
+    ? customInstructions?.find((c) => c.id === selectedCustomId) ?? null
+    : null;
+
+  // Build wireDetails from either built-in or custom
+  let wireDetails: WireInstructionDetails | null = null;
+  let pdfFileName = "";
+
+  if (wfAccount && wfAccount !== "custom") {
+    wireDetails = getWireInstructions(wfAccount as "8022" | "3694");
+    pdfFileName = wfAccount === "8022" ? "8022_wire_instructions.pdf" : "3694_wire_instructions.pdf";
+  } else if (selectedCustom) {
+    wireDetails = {
+      accountNumber: selectedCustom.account_number,
+      accountLabel: selectedCustom.name,
+      bankName: selectedCustom.bank_name,
+      bankAddress: selectedCustom.bank_address,
+      accountName: selectedCustom.account_name,
+      accountHolderAddress: selectedCustom.account_holder_address,
+      routingNumber: selectedCustom.routing_number,
+      confirmationPhone: selectedCustom.confirmation_phone ?? "",
+      pdfPath: selectedCustom.pdf_path ?? "",
+    };
+    pdfFileName = selectedCustom.pdf_path
+      ? selectedCustom.pdf_path.split("/").pop() ?? "custom_wire_instructions.pdf"
+      : "No PDF attached";
+  }
 
   const emailBody = tidData && wireDetails
     ? formatEmailBody({
@@ -62,6 +93,10 @@ export default function NewWire() {
       toast.error("Please select a department and look up a TID first");
       return;
     }
+    if (isCustom && !selectedCustom) {
+      toast.error("Please select a custom wire instruction");
+      return;
+    }
     if (!emailRecipient.trim()) {
       toast.error("Please enter an email recipient");
       return;
@@ -70,13 +105,15 @@ export default function NewWire() {
   };
 
   const handleConfirmSend = async () => {
-    if (!department || !tidData || !wfAccount) return;
+    if (!department || !tidData) return;
+
+    const effectiveWfAccount = isCustom ? (selectedCustom?.account_number ?? "custom") : (wfAccount as string);
 
     try {
       await createRecord.mutateAsync({
         tid: tid.toUpperCase().trim(),
         department,
-        wf_account: wfAccount,
+        wf_account: effectiveWfAccount,
         invoice_number: tidData.invoiceNumber,
         invoice_date: tidData.invoiceDate,
         original_amount: tidData.originalAmount,
@@ -113,9 +150,7 @@ export default function NewWire() {
     }
   };
 
-  const pdfFileName = wfAccount === "8022"
-    ? "8022_wire_instructions.pdf"
-    : "3694_wire_instructions.pdf";
+  const canDispatch = tidData && department && (!isCustom || selectedCustom) && wireDetails;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
@@ -154,13 +189,16 @@ export default function NewWire() {
             <Building2 className="h-5 w-5 text-primary" />
             Department & TID Lookup
           </CardTitle>
-          <CardDescription>Choose the department to determine the correct Wells Fargo account.</CardDescription>
+          <CardDescription>Choose the department to determine the correct wire instructions.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Department</Label>
-              <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
+              <Select value={department} onValueChange={(v) => {
+                setDepartment(v as Department);
+                setSelectedCustomId("");
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select department..." />
                 </SelectTrigger>
@@ -172,7 +210,7 @@ export default function NewWire() {
                   ))}
                 </SelectContent>
               </Select>
-              {department && (
+              {department && !isCustom && (
                 <Badge variant="secondary" className="font-mono text-xs">
                   → {DEPARTMENTS[department as Department].accountLabel}
                 </Badge>
@@ -200,6 +238,42 @@ export default function NewWire() {
               )}
             </div>
           </div>
+
+          {/* Custom instruction selector */}
+          {isCustom && (
+            <div className="space-y-2 rounded-md border border-primary/20 bg-accent p-4">
+              <Label className="text-sm font-semibold">Select Custom Wire Instructions</Label>
+              {!customInstructions?.length ? (
+                <p className="text-sm text-muted-foreground">
+                  No custom instructions available. An admin must first add them via the Wire Instructions page.
+                </p>
+              ) : (
+                <Select value={selectedCustomId} onValueChange={setSelectedCustomId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose custom wire instructions..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customInstructions.map((ci) => (
+                      <SelectItem key={ci.id} value={ci.id}>
+                        {ci.name} — {ci.bank_name} (••{ci.account_number.slice(-4)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {selectedCustom && (
+                <div className="mt-2 rounded-md border bg-muted/30 p-3 text-sm space-y-1">
+                  <p className="font-semibold text-foreground">{selectedCustom.name}</p>
+                  <p className="text-muted-foreground">
+                    Routing: {selectedCustom.routing_number} · Account: {selectedCustom.account_number}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {selectedCustom.bank_name}, {selectedCustom.bank_address}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -259,7 +333,7 @@ export default function NewWire() {
       )}
 
       {/* Step 3: Send */}
-      {tidData && department && (
+      {canDispatch && (
         <Card className="border-primary/20">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -269,9 +343,9 @@ export default function NewWire() {
             <CardDescription>
               Email will include TID, property address, agent name, fee disclosure, and the{" "}
               <span className="font-semibold text-foreground">
-                {DEPARTMENTS[department as Department].accountLabel}
+                {wireDetails?.accountLabel}
               </span>{" "}
-              PDF attachment.
+              {wireDetails?.pdfPath ? "PDF attachment" : "details"}.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -287,7 +361,7 @@ export default function NewWire() {
 
             {wireDetails && (
               <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
-                <p className="font-semibold text-foreground">Attached PDF: {wireDetails.accountLabel}</p>
+                <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
                 <p className="text-muted-foreground">
                   Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
                 </p>

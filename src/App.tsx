@@ -37,6 +37,7 @@ function ProtectedRoutes() {
           <Route path="/" element={<NewWire />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/wire-instructions" element={<AdminWireInstructions />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
