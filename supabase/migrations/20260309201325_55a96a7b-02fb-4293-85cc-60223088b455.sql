@@ -1,0 +1,2 @@
+ALTER TABLE public.wire_records DROP CONSTRAINT wire_records_status_check;
+ALTER TABLE public.wire_records ADD CONSTRAINT wire_records_status_check CHECK (status IN ('Pending', 'Wired', 'Received', 'Reconciled', 'Other - See Notes'));
