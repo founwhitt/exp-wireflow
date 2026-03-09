@@ -130,7 +130,7 @@ function EditableText({
           setEditing(true);
         }}
       >
-        {value || <span className="text-muted-foreground/50">{placeholder}</span>}
+        {(formatDisplay ? formatDisplay(value) : value) || <span className="text-muted-foreground/50">{placeholder}</span>}
       </button>
     );
   }
