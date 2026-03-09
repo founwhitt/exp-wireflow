@@ -74,6 +74,10 @@ export default function Dashboard() {
     return matchesStatus && matchesSearch;
   });
 
+  const filtered3694 = filtered.filter((r) => r.wf_account === "3694");
+  const filtered8022 = filtered.filter((r) => r.wf_account === "8022");
+  const filteredOther = filtered.filter((r) => r.wf_account !== "3694" && r.wf_account !== "8022");
+
   const counts = {
     total: records?.length ?? 0,
     pending: records?.filter((r) => r.status === "Pending").length ?? 0,
