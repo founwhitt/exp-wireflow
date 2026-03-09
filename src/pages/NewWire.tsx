@@ -4,15 +4,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { lookupTID, type TIDData } from "@/lib/mock-data";
 import { type Department, DEPARTMENTS, getWFAccount } from "@/lib/department-config";
+import { getWireInstructions, formatEmailBody } from "@/lib/wire-instructions";
 import { useCreateWireRecord } from "@/hooks/useWireRecords";
+import { EmailPreviewDialog } from "@/components/EmailPreviewDialog";
 
 export default function NewWire() {
   const navigate = useNavigate();
@@ -22,6 +24,8 @@ export default function NewWire() {
   const [tidData, setTidData] = useState<TIDData | null>(null);
   const [emailRecipient, setEmailRecipient] = useState("");
   const [lookupError, setLookupError] = useState("");
+  const [testMode, setTestMode] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleLookup = () => {
     setLookupError("");
@@ -39,7 +43,21 @@ export default function NewWire() {
     toast.success("Deal data loaded successfully");
   };
 
-  const handleSend = async () => {
+  const wfAccount = department ? getWFAccount(department as Department) : null;
+  const wireDetails = wfAccount ? getWireInstructions(wfAccount) : null;
+
+  const emailBody = tidData && wireDetails
+    ? formatEmailBody({
+        tid: tid.toUpperCase().trim(),
+        propertyAddress: tidData.propertyAddress,
+        agentName: tidData.agentName,
+        balanceDue: tidData.balanceDue,
+        customerName: tidData.customerName,
+        wire: wireDetails,
+      })
+    : "";
+
+  const handlePreviewOrSend = () => {
     if (!department || !tidData) {
       toast.error("Please select a department and look up a TID first");
       return;
@@ -48,8 +66,11 @@ export default function NewWire() {
       toast.error("Please enter an email recipient");
       return;
     }
+    setShowPreview(true);
+  };
 
-    const wfAccount = getWFAccount(department as Department);
+  const handleConfirmSend = async () => {
+    if (!department || !tidData || !wfAccount) return;
 
     try {
       await createRecord.mutateAsync({
@@ -69,31 +90,62 @@ export default function NewWire() {
         agent_name: tidData.agentName,
         assigned_analyst: tidData.assignedAnalyst,
         deal_notes: tidData.dealNotes,
-        email_sent: true,
-        email_sent_at: new Date().toISOString(),
+        email_sent: !testMode,
+        email_sent_at: testMode ? null : new Date().toISOString(),
         email_recipient: emailRecipient,
         status: "Pending",
       });
 
-      toast.success("Wire instructions sent and record created!", {
-        description: `Sent to ${emailRecipient} with WF Account ${wfAccount} instructions.`,
-      });
+      setShowPreview(false);
+
+      if (testMode) {
+        toast.success("Test record saved successfully!", {
+          description: `Mock record created for ${tid.toUpperCase()}. No email was sent.`,
+        });
+      } else {
+        toast.success("Wire instructions sent and record created!", {
+          description: `Sent to ${emailRecipient} with ${wireDetails?.accountLabel} instructions.`,
+        });
+      }
       navigate("/dashboard");
     } catch (err: any) {
       toast.error("Failed to create wire record", { description: err.message });
     }
   };
 
-  const wfAccount = department ? getWFAccount(department as Department) : null;
+  const pdfFileName = wfAccount === "8022"
+    ? "8022_wire_instructions.pdf"
+    : "3694_wire_instructions.pdf";
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">New Wire Instructions</h1>
-        <p className="text-sm text-muted-foreground">
-          Select department, look up the TID, and dispatch wire instructions.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">New Wire Instructions</h1>
+          <p className="text-sm text-muted-foreground">
+            Select department, look up the TID, and dispatch wire instructions.
+          </p>
+        </div>
+
+        {/* Test Mode Toggle */}
+        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          <FlaskConical className="h-4 w-4 text-amber-600" />
+          <Label htmlFor="test-mode" className="text-sm font-medium text-amber-800 cursor-pointer">
+            Test Mode
+          </Label>
+          <Switch
+            id="test-mode"
+            checked={testMode}
+            onCheckedChange={setTestMode}
+          />
+        </div>
       </div>
+
+      {testMode && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <strong>🧪 Test Mode Active</strong> — Records will be saved to the dashboard but no emails will actually be sent. You'll see a full preview of the email before saving.
+        </div>
+      )}
 
       {/* Step 1: Department + TID */}
       <Card>
@@ -151,7 +203,7 @@ export default function NewWire() {
         </CardContent>
       </Card>
 
-      {/* Step 2: Deal Data (populated from TID lookup) */}
+      {/* Step 2: Deal Data */}
       {tidData && (
         <Card>
           <CardHeader className="pb-4">
@@ -162,7 +214,6 @@ export default function NewWire() {
             <CardDescription>Auto-populated from Task Center. Review before sending.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Financials */}
             <div>
               <h4 className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground">
                 <DollarSign className="h-3.5 w-3.5" /> Financials
@@ -174,10 +225,7 @@ export default function NewWire() {
                 <Field label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
               </div>
             </div>
-
             <Separator />
-
-            {/* Identity */}
             <div>
               <h4 className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground">
                 <User className="h-3.5 w-3.5" /> Identity
@@ -189,10 +237,7 @@ export default function NewWire() {
                 <Field label="ID Suffix" value={tidData.customerIdSuffix} />
               </div>
             </div>
-
             <Separator />
-
-            {/* Logistics */}
             <div>
               <h4 className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5" /> Logistics
@@ -204,10 +249,7 @@ export default function NewWire() {
                 <Field label="Assigned Analyst" value={tidData.assignedAnalyst} />
               </div>
             </div>
-
             <Separator />
-
-            {/* Notes */}
             <div>
               <Label className="text-xs text-muted-foreground">Notes</Label>
               <p className="mt-1 rounded-md bg-muted/50 p-3 text-sm text-foreground">{tidData.dealNotes}</p>
@@ -243,6 +285,18 @@ export default function NewWire() {
               />
             </div>
 
+            {wireDetails && (
+              <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
+                <p className="font-semibold text-foreground">Attached PDF: {wireDetails.accountLabel}</p>
+                <p className="text-muted-foreground">
+                  Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
+                </p>
+                <p className="text-muted-foreground">
+                  {wireDetails.bankName}, {wireDetails.bankAddress}
+                </p>
+              </div>
+            )}
+
             <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
               <strong>Fee Disclosure:</strong> All bank fees (wire transfer fees) are to be paid by the
               Originator (remitter). This will be included in the email body.
@@ -250,22 +304,39 @@ export default function NewWire() {
 
             <Button
               size="lg"
-              onClick={handleSend}
+              onClick={handlePreviewOrSend}
               disabled={createRecord.isPending}
               className="w-full"
+              variant={testMode ? "secondary" : "default"}
             >
-              {createRecord.isPending ? (
-                "Sending..."
+              {testMode ? (
+                <>
+                  <FlaskConical className="mr-2 h-4 w-4" />
+                  Preview & Test
+                </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Send Wire Instructions
+                  Preview & Send
                 </>
               )}
             </Button>
           </CardContent>
         </Card>
       )}
+
+      {/* Email Preview Dialog */}
+      <EmailPreviewDialog
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        onConfirmSend={handleConfirmSend}
+        isSending={createRecord.isPending}
+        isTestMode={testMode}
+        recipientEmail={emailRecipient}
+        emailBody={emailBody}
+        pdfFileName={pdfFileName}
+        accountLabel={wireDetails?.accountLabel ?? ""}
+      />
     </div>
   );
 }
