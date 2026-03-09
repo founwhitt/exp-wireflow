@@ -109,12 +109,14 @@ function EditableText({
   onSave,
   type = "text",
   className = "",
+  formatDisplay,
 }: {
   value: string;
   placeholder: string;
   onSave: (v: string) => void;
   type?: string;
   className?: string;
+  formatDisplay?: (v: string) => string;
 }) {
   const [editing, setEditing] = useState(false);
   const [local, setLocal] = useState(value);
