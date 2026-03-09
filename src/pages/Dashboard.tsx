@@ -199,3 +199,71 @@ function SummaryCard({ label, value, color }: { label: string; value: number; co
     </Card>
   );
 }
+
+function ResizableTable({
+  colWidths,
+  children,
+}: {
+  colWidths: Record<string, number>;
+  onResize: (key: string, width: number) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <table className="w-full caption-bottom text-sm" style={{ tableLayout: "fixed", minWidth: Object.values(colWidths).reduce((a, b) => a + b, 0) }}>
+      <colgroup>
+        {COLUMNS.map((col) => (
+          <col key={col.key} style={{ width: colWidths[col.key] }} />
+        ))}
+      </colgroup>
+      {children}
+    </table>
+  );
+}
+
+function ResizableTableHead({
+  colKey,
+  width,
+  onResize,
+  className = "",
+  children,
+}: {
+  colKey: string;
+  width: number;
+  onResize: (key: string, width: number) => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const startX = useRef(0);
+  const startW = useRef(0);
+
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      startX.current = e.clientX;
+      startW.current = width;
+      const onMouseMove = (ev: MouseEvent) => {
+        onResize(colKey, startW.current + (ev.clientX - startX.current));
+      };
+      const onMouseUp = () => {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+      };
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    },
+    [colKey, width, onResize]
+  );
+
+  return (
+    <th
+      className={`relative h-12 px-4 text-left align-middle font-medium text-muted-foreground select-none ${className}`}
+      style={{ width }}
+    >
+      <span className="truncate block">{children}</span>
+      <div
+        onMouseDown={onMouseDown}
+        className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 transition-colors"
+      />
+    </th>
+  );
+}
