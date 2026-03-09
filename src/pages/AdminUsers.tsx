@@ -53,7 +53,7 @@ export default function AdminUsers() {
   const handleRoleChange = async (userId: string, roleId: string, newRole: string) => {
     const { error } = await supabase
       .from("user_roles")
-      .update({ role: newRole })
+      .update({ role: newRole as "admin" | "user" })
       .eq("id", roleId);
 
     if (error) {
