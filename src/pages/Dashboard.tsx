@@ -131,24 +131,24 @@ export default function Dashboard() {
       </div>
 
       {/* Data table */}
-      <Card>
-        <CardContent className="p-0">
+      <Card className="min-h-0 flex-1 overflow-hidden">
+        <CardContent className="h-full p-0">
           {isLoading ? (
-            <div className="space-y-2 p-6">
-              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+            <div className="space-y-2 p-4">
+              {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           ) : error ? (
-            <p className="p-6 text-center text-sm text-destructive">Error loading records: {(error as Error).message}</p>
+            <p className="p-4 text-center text-sm text-destructive">Error loading records: {(error as Error).message}</p>
           ) : filtered.length === 0 ? (
-            <p className="p-6 text-center text-sm text-muted-foreground">
+            <p className="p-4 text-center text-sm text-muted-foreground">
               {records?.length === 0 ? "No wire records yet. Create one from the New Wire page." : "No records match your filters."}
             </p>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="h-full overflow-auto">
               <ResizableTable colWidths={colWidths} onResize={handleResize}>
                 <TableHeader>
                   <TableRow className="bg-muted/40">
-                    {COLUMNS.map((col, i) => {
+                    {COLUMNS.map((col) => {
                       const isAccounting = ["receipt", "amt_wired", "ar_date", "recon_notes"].includes(col.key);
                       const isRight = ["balance", "adjustments", "amt_wired"].includes(col.key);
                       return (
