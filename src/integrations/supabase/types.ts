@@ -14,7 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      wire_records: {
+        Row: {
+          adjustment_type: string | null
+          adjustments: number | null
+          agent_name: string | null
+          amount_wired: number | null
+          ar_date_received: string | null
+          assigned_analyst: string | null
+          balance_due: number | null
+          created_at: string
+          customer_id_prefix: string | null
+          customer_id_suffix: string | null
+          customer_name: string | null
+          deal_notes: string | null
+          department: string
+          email_recipient: string | null
+          email_sent: boolean | null
+          email_sent_at: string | null
+          entity: string | null
+          id: string
+          invoice_date: string | null
+          invoice_number: string | null
+          original_amount: number | null
+          property_address: string | null
+          reconciliation_notes: string | null
+          status: string
+          tid: string
+          transaction_state: string | null
+          updated_at: string
+          wf_account: string
+          wire_receipt: boolean | null
+          wiring_date: string | null
+          wiring_institution: string | null
+        }
+        Insert: {
+          adjustment_type?: string | null
+          adjustments?: number | null
+          agent_name?: string | null
+          amount_wired?: number | null
+          ar_date_received?: string | null
+          assigned_analyst?: string | null
+          balance_due?: number | null
+          created_at?: string
+          customer_id_prefix?: string | null
+          customer_id_suffix?: string | null
+          customer_name?: string | null
+          deal_notes?: string | null
+          department: string
+          email_recipient?: string | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          entity?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          original_amount?: number | null
+          property_address?: string | null
+          reconciliation_notes?: string | null
+          status?: string
+          tid: string
+          transaction_state?: string | null
+          updated_at?: string
+          wf_account: string
+          wire_receipt?: boolean | null
+          wiring_date?: string | null
+          wiring_institution?: string | null
+        }
+        Update: {
+          adjustment_type?: string | null
+          adjustments?: number | null
+          agent_name?: string | null
+          amount_wired?: number | null
+          ar_date_received?: string | null
+          assigned_analyst?: string | null
+          balance_due?: number | null
+          created_at?: string
+          customer_id_prefix?: string | null
+          customer_id_suffix?: string | null
+          customer_name?: string | null
+          deal_notes?: string | null
+          department?: string
+          email_recipient?: string | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
+          entity?: string | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          original_amount?: number | null
+          property_address?: string | null
+          reconciliation_notes?: string | null
+          status?: string
+          tid?: string
+          transaction_state?: string | null
+          updated_at?: string
+          wf_account?: string
+          wire_receipt?: boolean | null
+          wiring_date?: string | null
+          wiring_institution?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
