@@ -112,7 +112,7 @@ export default function NewWire() {
     const effectiveWfAccount = isCustom ? (selectedCustom?.account_number ?? "custom") : (wfAccount as string);
 
     try {
-      await createRecord.mutateAsync({
+      const result = await createRecord.mutateAsync({
         tid: tid.toUpperCase().trim(),
         department,
         wf_account: effectiveWfAccount,
@@ -147,7 +147,7 @@ export default function NewWire() {
           description: `Sent to ${emailRecipient} with ${wireDetails?.accountLabel} instructions.`,
         });
       }
-      navigate("/dashboard");
+      navigate("/dashboard", { state: { highlightWireId: result?.id } });
     } catch (err: any) {
       toast.error("Failed to create wire record", { description: err.message });
     }

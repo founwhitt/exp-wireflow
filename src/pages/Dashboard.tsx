@@ -1,16 +1,19 @@
-import { useState, useRef, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, Download, GripVertical } from "lucide-react";
+import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DepartmentBadge } from "@/components/DepartmentBadge";
 import { useWireRecords, type WireRecord } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
 import { WireDetailDialog } from "@/components/WireDetailDialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const DEFAULT_COL_WIDTHS: Record<string, number> = {
   tid: 100, department: 130, sent_by: 120, customer: 130, address: 180, balance: 110,
@@ -18,26 +21,32 @@ const DEFAULT_COL_WIDTHS: Record<string, number> = {
   txn_notes: 160, receipt: 80, amt_wired: 110, ar_date: 120, recon_notes: 160,
 };
 
-const COLUMNS = [
-  { key: "tid", label: "TID" },
-  { key: "department", label: "Department" },
-  { key: "sent_by", label: "Sent By" },
-  { key: "customer", label: "Customer" },
-  { key: "address", label: "Property Address" },
-  { key: "balance", label: "Balance Due" },
-  { key: "agent", label: "Agent" },
-  { key: "status", label: "Status" },
-  { key: "wiring_inst", label: "Wiring Inst." },
-  { key: "wiring_date", label: "Wiring Date" },
-  { key: "adjustments", label: "Adjustments" },
-  { key: "txn_notes", label: "Deal Notes" },
-  { key: "receipt", label: "Receipt" },
-  { key: "amt_wired", label: "Amt Wired" },
-  { key: "ar_date", label: "AR Date" },
-  { key: "recon_notes", label: "Recon Notes" },
+const COLUMNS: { key: string; label: string; field: string }[] = [
+  { key: "tid", label: "TID", field: "tid" },
+  { key: "department", label: "Department", field: "department" },
+  { key: "sent_by", label: "Sent By", field: "created_by_name" },
+  { key: "customer", label: "Customer", field: "customer_name" },
+  { key: "address", label: "Property Address", field: "property_address" },
+  { key: "balance", label: "Balance Due", field: "balance_due" },
+  { key: "agent", label: "Agent", field: "agent_name" },
+  { key: "status", label: "Status", field: "status" },
+  { key: "wiring_inst", label: "Wiring Inst.", field: "wiring_institution" },
+  { key: "wiring_date", label: "Wiring Date", field: "wiring_date" },
+  { key: "adjustments", label: "Adjustments", field: "adjustments" },
+  { key: "txn_notes", label: "Deal Notes", field: "transaction_notes" },
+  { key: "receipt", label: "Receipt", field: "wire_receipt" },
+  { key: "amt_wired", label: "Amt Wired", field: "amount_wired" },
+  { key: "ar_date", label: "AR Date", field: "ar_date_received" },
+  { key: "recon_notes", label: "Recon Notes", field: "reconciliation_notes" },
 ];
 
 const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled", "Other - See Notes"];
+
+function getFieldValue(record: any, field: string): string {
+  const v = record[field];
+  if (v == null) return "";
+  return String(v);
+}
 
 function exportCSV(rows: any[]) {
   const headers = ["TID","Department","WF Account","Customer","Property Address","Balance Due","Agent","Status","Wiring Institution","Wiring Date","Adjustments","Wire Receipt","Amount Wired","AR Date Received","Reconciliation Notes"];
@@ -55,32 +64,125 @@ function exportCSV(rows: any[]) {
   URL.revokeObjectURL(url);
 }
 
+type SortDir = "asc" | "desc" | null;
+
 export default function Dashboard() {
   const { data: records, isLoading, error } = useWireRecords();
+  const location = useLocation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [colWidths, setColWidths] = useState<Record<string, number>>({ ...DEFAULT_COL_WIDTHS });
   const [selectedRecord, setSelectedRecord] = useState<WireRecord | null>(null);
+  const [sortCol, setSortCol] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>(null);
+  const [columnFilters, setColumnFilters] = useState<Record<string, Set<string>>>({});
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  // Highlight wire after creation
+  useEffect(() => {
+    const state = location.state as { highlightWireId?: string } | null;
+    if (state?.highlightWireId) {
+      setHighlightId(state.highlightWireId);
+      // Clear location state
+      window.history.replaceState({}, document.title);
+      const timer = setTimeout(() => setHighlightId(null), 9000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   const handleResize = useCallback((key: string, width: number) => {
     setColWidths((prev) => ({ ...prev, [key]: Math.max(50, width) }));
   }, []);
 
-  const filtered = (records ?? []).filter((r) => {
-    const matchesStatus = statusFilter === "All" || r.status === statusFilter;
-    const q = search.toLowerCase();
-    const matchesSearch =
-      !q ||
-      r.tid.toLowerCase().includes(q) ||
-      (r.customer_name ?? "").toLowerCase().includes(q) ||
-      (r.property_address ?? "").toLowerCase().includes(q) ||
-      (r.agent_name ?? "").toLowerCase().includes(q);
-    return matchesStatus && matchesSearch;
-  });
+  const handleSort = useCallback((colKey: string) => {
+    if (sortCol === colKey) {
+      if (sortDir === "asc") setSortDir("desc");
+      else if (sortDir === "desc") { setSortCol(null); setSortDir(null); }
+    } else {
+      setSortCol(colKey);
+      setSortDir("asc");
+    }
+  }, [sortCol, sortDir]);
 
-  const filtered3694 = filtered.filter((r) => r.wf_account === "3694");
-  const filtered8022 = filtered.filter((r) => r.wf_account === "8022");
-  const filteredOther = filtered.filter((r) => r.wf_account !== "3694" && r.wf_account !== "8022");
+  const toggleColumnFilter = useCallback((colKey: string, value: string) => {
+    setColumnFilters(prev => {
+      const next = { ...prev };
+      const set = new Set(next[colKey] ?? []);
+      if (set.has(value)) set.delete(value);
+      else set.add(value);
+      if (set.size === 0) delete next[colKey];
+      else next[colKey] = set;
+      return next;
+    });
+  }, []);
+
+  const clearColumnFilter = useCallback((colKey: string) => {
+    setColumnFilters(prev => {
+      const next = { ...prev };
+      delete next[colKey];
+      return next;
+    });
+  }, []);
+
+  // Compute unique values per column for filter dropdowns
+  const uniqueValues = useMemo(() => {
+    if (!records) return {};
+    const map: Record<string, string[]> = {};
+    COLUMNS.forEach(col => {
+      const vals = new Set<string>();
+      records.forEach(r => {
+        const v = getFieldValue(r, col.field);
+        if (v) vals.add(v);
+      });
+      map[col.key] = [...vals].sort();
+    });
+    return map;
+  }, [records]);
+
+  const filtered = useMemo(() => {
+    let result = (records ?? []).filter((r) => {
+      const matchesStatus = statusFilter === "All" || r.status === statusFilter;
+      const q = search.toLowerCase();
+      const matchesSearch =
+        !q ||
+        r.tid.toLowerCase().includes(q) ||
+        (r.customer_name ?? "").toLowerCase().includes(q) ||
+        (r.property_address ?? "").toLowerCase().includes(q) ||
+        (r.agent_name ?? "").toLowerCase().includes(q) ||
+        ((r as any).created_by_name ?? "").toLowerCase().includes(q);
+      return matchesStatus && matchesSearch;
+    });
+
+    // Apply column filters
+    for (const [colKey, values] of Object.entries(columnFilters)) {
+      const col = COLUMNS.find(c => c.key === colKey);
+      if (!col) continue;
+      result = result.filter(r => values.has(getFieldValue(r, col.field)));
+    }
+
+    // Apply sorting
+    if (sortCol && sortDir) {
+      const col = COLUMNS.find(c => c.key === sortCol);
+      if (col) {
+        result = [...result].sort((a, b) => {
+          const av = getFieldValue(a, col.field).toLowerCase();
+          const bv = getFieldValue(b, col.field).toLowerCase();
+          const numA = Number(av), numB = Number(bv);
+          const isNum = !isNaN(numA) && !isNaN(numB) && av !== "" && bv !== "";
+          if (isNum) return sortDir === "asc" ? numA - numB : numB - numA;
+          return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+        });
+      }
+    }
+
+    return result;
+  }, [records, statusFilter, search, columnFilters, sortCol, sortDir]);
+
+  const isSorted = sortCol !== null;
+
+  const filtered3694 = isSorted ? [] : filtered.filter((r) => r.wf_account === "3694");
+  const filtered8022 = isSorted ? [] : filtered.filter((r) => r.wf_account === "8022");
+  const filteredOther = isSorted ? [] : filtered.filter((r) => r.wf_account !== "3694" && r.wf_account !== "8022");
 
   const counts = {
     total: records?.length ?? 0,
@@ -90,6 +192,8 @@ export default function Dashboard() {
     reconciled: records?.filter((r) => r.status === "Reconciled").length ?? 0,
     other: records?.filter((r) => r.status === "Other - See Notes").length ?? 0,
   };
+
+  const activeFilterCount = Object.keys(columnFilters).length;
 
   return (
     <>
@@ -116,7 +220,7 @@ export default function Dashboard() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search TID, customer, address, agent..."
+            placeholder="Search TID, customer, address, agent, analyst..."
             className="h-8 pl-9 text-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -135,6 +239,12 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
         </div>
+        {activeFilterCount > 0 && (
+          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setColumnFilters({})}>
+            <X className="mr-1 h-3 w-3" />
+            Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
+          </Button>
+        )}
         <Button variant="outline" size="sm" className="h-8" onClick={() => exportCSV(filtered)} disabled={filtered.length === 0}>
           <Download className="h-4 w-4" />
           Export
@@ -162,6 +272,8 @@ export default function Dashboard() {
                     {COLUMNS.map((col) => {
                       const isAccounting = ["receipt", "amt_wired", "ar_date", "recon_notes"].includes(col.key);
                       const isRight = ["balance", "adjustments", "amt_wired"].includes(col.key);
+                      const isActive = sortCol === col.key;
+                      const hasFilter = !!columnFilters[col.key];
                       return (
                         <ResizableTableHead
                           key={col.key}
@@ -174,47 +286,74 @@ export default function Dashboard() {
                             isRight ? "text-right" : "",
                           ].filter(Boolean).join(" ")}
                         >
-                          {col.label}
+                          <div className="flex items-center gap-1">
+                            <button
+                              className="flex items-center gap-1 hover:text-foreground transition-colors"
+                              onClick={() => handleSort(col.key)}
+                            >
+                              <span className="truncate">{col.label}</span>
+                              {isActive && sortDir === "asc" && <ArrowUp className="h-3 w-3 text-primary shrink-0" />}
+                              {isActive && sortDir === "desc" && <ArrowDown className="h-3 w-3 text-primary shrink-0" />}
+                              {!isActive && <ArrowUpDown className="h-3 w-3 opacity-0 group-hover/head:opacity-40 shrink-0" />}
+                            </button>
+                            <ColumnFilterPopover
+                              colKey={col.key}
+                              values={uniqueValues[col.key] ?? []}
+                              selected={columnFilters[col.key]}
+                              onToggle={toggleColumnFilter}
+                              onClear={clearColumnFilter}
+                              hasFilter={hasFilter}
+                            />
+                          </div>
                         </ResizableTableHead>
                       );
                     })}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered3694.length > 0 && (
+                  {isSorted ? (
+                    // When sorted, render flat list (no account grouping)
+                    filtered.map((record) => (
+                      <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} />
+                    ))
+                  ) : (
                     <>
-                      <TableRow>
-                        <TableCell colSpan={COLUMNS.length} className="bg-blue-50 py-2 font-semibold text-blue-800 border-b-2 border-blue-200">
-                          WF Account 3694 ({filtered3694.length} records)
-                        </TableCell>
-                      </TableRow>
-                      {filtered3694.map((record) => (
-                        <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
-                      ))}
-                    </>
-                  )}
-                  {filtered8022.length > 0 && (
-                    <>
-                      <TableRow>
-                        <TableCell colSpan={COLUMNS.length} className="bg-emerald-50 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-200">
-                          WF Account 8022 ({filtered8022.length} records)
-                        </TableCell>
-                      </TableRow>
-                      {filtered8022.map((record) => (
-                        <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
-                      ))}
-                    </>
-                  )}
-                  {filteredOther.length > 0 && (
-                    <>
-                      <TableRow>
-                        <TableCell colSpan={COLUMNS.length} className="bg-muted/60 py-2 font-semibold text-muted-foreground border-b-2 border-muted">
-                          Other Accounts ({filteredOther.length} records)
-                        </TableCell>
-                      </TableRow>
-                      {filteredOther.map((record) => (
-                        <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
-                      ))}
+                      {filtered3694.length > 0 && (
+                        <>
+                          <TableRow>
+                            <TableCell colSpan={COLUMNS.length} className="bg-blue-50 py-2 font-semibold text-blue-800 border-b-2 border-blue-200">
+                              WF Account 3694 ({filtered3694.length} records)
+                            </TableCell>
+                          </TableRow>
+                          {filtered3694.map((record) => (
+                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} />
+                          ))}
+                        </>
+                      )}
+                      {filtered8022.length > 0 && (
+                        <>
+                          <TableRow>
+                            <TableCell colSpan={COLUMNS.length} className="bg-emerald-50 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-200">
+                              WF Account 8022 ({filtered8022.length} records)
+                            </TableCell>
+                          </TableRow>
+                          {filtered8022.map((record) => (
+                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} />
+                          ))}
+                        </>
+                      )}
+                      {filteredOther.length > 0 && (
+                        <>
+                          <TableRow>
+                            <TableCell colSpan={COLUMNS.length} className="bg-muted/60 py-2 font-semibold text-muted-foreground border-b-2 border-muted">
+                              Other Accounts ({filteredOther.length} records)
+                            </TableCell>
+                          </TableRow>
+                          {filteredOther.map((record) => (
+                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} />
+                          ))}
+                        </>
+                      )}
                     </>
                   )}
                 </TableBody>
@@ -234,6 +373,8 @@ export default function Dashboard() {
   );
 }
 
+/* ---------- Sub-components ---------- */
+
 function SummaryCard({ label, value, color, active, onClick }: { label: string; value: number; color?: string; active?: boolean; onClick?: () => void }) {
   const colorMap: Record<string, string> = {
     amber: "text-amber-600",
@@ -252,6 +393,53 @@ function SummaryCard({ label, value, color, active, onClick }: { label: string; 
         <p className={`text-2xl font-bold ${color ? colorMap[color] : "text-foreground"}`}>{value}</p>
       </CardContent>
     </Card>
+  );
+}
+
+function ColumnFilterPopover({
+  colKey,
+  values,
+  selected,
+  onToggle,
+  onClear,
+  hasFilter,
+}: {
+  colKey: string;
+  values: string[];
+  selected?: Set<string>;
+  onToggle: (colKey: string, value: string) => void;
+  onClear: (colKey: string) => void;
+  hasFilter: boolean;
+}) {
+  if (values.length === 0 || values.length > 50) return null;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className={`shrink-0 rounded p-0.5 transition-colors hover:bg-muted ${hasFilter ? "text-primary" : "opacity-0 group-hover/head:opacity-40"}`}>
+          <Filter className="h-3 w-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-2" align="start">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground">Filter values</span>
+          {hasFilter && (
+            <button className="text-xs text-primary hover:underline" onClick={() => onClear(colKey)}>Clear</button>
+          )}
+        </div>
+        <div className="max-h-48 space-y-1 overflow-auto">
+          {values.map((v) => (
+            <label key={v} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted">
+              <Checkbox
+                checked={selected?.has(v) ?? false}
+                onCheckedChange={() => onToggle(colKey, v)}
+              />
+              <span className="truncate">{v}</span>
+            </label>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -311,10 +499,10 @@ function ResizableTableHead({
 
   return (
     <th
-      className={`relative h-12 px-4 text-left align-middle font-medium text-muted-foreground select-none ${className}`}
+      className={`group/head relative h-12 px-4 text-left align-middle font-medium text-muted-foreground select-none ${className}`}
       style={{ width }}
     >
-      <span className="truncate block">{children}</span>
+      {children}
       <div
         onMouseDown={onMouseDown}
         className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 transition-colors"
