@@ -35,7 +35,7 @@ export default function NewWire() {
   const [selectedCustomId, setSelectedCustomId] = useState("");
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [lastSentData, setLastSentData] = useState<{ email: string; pdf: string; tid: string; address: string; agent: string } | null>(null);
+  const [lastSentData, setLastSentData] = useState<{ email: string; pdf: string; tid: string; address: string; agent: string; wireId: string } | null>(null);
 
   const handleLookup = () => {
     setLookupError("");
@@ -122,7 +122,7 @@ export default function NewWire() {
     const effectiveWfAccount = isCustom ? (selectedCustom?.account_number ?? "custom") : (wfAccount as string);
 
     try {
-      const result = await createRecord.mutateAsync({
+      const result: any = await createRecord.mutateAsync({
         tid: tid.toUpperCase().trim(),
         department,
         wf_account: effectiveWfAccount,
@@ -155,6 +155,7 @@ export default function NewWire() {
         tid: tid.toUpperCase().trim(),
         address: tidData.propertyAddress,
         agent: tidData.agentName,
+        wireId: result.id,
       });
       setShowSuccess(true);
     } catch (err: any) {
@@ -164,7 +165,7 @@ export default function NewWire() {
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    navigate("/dashboard", { state: { highlightWireId: lastSentData?.tid } });
+    navigate("/dashboard", { state: { highlightWireId: lastSentData?.wireId } });
   };
 
   const canDispatch = tidData && department && (!isCustom || selectedCustom) && wireDetails;
@@ -186,7 +187,7 @@ export default function NewWire() {
     <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">New Wire Instructions</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Send Wire Instructions</h1>
           <p className="text-sm text-muted-foreground">
             Select department, look up the TID, and dispatch wire instructions.
           </p>

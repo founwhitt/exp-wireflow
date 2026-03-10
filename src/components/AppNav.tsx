@@ -27,15 +27,15 @@ export function AppNav() {
             to="/"
             end
             className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            activeClassName="bg-secondary text-foreground"
+            activeClassName="bg-[#F1F5F9] text-[#00245D] border-b-2 border-[#0056D2]"
           >
             <Send className="h-4 w-4" />
-            New Wire
+            Send Wire Instructions
           </NavLink>
           <NavLink
             to="/dashboard"
             className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            activeClassName="bg-secondary text-foreground"
+            activeClassName="bg-[#F1F5F9] text-[#00245D] border-b-2 border-[#0056D2]"
           >
             <LayoutDashboard className="h-4 w-4" />
             Dashboard
@@ -45,7 +45,7 @@ export function AppNav() {
               <NavLink
                 to="/admin/users"
                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                activeClassName="bg-secondary text-foreground"
+                activeClassName="bg-[#F1F5F9] text-[#00245D] border-b-2 border-[#0056D2]"
               >
                 <Shield className="h-4 w-4" />
                 Users
@@ -53,7 +53,7 @@ export function AppNav() {
               <NavLink
                 to="/admin/wire-instructions"
                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                activeClassName="bg-secondary text-foreground"
+                activeClassName="bg-[#F1F5F9] text-[#00245D] border-b-2 border-[#0056D2]"
               >
                 <FileText className="h-4 w-4" />
                 Wire Inst.
