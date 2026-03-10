@@ -25,7 +25,9 @@ export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord; 
 
   return (
     <TableRow className="group">
-      <TableCell className="font-mono text-sm font-semibold text-primary">{record.tid}</TableCell>
+      <TableCell className="font-mono text-sm font-semibold text-primary">
+        <button className="hover:underline" onClick={() => onSelectRecord?.(record)}>{record.tid}</button>
+      </TableCell>
       <TableCell>
         <DepartmentBadge department={record.department} wfAccount={record.wf_account} />
       </TableCell>
