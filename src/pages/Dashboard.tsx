@@ -7,6 +7,7 @@ import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/tab
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X, Columns3, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useWireRecords, type WireRecord } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
@@ -68,6 +69,7 @@ type SortDir = "asc" | "desc" | null;
 
 export default function Dashboard() {
   const { data: records, isLoading, error } = useWireRecords();
+  const { isAdmin } = useAuth();
   const location = useLocation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -371,6 +373,7 @@ export default function Dashboard() {
                         </ResizableTableHead>
                       );
                     })}
+                    {isAdmin && <TableCell className="w-10" />}
                   </TableRow>
                 </TableHeader>
                 <TableBody>

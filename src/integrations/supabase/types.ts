@@ -192,6 +192,7 @@ export type Database = {
           customer_id_suffix: string | null
           customer_name: string | null
           deal_notes: string | null
+          deleted_at: string | null
           department: string
           email_recipient: string | null
           email_sent: boolean | null
@@ -200,6 +201,7 @@ export type Database = {
           id: string
           invoice_date: string | null
           invoice_number: string | null
+          is_deleted: boolean
           original_amount: number | null
           property_address: string | null
           reconciliation_notes: string | null
@@ -227,6 +229,7 @@ export type Database = {
           customer_id_suffix?: string | null
           customer_name?: string | null
           deal_notes?: string | null
+          deleted_at?: string | null
           department: string
           email_recipient?: string | null
           email_sent?: boolean | null
@@ -235,6 +238,7 @@ export type Database = {
           id?: string
           invoice_date?: string | null
           invoice_number?: string | null
+          is_deleted?: boolean
           original_amount?: number | null
           property_address?: string | null
           reconciliation_notes?: string | null
@@ -262,6 +266,7 @@ export type Database = {
           customer_id_suffix?: string | null
           customer_name?: string | null
           deal_notes?: string | null
+          deleted_at?: string | null
           department?: string
           email_recipient?: string | null
           email_sent?: boolean | null
@@ -270,6 +275,7 @@ export type Database = {
           id?: string
           invoice_date?: string | null
           invoice_number?: string | null
+          is_deleted?: boolean
           original_amount?: number | null
           property_address?: string | null
           reconciliation_notes?: string | null
