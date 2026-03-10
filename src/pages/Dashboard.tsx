@@ -8,8 +8,9 @@ import { Search, Filter, Download, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DepartmentBadge } from "@/components/DepartmentBadge";
-import { useWireRecords } from "@/hooks/useWireRecords";
+import { useWireRecords, type WireRecord } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
+import { WireDetailDialog } from "@/components/WireDetailDialog";
 
 const DEFAULT_COL_WIDTHS: Record<string, number> = {
   tid: 100, department: 130, customer: 130, address: 180, balance: 110,
