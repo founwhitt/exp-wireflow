@@ -373,6 +373,7 @@ export default function Dashboard() {
                         </ResizableTableHead>
                       );
                     })}
+                    {isAdmin && <TableCell className="w-10" />}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
