@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 type WireStatus = "Pending" | "Sent" | "Received" | "Reconciled" | "Other - See Notes";
 
 const statusStyles: Record<WireStatus, string> = {
-  Pending: "bg-amber-100 text-amber-800 border-amber-200",
-  Sent: "bg-blue-100 text-blue-800 border-blue-200",
-  Received: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  Reconciled: "bg-purple-100 text-purple-800 border-purple-200",
-  "Other - See Notes": "bg-rose-100 text-rose-800 border-rose-200",
+  Pending: "bg-status-pending/15 text-warning-foreground border-status-pending/30",
+  Sent: "bg-status-sent/10 text-secondary border-status-sent/25",
+  Received: "bg-status-received/10 text-success border-status-received/25",
+  Reconciled: "bg-status-reconciled/10 text-success border-status-reconciled/25",
+  "Other - See Notes": "bg-destructive/10 text-destructive border-destructive/25",
 };
 
 export function StatusBadge({ status }: { status: string }) {

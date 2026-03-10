@@ -56,7 +56,20 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+  			success: {
+  				DEFAULT: 'hsl(var(--success))',
+  				foreground: 'hsl(var(--success-foreground))'
+  			},
+  			warning: {
+  				DEFAULT: 'hsl(var(--warning))',
+  				foreground: 'hsl(var(--warning-foreground))'
+  			},
+  			'status-pending': 'hsl(var(--status-pending))',
+  			'status-sent': 'hsl(var(--status-sent))',
+  			'status-received': 'hsl(var(--status-received))',
+  			'status-reconciled': 'hsl(var(--status-reconciled))',
+  			'row-hover': 'hsl(var(--row-hover))'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
@@ -65,28 +78,16 @@ export default {
   		},
 		keyframes: {
 			'accordion-down': {
-				from: {
-					height: '0'
-				},
-				to: {
-					height: 'var(--radix-accordion-content-height)'
-				}
+				from: { height: '0' },
+				to: { height: 'var(--radix-accordion-content-height)' }
 			},
 			'accordion-up': {
-				from: {
-					height: 'var(--radix-accordion-content-height)'
-				},
-				to: {
-					height: '0'
-				}
+				from: { height: 'var(--radix-accordion-content-height)' },
+				to: { height: '0' }
 			},
 			'highlight-pulse': {
-				'0%, 100%': {
-					backgroundColor: 'hsl(var(--primary) / 0.05)'
-				},
-				'50%': {
-					backgroundColor: 'hsl(var(--primary) / 0.15)'
-				}
+				'0%, 100%': { backgroundColor: 'hsl(var(--secondary) / 0.05)' },
+				'50%': { backgroundColor: 'hsl(var(--secondary) / 0.15)' }
 			}
 		},
 		animation: {
@@ -105,7 +106,7 @@ export default {
   		},
   		fontFamily: {
   			sans: [
-  				'Lato',
+  				'Inter',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
@@ -114,17 +115,7 @@ export default {
   				'Roboto',
   				'Helvetica Neue',
   				'Arial',
-  				'Noto Sans',
   				'sans-serif'
-  			],
-  			serif: [
-  				'EB Garamond',
-  				'ui-serif',
-  				'Georgia',
-  				'Cambria',
-  				'Times New Roman',
-  				'Times',
-  				'serif'
   			],
   			mono: [
   				'Fira Code',
