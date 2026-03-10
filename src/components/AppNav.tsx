@@ -3,6 +3,7 @@ import { Send, LayoutDashboard, Shield, LogOut, User, FileText } from "lucide-re
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export function AppNav() {
   const { user, isAdmin, displayName, signOut } = useAuth();
