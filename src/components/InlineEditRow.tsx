@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,19 @@ import { useUpdateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord & { created_by_name?: string | null }; onSelectRecord?: (r: WireRecord) => void }) {
+export function InlineEditRow({ record, onSelectRecord, isHighlighted }: { record: WireRecord & { created_by_name?: string | null }; onSelectRecord?: (r: WireRecord) => void; isHighlighted?: boolean }) {
   const update = useUpdateWireRecord();
   const { isAdmin } = useAuth();
   const canEditAccounting = isAdmin;
+  const [highlight, setHighlight] = useState(isHighlighted);
+
+  useEffect(() => {
+    if (isHighlighted) {
+      setHighlight(true);
+      const timer = setTimeout(() => setHighlight(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [isHighlighted]);
 
   const save = (field: string, value: any) => {
     update.mutate(
@@ -24,7 +33,7 @@ export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord &
   };
 
   return (
-    <TableRow className="group">
+    <TableRow className={`group transition-colors duration-1000 ${highlight ? "animate-highlight-pulse bg-primary/10" : ""}`}>
       <TableCell className="font-mono text-sm font-semibold text-primary">
         <button className="hover:underline" onClick={() => onSelectRecord?.(record)}>{record.tid}</button>
       </TableCell>
