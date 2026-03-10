@@ -9,7 +9,7 @@ import { useUpdateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord; onSelectRecord?: (r: WireRecord) => void }) {
+export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord & { created_by_name?: string | null }; onSelectRecord?: (r: WireRecord) => void }) {
   const update = useUpdateWireRecord();
   const { isAdmin } = useAuth();
   const canEditAccounting = isAdmin;
@@ -31,6 +31,7 @@ export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord; 
       <TableCell>
         <DepartmentBadge department={record.department} wfAccount={record.wf_account} />
       </TableCell>
+      <TableCell className="text-sm truncate max-w-[120px]">{(record as any).created_by_name ?? "—"}</TableCell>
       <TableCell className="max-w-[120px] truncate text-sm">{record.customer_name}</TableCell>
       <TableCell className="max-w-[180px] truncate text-sm">{record.property_address}</TableCell>
       <TableCell className="text-right font-mono text-sm">
