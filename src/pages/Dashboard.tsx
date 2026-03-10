@@ -442,12 +442,12 @@ function SummaryCard({ label, value, color, active, onClick }: { label: string; 
     amber: "text-amber-600",
     blue: "text-blue-600",
     emerald: "text-emerald-600",
-    purple: "text-purple-600",
+    forest: "text-emerald-900",
     rose: "text-rose-600",
   };
   return (
     <Card
-      className={`cursor-pointer transition-all hover:shadow-md ${active ? "ring-2 ring-primary shadow-md" : ""}`}
+      className={`cursor-pointer bg-white shadow-sm transition-all hover:shadow-md ${active ? "ring-2 ring-primary shadow-md" : ""}`}
       onClick={onClick}
     >
       <CardContent className="px-3 py-2">
