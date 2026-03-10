@@ -230,13 +230,13 @@ export default function Dashboard() {
       {/* Filters row */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search TID, customer, address, agent, analyst..."
-            className="h-8 pl-9 text-sm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+           <Input
+             placeholder="Search TID, customer, address, agent, analyst..."
+             className="h-8 pl-9 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+             value={search}
+             onChange={(e) => setSearch(e.target.value)}
+           />
         </div>
         <div className="flex items-center gap-1">
           <Filter className="h-4 w-4 text-muted-foreground" />
