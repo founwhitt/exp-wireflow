@@ -69,6 +69,7 @@ type SortDir = "asc" | "desc" | null;
 
 export default function Dashboard() {
   const { data: records, isLoading, error } = useWireRecords();
+  const { isAdmin } = useAuth();
   const location = useLocation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
