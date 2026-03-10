@@ -51,20 +51,20 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
         <TableCell><DepartmentBadge department={record.department} wfAccount={record.wf_account} /></TableCell>
       )}
       {show("sent_by") && (
-        <TableCell className="text-sm truncate max-w-[120px]">{(record as any).created_by_name ?? "—"}</TableCell>
+        <TableCell className="text-sm max-w-[120px] whitespace-normal break-words">{(record as any).created_by_name ?? "—"}</TableCell>
       )}
       {show("customer") && (
-        <TableCell className="max-w-[120px] truncate text-sm">{record.customer_name}</TableCell>
+        <TableCell className="max-w-[120px] whitespace-normal break-words text-sm">{record.customer_name}</TableCell>
       )}
       {show("address") && (
-        <TableCell className="max-w-[180px] truncate text-sm">{record.property_address}</TableCell>
+        <TableCell className="max-w-[220px] whitespace-normal break-words text-sm">{record.property_address}</TableCell>
       )}
       {show("balance") && (
         <TableCell className="text-right font-mono text-sm">
           {record.balance_due != null ? `$${Number(record.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
         </TableCell>
       )}
-      {show("agent") && <TableCell className="text-sm">{record.agent_name}</TableCell>}
+      {show("agent") && <TableCell className="text-sm max-w-[120px] whitespace-normal break-words">{record.agent_name}</TableCell>}
       {show("status") && (
         <TableCell>
           <Select value={record.status} onValueChange={(v) => save("status", v)}>
@@ -96,7 +96,7 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
       )}
       {show("txn_notes") && (
         <TableCell>
-          <EditableText value={record.transaction_notes ?? ""} placeholder="Notes..." onSave={(v) => save("transaction_notes", v)} />
+          <EditableText value={record.transaction_notes ?? ""} placeholder="Notes..." onSave={(v) => save("transaction_notes", v)} multiline />
         </TableCell>
       )}
       {show("receipt") && (
@@ -130,7 +130,7 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
       {show("recon_notes") && (
         <TableCell className="bg-primary/5">
           {canEditAccounting ? (
-            <EditableText value={record.reconciliation_notes ?? ""} placeholder="Notes..." onSave={(v) => save("reconciliation_notes", v)} />
+            <EditableText value={record.reconciliation_notes ?? ""} placeholder="Notes..." onSave={(v) => save("reconciliation_notes", v)} multiline />
           ) : (
             <span className="text-sm">{record.reconciliation_notes ?? "—"}</span>
           )}
@@ -147,6 +147,7 @@ function EditableText({
   type = "text",
   className = "",
   formatDisplay,
+  multiline = false,
 }: {
   value: string;
   placeholder: string;
@@ -154,6 +155,7 @@ function EditableText({
   type?: string;
   className?: string;
   formatDisplay?: (v: string) => string;
+  multiline?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [local, setLocal] = useState(value);
@@ -161,11 +163,28 @@ function EditableText({
   if (!editing) {
     return (
       <button
-        className={`w-full min-w-[80px] rounded px-1.5 py-1 text-left text-sm transition-colors hover:bg-muted ${className}`}
+        className={`w-full min-w-[80px] rounded px-1.5 py-1 text-left text-sm transition-colors hover:bg-muted whitespace-normal break-words ${className}`}
         onClick={() => { setLocal(value); setEditing(true); }}
       >
         {(formatDisplay ? formatDisplay(value) : value) || <span className="text-muted-foreground/50">{placeholder}</span>}
       </button>
+    );
+  }
+
+  if (multiline) {
+    return (
+      <textarea
+        value={local}
+        onChange={(e) => setLocal(e.target.value)}
+        onBlur={() => { setEditing(false); if (local !== value) onSave(local); }}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") { setEditing(false); setLocal(value); }
+        }}
+        autoFocus
+        rows={3}
+        className={`w-full min-w-[80px] rounded border border-input bg-background px-2 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${className}`}
+        placeholder={placeholder}
+      />
     );
   }
 
