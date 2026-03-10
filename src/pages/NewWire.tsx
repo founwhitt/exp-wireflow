@@ -122,7 +122,7 @@ export default function NewWire() {
     const effectiveWfAccount = isCustom ? (selectedCustom?.account_number ?? "custom") : (wfAccount as string);
 
     try {
-      const result = await createRecord.mutateAsync({
+      const result: any = await createRecord.mutateAsync({
         tid: tid.toUpperCase().trim(),
         department,
         wf_account: effectiveWfAccount,
