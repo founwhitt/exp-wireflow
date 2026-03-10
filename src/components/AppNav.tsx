@@ -11,13 +11,13 @@ export function AppNav() {
   if (!user) return null;
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+    <header className="sticky top-0 z-50 border-b border-border/50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 sm:px-6">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Send className="h-4 w-4 text-primary-foreground" />
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)' }}>
+            <Send className="h-4 w-4 text-white" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-foreground">
+          <span className="text-xl font-bold tracking-tight" style={{ color: '#00245D' }}>
             eXp WireFlow
           </span>
         </div>
