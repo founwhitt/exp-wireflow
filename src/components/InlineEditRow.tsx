@@ -143,6 +143,44 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
           )}
         </TableCell>
       )}
+      {isAdmin && (
+        <TableCell className="w-10">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                <AlertDialogDescription asChild>
+                  <div className="space-y-3">
+                    <p>Are you sure you'd like to delete this record? This will remove all associated history.</p>
+                    <div className="rounded-md border bg-muted/50 p-3 text-sm space-y-1">
+                      <p><span className="font-medium">TID:</span> {record.tid}</p>
+                      <p><span className="font-medium">Property Address:</span> {record.property_address ?? "—"}</p>
+                      <p><span className="font-medium">Balance Due:</span> {record.balance_due != null ? `$${Number(record.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}</p>
+                    </div>
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => softDelete.mutate(record.id, {
+                    onSuccess: () => toast.success(`Record ${record.tid} deleted`),
+                    onError: (err: any) => toast.error("Failed to delete", { description: err.message }),
+                  })}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </TableCell>
+      )}
     </TableRow>
   );
 }
