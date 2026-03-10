@@ -156,13 +156,16 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
                 <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                 <AlertDialogDescription asChild>
                   <div className="space-y-3">
-                    <p>Are you sure you'd like to delete this record? This will remove all associated history.</p>
-                    <div className="rounded-md border bg-muted/50 p-3 text-sm space-y-1">
-                      <p><span className="font-medium">TID:</span> {record.tid}</p>
-                      <p><span className="font-medium">Property Address:</span> {record.property_address ?? "—"}</p>
-                      <p><span className="font-medium">Balance Due:</span> {record.balance_due != null ? `$${Number(record.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}</p>
-                    </div>
-                  </div>
+                     <p>Are you sure you want to delete this record? This action will be logged in the audit history.</p>
+                     <div className="rounded-md border bg-muted/50 p-3 text-sm space-y-1">
+                       <p><span className="font-medium">TID:</span> {record.tid}</p>
+                       <p><span className="font-medium">Property Address:</span> {record.property_address ?? "—"}</p>
+                       <p><span className="font-medium">Balance Due:</span> {record.balance_due != null ? `$${Number(record.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}</p>
+                       {(record as any).created_by_name && (
+                         <p className="text-muted-foreground"><span className="font-medium text-foreground">Created by:</span> {(record as any).created_by_name} on {new Date(record.created_at).toLocaleDateString()}</p>
+                       )}
+                     </div>
+                   </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
