@@ -9,7 +9,7 @@ import { useUpdateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord; onSelectRecord?: (r: WireRecord) => void }) {
+export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord & { created_by_name?: string | null }; onSelectRecord?: (r: WireRecord) => void }) {
   const update = useUpdateWireRecord();
   const { isAdmin } = useAuth();
   const canEditAccounting = isAdmin;
