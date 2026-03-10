@@ -8,8 +8,9 @@ import { Search, Filter, Download, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DepartmentBadge } from "@/components/DepartmentBadge";
-import { useWireRecords } from "@/hooks/useWireRecords";
+import { useWireRecords, type WireRecord } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
+import { WireDetailDialog } from "@/components/WireDetailDialog";
 
 const DEFAULT_COL_WIDTHS: Record<string, number> = {
   tid: 100, department: 130, customer: 130, address: 180, balance: 110,
@@ -58,6 +59,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [colWidths, setColWidths] = useState<Record<string, number>>({ ...DEFAULT_COL_WIDTHS });
+  const [selectedRecord, setSelectedRecord] = useState<WireRecord | null>(null);
 
   const handleResize = useCallback((key: string, width: number) => {
     setColWidths((prev) => ({ ...prev, [key]: Math.max(50, width) }));
@@ -89,6 +91,7 @@ export default function Dashboard() {
   };
 
   return (
+    <>
     <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Wire Dashboard</h1>
@@ -185,7 +188,7 @@ export default function Dashboard() {
                         </TableCell>
                       </TableRow>
                       {filtered3694.map((record) => (
-                        <InlineEditRow key={record.id} record={record} />
+                        <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
                       ))}
                     </>
                   )}
@@ -197,7 +200,7 @@ export default function Dashboard() {
                         </TableCell>
                       </TableRow>
                       {filtered8022.map((record) => (
-                        <InlineEditRow key={record.id} record={record} />
+                        <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
                       ))}
                     </>
                   )}
@@ -209,7 +212,7 @@ export default function Dashboard() {
                         </TableCell>
                       </TableRow>
                       {filteredOther.map((record) => (
-                        <InlineEditRow key={record.id} record={record} />
+                        <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
                       ))}
                     </>
                   )}
@@ -220,6 +223,13 @@ export default function Dashboard() {
         </CardContent>
       </Card>
     </div>
+
+    <WireDetailDialog
+      record={selectedRecord}
+      open={!!selectedRecord}
+      onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}
+    />
+    </>
   );
 }
 

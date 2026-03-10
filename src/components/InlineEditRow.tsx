@@ -6,10 +6,13 @@ import { Switch } from "@/components/ui/switch";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DepartmentBadge } from "@/components/DepartmentBadge";
 import { useUpdateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-export function InlineEditRow({ record }: { record: WireRecord }) {
+export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord; onSelectRecord?: (r: WireRecord) => void }) {
   const update = useUpdateWireRecord();
+  const { isAdmin } = useAuth();
+  const canEditAccounting = isAdmin;
 
   const save = (field: string, value: any) => {
     update.mutate(
@@ -22,7 +25,9 @@ export function InlineEditRow({ record }: { record: WireRecord }) {
 
   return (
     <TableRow className="group">
-      <TableCell className="font-mono text-sm font-semibold text-primary">{record.tid}</TableCell>
+      <TableCell className="font-mono text-sm font-semibold text-primary">
+        <button className="hover:underline" onClick={() => onSelectRecord?.(record)}>{record.tid}</button>
+      </TableCell>
       <TableCell>
         <DepartmentBadge department={record.department} wfAccount={record.wf_account} />
       </TableCell>
@@ -87,41 +92,57 @@ export function InlineEditRow({ record }: { record: WireRecord }) {
 
       {/* Accounting fields — visually separated */}
       <TableCell className="border-l-2 border-primary/20 bg-primary/5">
-        <Switch
-          checked={record.wire_receipt ?? false}
-          onCheckedChange={(v) => {
-            save("wire_receipt", v);
-            if (v) save("status", "Received");
-          }}
-        />
+        {canEditAccounting ? (
+          <Switch
+            checked={record.wire_receipt ?? false}
+            onCheckedChange={(v) => {
+              save("wire_receipt", v);
+              if (v) save("status", "Received");
+            }}
+          />
+        ) : (
+          <span className="text-sm text-muted-foreground">{record.wire_receipt ? "✓" : "—"}</span>
+        )}
       </TableCell>
       <TableCell className="bg-primary/5 text-right font-mono text-sm">
-        <EditableText
-          value={record.amount_wired?.toString() ?? ""}
-          placeholder="0.00"
-          onSave={(v) => save("amount_wired", parseFloat(v) || null)}
-          type="number"
-          className="text-right"
-          formatDisplay={(v) => v ? `$${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ""}
-        />
+        {canEditAccounting ? (
+          <EditableText
+            value={record.amount_wired?.toString() ?? ""}
+            placeholder="0.00"
+            onSave={(v) => save("amount_wired", parseFloat(v) || null)}
+            type="number"
+            className="text-right"
+            formatDisplay={(v) => v ? `$${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ""}
+          />
+        ) : (
+          <span>{record.amount_wired != null ? `$${Number(record.amount_wired).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}</span>
+        )}
       </TableCell>
       <TableCell className="bg-primary/5">
-        <EditableText
-          value={record.ar_date_received ?? ""}
-          placeholder="YYYY-MM-DD"
-          onSave={(v) => {
-            save("ar_date_received", v || null);
-            if (v) save("status", "Reconciled");
-          }}
-          type="date"
-        />
+        {canEditAccounting ? (
+          <EditableText
+            value={record.ar_date_received ?? ""}
+            placeholder="YYYY-MM-DD"
+            onSave={(v) => {
+              save("ar_date_received", v || null);
+              if (v) save("status", "Reconciled");
+            }}
+            type="date"
+          />
+        ) : (
+          <span className="text-sm">{record.ar_date_received ?? "—"}</span>
+        )}
       </TableCell>
       <TableCell className="bg-primary/5">
-        <EditableText
-          value={record.reconciliation_notes ?? ""}
-          placeholder="Notes..."
-          onSave={(v) => save("reconciliation_notes", v)}
-        />
+        {canEditAccounting ? (
+          <EditableText
+            value={record.reconciliation_notes ?? ""}
+            placeholder="Notes..."
+            onSave={(v) => save("reconciliation_notes", v)}
+          />
+        ) : (
+          <span className="text-sm">{record.reconciliation_notes ?? "—"}</span>
+        )}
       </TableCell>
     </TableRow>
   );

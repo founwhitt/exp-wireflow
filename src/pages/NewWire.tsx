@@ -16,10 +16,12 @@ import { getWireInstructions, formatEmailBody, type WireInstructionDetails } fro
 import { useCreateWireRecord } from "@/hooks/useWireRecords";
 import { useCustomWireInstructions, type CustomWireInstruction } from "@/hooks/useCustomWireInstructions";
 import { EmailPreviewDialog } from "@/components/EmailPreviewDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function NewWire() {
   const navigate = useNavigate();
   const createRecord = useCreateWireRecord();
+  const { user } = useAuth();
   const { data: customInstructions } = useCustomWireInstructions();
   const [department, setDepartment] = useState<Department | "">("");
   const [tid, setTid] = useState("");
@@ -131,6 +133,7 @@ export default function NewWire() {
         email_sent_at: testMode ? null : new Date().toISOString(),
         email_recipient: emailRecipient,
         status: "Pending",
+        created_by: user?.id ?? null,
       });
 
       setShowPreview(false);
