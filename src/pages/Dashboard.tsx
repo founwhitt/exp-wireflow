@@ -222,7 +222,13 @@ export default function Dashboard() {
         </CardContent>
       </Card>
     </div>
-  );
+
+    <WireDetailDialog
+      record={selectedRecord}
+      open={!!selectedRecord}
+      onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}
+    />
+    </div>
 }
 
 function SummaryCard({ label, value, color, active, onClick }: { label: string; value: number; color?: string; active?: boolean; onClick?: () => void }) {
