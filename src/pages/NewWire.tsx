@@ -35,7 +35,7 @@ export default function NewWire() {
   const [selectedCustomId, setSelectedCustomId] = useState("");
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [lastSentData, setLastSentData] = useState<{ email: string; pdf: string; tid: string; address: string; agent: string } | null>(null);
+  const [lastSentData, setLastSentData] = useState<{ email: string; pdf: string; tid: string; address: string; agent: string; wireId: string } | null>(null);
 
   const handleLookup = () => {
     setLookupError("");
