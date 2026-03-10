@@ -40,7 +40,7 @@ export const COLUMNS: { key: string; label: string; field: string }[] = [
   { key: "recon_notes", label: "Recon Notes", field: "reconciliation_notes" },
 ];
 
-const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled", "Other - See Notes"];
+const STATUS_OPTIONS = ["All", "Pending", "Sent", "Received", "Reconciled", "Other - See Notes"];
 
 function getFieldValue(record: any, field: string): string {
   const v = record[field];
@@ -198,7 +198,7 @@ export default function Dashboard() {
   const counts = {
     total: records?.length ?? 0,
     pending: records?.filter((r) => r.status === "Pending").length ?? 0,
-    wired: records?.filter((r) => r.status === "Wired").length ?? 0,
+    sent: records?.filter((r) => r.status === "Sent").length ?? 0,
     received: records?.filter((r) => r.status === "Received").length ?? 0,
     reconciled: records?.filter((r) => r.status === "Reconciled").length ?? 0,
     other: records?.filter((r) => r.status === "Other - See Notes").length ?? 0,
@@ -221,7 +221,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-6 gap-2">
         <SummaryCard label="Total" value={counts.total} active={statusFilter === "All"} onClick={() => setStatusFilter("All")} />
         <SummaryCard label="Pending" value={counts.pending} color="amber" active={statusFilter === "Pending"} onClick={() => setStatusFilter("Pending")} />
-        <SummaryCard label="Wired" value={counts.wired} color="blue" active={statusFilter === "Wired"} onClick={() => setStatusFilter("Wired")} />
+        <SummaryCard label="Sent" value={counts.sent} color="blue" active={statusFilter === "Sent"} onClick={() => setStatusFilter("Sent")} />
         <SummaryCard label="Received" value={counts.received} color="emerald" active={statusFilter === "Received"} onClick={() => setStatusFilter("Received")} />
         <SummaryCard label="Reconciled" value={counts.reconciled} color="purple" active={statusFilter === "Reconciled"} onClick={() => setStatusFilter("Reconciled")} />
         <SummaryCard label="Other" value={counts.other} color="rose" active={statusFilter === "Other - See Notes"} onClick={() => setStatusFilter("Other - See Notes")} />
