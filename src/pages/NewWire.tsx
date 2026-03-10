@@ -186,7 +186,7 @@ export default function NewWire() {
       )}
 
       {/* Step 1: Department + TID */}
-      <Card>
+      <Card className="bg-white shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Building2 className="h-5 w-5 text-primary" />
