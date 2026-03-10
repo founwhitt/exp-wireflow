@@ -91,6 +91,7 @@ export default function Dashboard() {
   };
 
   return (
+    <>
     <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Wire Dashboard</h1>
@@ -187,7 +188,7 @@ export default function Dashboard() {
                         </TableCell>
                       </TableRow>
                       {filtered3694.map((record) => (
-                         <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
+                        <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
                       ))}
                     </>
                   )}
@@ -199,7 +200,7 @@ export default function Dashboard() {
                         </TableCell>
                       </TableRow>
                       {filtered8022.map((record) => (
-                         <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
+                        <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
                       ))}
                     </>
                   )}
@@ -228,7 +229,8 @@ export default function Dashboard() {
       open={!!selectedRecord}
       onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}
     />
-    </div>
+    </>
+  );
 }
 
 function SummaryCard({ label, value, color, active, onClick }: { label: string; value: number; color?: string; active?: boolean; onClick?: () => void }) {
