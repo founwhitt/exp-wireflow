@@ -63,28 +63,37 @@ export default {
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
-  		keyframes: {
-  			'accordion-down': {
-  				from: {
-  					height: '0'
-  				},
-  				to: {
-  					height: 'var(--radix-accordion-content-height)'
-  				}
-  			},
-  			'accordion-up': {
-  				from: {
-  					height: 'var(--radix-accordion-content-height)'
-  				},
-  				to: {
-  					height: '0'
-  				}
-  			}
-  		},
-  		animation: {
-  			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
-  		},
+		keyframes: {
+			'accordion-down': {
+				from: {
+					height: '0'
+				},
+				to: {
+					height: 'var(--radix-accordion-content-height)'
+				}
+			},
+			'accordion-up': {
+				from: {
+					height: 'var(--radix-accordion-content-height)'
+				},
+				to: {
+					height: '0'
+				}
+			},
+			'highlight-pulse': {
+				'0%, 100%': {
+					backgroundColor: 'hsl(var(--primary) / 0.05)'
+				},
+				'50%': {
+					backgroundColor: 'hsl(var(--primary) / 0.15)'
+				}
+			}
+		},
+		animation: {
+			'accordion-down': 'accordion-down 0.2s ease-out',
+			'accordion-up': 'accordion-up 0.2s ease-out',
+			'highlight-pulse': 'highlight-pulse 2s ease-in-out 4'
+		},
   		boxShadow: {
   			'2xs': 'var(--shadow-2xs)',
   			xs: 'var(--shadow-xs)',
