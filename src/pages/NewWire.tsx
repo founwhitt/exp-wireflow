@@ -360,6 +360,7 @@ export default function NewWire() {
                 placeholder="recipient@example.com"
                 value={emailRecipient}
                 onChange={(e) => setEmailRecipient(e.target.value)}
+                className="focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
               />
             </div>
 
