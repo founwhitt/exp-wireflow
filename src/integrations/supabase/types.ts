@@ -62,6 +62,41 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          user_id: string
+          wire_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          user_id: string
+          wire_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          user_id?: string
+          wire_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_wire_id_fkey"
+            columns: ["wire_id"]
+            isOneToOne: false
+            referencedRelation: "wire_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -104,6 +139,44 @@ export type Database = {
         }
         Relationships: []
       }
+      wire_audit_log: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          field_name: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          wire_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          field_name: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          wire_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          wire_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wire_audit_log_wire_id_fkey"
+            columns: ["wire_id"]
+            isOneToOne: false
+            referencedRelation: "wire_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wire_records: {
         Row: {
           adjustment_type: string | null
@@ -114,6 +187,7 @@ export type Database = {
           assigned_analyst: string | null
           balance_due: number | null
           created_at: string
+          created_by: string | null
           customer_id_prefix: string | null
           customer_id_suffix: string | null
           customer_name: string | null
@@ -148,6 +222,7 @@ export type Database = {
           assigned_analyst?: string | null
           balance_due?: number | null
           created_at?: string
+          created_by?: string | null
           customer_id_prefix?: string | null
           customer_id_suffix?: string | null
           customer_name?: string | null
@@ -182,6 +257,7 @@ export type Database = {
           assigned_analyst?: string | null
           balance_due?: number | null
           created_at?: string
+          created_by?: string | null
           customer_id_prefix?: string | null
           customer_id_suffix?: string | null
           customer_name?: string | null
