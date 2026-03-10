@@ -51,7 +51,7 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
         <TableCell><DepartmentBadge department={record.department} wfAccount={record.wf_account} /></TableCell>
       )}
       {show("sent_by") && (
-        <TableCell className="text-sm truncate max-w-[120px]">{(record as any).created_by_name ?? "—"}</TableCell>
+        <TableCell className="text-sm max-w-[120px] whitespace-normal break-words">{(record as any).created_by_name ?? "—"}</TableCell>
       )}
       {show("customer") && (
         <TableCell className="max-w-[120px] truncate text-sm">{record.customer_name}</TableCell>
