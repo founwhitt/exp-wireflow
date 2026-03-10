@@ -211,7 +211,7 @@ export default function Dashboard() {
                         </TableCell>
                       </TableRow>
                       {filteredOther.map((record) => (
-                        <InlineEditRow key={record.id} record={record} />
+                        <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} />
                       ))}
                     </>
                   )}
