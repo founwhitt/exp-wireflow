@@ -186,7 +186,7 @@ export default function NewWire() {
     <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">New Wire Instructions</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Send Wire Instructions</h1>
           <p className="text-sm text-muted-foreground">
             Select department, look up the TID, and dispatch wire instructions.
           </p>
