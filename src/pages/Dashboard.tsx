@@ -223,20 +223,20 @@ export default function Dashboard() {
         <SummaryCard label="Pending" value={counts.pending} color="amber" active={statusFilter === "Pending"} onClick={() => setStatusFilter("Pending")} />
         <SummaryCard label="Sent" value={counts.sent} color="blue" active={statusFilter === "Sent"} onClick={() => setStatusFilter("Sent")} />
         <SummaryCard label="Received" value={counts.received} color="emerald" active={statusFilter === "Received"} onClick={() => setStatusFilter("Received")} />
-        <SummaryCard label="Reconciled" value={counts.reconciled} color="purple" active={statusFilter === "Reconciled"} onClick={() => setStatusFilter("Reconciled")} />
+        <SummaryCard label="Reconciled" value={counts.reconciled} color="forest" active={statusFilter === "Reconciled"} onClick={() => setStatusFilter("Reconciled")} />
         <SummaryCard label="Other" value={counts.other} color="rose" active={statusFilter === "Other - See Notes"} onClick={() => setStatusFilter("Other - See Notes")} />
       </div>
 
       {/* Filters row */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search TID, customer, address, agent, analyst..."
-            className="h-8 pl-9 text-sm"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+           <Input
+             placeholder="Search TID, customer, address, agent, analyst..."
+             className="h-8 pl-9 text-sm focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+             value={search}
+             onChange={(e) => setSearch(e.target.value)}
+           />
         </div>
         <div className="flex items-center gap-1">
           <Filter className="h-4 w-4 text-muted-foreground" />
@@ -315,7 +315,7 @@ export default function Dashboard() {
       </div>
 
       {/* Data table */}
-      <Card className="min-h-0 flex-1 overflow-hidden">
+      <Card className="min-h-0 flex-1 overflow-hidden bg-white shadow-sm">
         <CardContent className="h-full p-0">
           {isLoading ? (
             <div className="space-y-2 p-4">
@@ -442,12 +442,12 @@ function SummaryCard({ label, value, color, active, onClick }: { label: string; 
     amber: "text-amber-600",
     blue: "text-blue-600",
     emerald: "text-emerald-600",
-    purple: "text-purple-600",
+    forest: "text-emerald-900",
     rose: "text-rose-600",
   };
   return (
     <Card
-      className={`cursor-pointer transition-all hover:shadow-md ${active ? "ring-2 ring-primary shadow-md" : ""}`}
+      className={`cursor-pointer bg-white shadow-sm transition-all hover:shadow-md ${active ? "ring-2 ring-primary shadow-md" : ""}`}
       onClick={onClick}
     >
       <CardContent className="px-3 py-2">

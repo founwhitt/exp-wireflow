@@ -43,7 +43,7 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
   return (
     <TableRow className={`group transition-colors duration-1000 ${highlight ? "animate-highlight-pulse bg-primary/10" : ""}`}>
       {show("tid") && (
-        <TableCell className="font-mono text-sm font-semibold text-primary">
+        <TableCell className="font-mono text-sm font-bold" style={{ color: '#1e3a5f' }}>
           <button className="hover:underline" onClick={() => onSelectRecord?.(record)}>{record.tid}</button>
         </TableCell>
       )}
