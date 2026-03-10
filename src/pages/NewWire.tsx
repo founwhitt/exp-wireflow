@@ -186,7 +186,7 @@ export default function NewWire() {
       )}
 
       {/* Step 1: Department + TID */}
-      <Card>
+      <Card className="bg-white shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Building2 className="h-5 w-5 text-primary" />
@@ -228,6 +228,7 @@ export default function NewWire() {
                   value={tid}
                   onChange={(e) => setTid(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+                  className="focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
                 />
                 <Button variant="secondary" onClick={handleLookup} className="shrink-0">
                   <Search className="mr-1 h-4 w-4" />
@@ -282,7 +283,7 @@ export default function NewWire() {
 
       {/* Step 2: Deal Data */}
       {tidData && (
-        <Card>
+        <Card className="bg-white shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg">
               <FileText className="h-5 w-5 text-primary" />
@@ -337,7 +338,7 @@ export default function NewWire() {
 
       {/* Step 3: Send */}
       {canDispatch && (
-        <Card className="border-primary/20">
+        <Card className="border-primary/20 bg-white shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Send className="h-5 w-5 text-primary" />
@@ -359,6 +360,7 @@ export default function NewWire() {
                 placeholder="recipient@example.com"
                 value={emailRecipient}
                 onChange={(e) => setEmailRecipient(e.target.value)}
+                className="focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
               />
             </div>
 
