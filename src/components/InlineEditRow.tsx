@@ -72,7 +72,7 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
               <StatusBadge status={record.status} />
             </SelectTrigger>
             <SelectContent>
-              {["Pending", "Wired", "Received", "Reconciled", "Other - See Notes"].map((s) => (
+              {["Pending", "Sent", "Received", "Reconciled", "Other - See Notes"].map((s) => (
                 <SelectItem key={s} value={s}><StatusBadge status={s} /></SelectItem>
               ))}
             </SelectContent>
