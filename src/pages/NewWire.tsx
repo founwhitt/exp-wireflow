@@ -383,7 +383,7 @@ export default function NewWire() {
               size="lg"
               onClick={handlePreviewOrSend}
               disabled={createRecord.isPending}
-              className={`w-full ${testMode ? "" : "bg-success hover:bg-success/90 text-success-foreground"}`}
+              className="w-full"
               variant={testMode ? "secondary" : "default"}
             >
               {testMode ? (

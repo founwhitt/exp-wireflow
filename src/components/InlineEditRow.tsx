@@ -41,9 +41,9 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
   const show = (key: string) => !hidden.has(key);
 
   return (
-    <TableRow className={`group transition-colors duration-1000 hover:bg-row-hover ${highlight ? "animate-highlight-pulse bg-secondary/10" : ""}`}>
+    <TableRow className={`group transition-colors duration-1000 ${highlight ? "animate-highlight-pulse bg-primary/10" : ""}`}>
       {show("tid") && (
-        <TableCell className="font-mono text-sm font-bold text-primary">
+        <TableCell className="font-mono text-sm font-semibold text-primary">
           <button className="hover:underline" onClick={() => onSelectRecord?.(record)}>{record.tid}</button>
         </TableCell>
       )}
@@ -51,13 +51,13 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
         <TableCell><DepartmentBadge department={record.department} wfAccount={record.wf_account} /></TableCell>
       )}
       {show("sent_by") && (
-        <TableCell className="text-sm">{(record as any).created_by_name ?? "—"}</TableCell>
+        <TableCell className="text-sm truncate max-w-[120px]">{(record as any).created_by_name ?? "—"}</TableCell>
       )}
       {show("customer") && (
-        <TableCell className="text-sm">{record.customer_name}</TableCell>
+        <TableCell className="max-w-[120px] truncate text-sm">{record.customer_name}</TableCell>
       )}
       {show("address") && (
-        <TableCell className="text-sm">{record.property_address}</TableCell>
+        <TableCell className="max-w-[180px] truncate text-sm">{record.property_address}</TableCell>
       )}
       {show("balance") && (
         <TableCell className="text-right font-mono text-sm">
