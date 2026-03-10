@@ -6,10 +6,14 @@ import { Switch } from "@/components/ui/switch";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DepartmentBadge } from "@/components/DepartmentBadge";
 import { useUpdateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export function InlineEditRow({ record }: { record: WireRecord }) {
   const update = useUpdateWireRecord();
+  const { isAdmin } = useAuth();
+  // Non-admin users (analysts) cannot edit accounting fields
+  const canEditAccounting = isAdmin;
 
   const save = (field: string, value: any) => {
     update.mutate(
