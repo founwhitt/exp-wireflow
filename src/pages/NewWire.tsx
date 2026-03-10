@@ -228,6 +228,7 @@ export default function NewWire() {
                   value={tid}
                   onChange={(e) => setTid(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+                  className="focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
                 />
                 <Button variant="secondary" onClick={handleLookup} className="shrink-0">
                   <Search className="mr-1 h-4 w-4" />
