@@ -12,10 +12,13 @@ export function useWireRecords() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wire_records")
-        .select("*")
+        .select("*, profiles:created_by(display_name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as WireRecord[];
+      return (data ?? []).map((r: any) => ({
+        ...r,
+        created_by_name: r.profiles?.display_name ?? null,
+      })) as (WireRecord & { created_by_name: string | null })[];
     },
   });
 }

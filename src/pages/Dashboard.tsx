@@ -21,6 +21,7 @@ const DEFAULT_COL_WIDTHS: Record<string, number> = {
 const COLUMNS = [
   { key: "tid", label: "TID" },
   { key: "department", label: "Department" },
+  { key: "sent_by", label: "Sent By" },
   { key: "customer", label: "Customer" },
   { key: "address", label: "Property Address" },
   { key: "balance", label: "Balance Due" },
