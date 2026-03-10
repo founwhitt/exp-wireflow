@@ -147,6 +147,7 @@ function EditableText({
   type = "text",
   className = "",
   formatDisplay,
+  multiline = false,
 }: {
   value: string;
   placeholder: string;
@@ -154,6 +155,7 @@ function EditableText({
   type?: string;
   className?: string;
   formatDisplay?: (v: string) => string;
+  multiline?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [local, setLocal] = useState(value);
@@ -161,11 +163,28 @@ function EditableText({
   if (!editing) {
     return (
       <button
-        className={`w-full min-w-[80px] rounded px-1.5 py-1 text-left text-sm transition-colors hover:bg-muted ${className}`}
+        className={`w-full min-w-[80px] rounded px-1.5 py-1 text-left text-sm transition-colors hover:bg-muted whitespace-normal break-words ${className}`}
         onClick={() => { setLocal(value); setEditing(true); }}
       >
         {(formatDisplay ? formatDisplay(value) : value) || <span className="text-muted-foreground/50">{placeholder}</span>}
       </button>
+    );
+  }
+
+  if (multiline) {
+    return (
+      <textarea
+        value={local}
+        onChange={(e) => setLocal(e.target.value)}
+        onBlur={() => { setEditing(false); if (local !== value) onSave(local); }}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") { setEditing(false); setLocal(value); }
+        }}
+        autoFocus
+        rows={3}
+        className={`w-full min-w-[80px] rounded border border-input bg-background px-2 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${className}`}
+        placeholder={placeholder}
+      />
     );
   }
 
