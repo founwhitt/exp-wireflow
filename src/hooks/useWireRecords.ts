@@ -12,12 +12,24 @@ export function useWireRecords() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wire_records")
-        .select("*, profiles:created_by(display_name)")
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r: any) => ({
+
+      // Resolve created_by UUIDs to display names via profiles
+      const userIds = [...new Set((data ?? []).map((r) => r.created_by).filter(Boolean))];
+      let nameMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", userIds);
+        nameMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p.display_name ?? ""]));
+      }
+
+      return (data ?? []).map((r) => ({
         ...r,
-        created_by_name: r.profiles?.display_name ?? null,
+        created_by_name: r.created_by ? (nameMap[r.created_by] ?? null) : null,
       })) as (WireRecord & { created_by_name: string | null })[];
     },
   });
