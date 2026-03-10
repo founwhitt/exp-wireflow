@@ -7,6 +7,7 @@ import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/tab
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X, Columns3, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useWireRecords, type WireRecord } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
