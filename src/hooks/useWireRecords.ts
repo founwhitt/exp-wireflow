@@ -13,6 +13,7 @@ export function useWireRecords() {
       const { data, error } = await supabase
         .from("wire_records")
         .select("*")
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
 
