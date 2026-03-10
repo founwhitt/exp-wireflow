@@ -3,17 +3,17 @@ import { useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X, Columns3, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/StatusBadge";
-import { DepartmentBadge } from "@/components/DepartmentBadge";
 import { useWireRecords, type WireRecord } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
 import { WireDetailDialog } from "@/components/WireDetailDialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 const DEFAULT_COL_WIDTHS: Record<string, number> = {
   tid: 100, department: 130, sent_by: 120, customer: 130, address: 180, balance: 110,
@@ -21,7 +21,7 @@ const DEFAULT_COL_WIDTHS: Record<string, number> = {
   txn_notes: 160, receipt: 80, amt_wired: 110, ar_date: 120, recon_notes: 160,
 };
 
-const COLUMNS: { key: string; label: string; field: string }[] = [
+export const COLUMNS: { key: string; label: string; field: string }[] = [
   { key: "tid", label: "TID", field: "tid" },
   { key: "department", label: "Department", field: "department" },
   { key: "sent_by", label: "Sent By", field: "created_by_name" },
@@ -77,18 +77,30 @@ export default function Dashboard() {
   const [sortDir, setSortDir] = useState<SortDir>(null);
   const [columnFilters, setColumnFilters] = useState<Record<string, Set<string>>>({});
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [hideReconciled, setHideReconciled] = useState(false);
 
   // Highlight wire after creation
   useEffect(() => {
     const state = location.state as { highlightWireId?: string } | null;
     if (state?.highlightWireId) {
       setHighlightId(state.highlightWireId);
-      // Clear location state
       window.history.replaceState({}, document.title);
       const timer = setTimeout(() => setHighlightId(null), 9000);
       return () => clearTimeout(timer);
     }
   }, [location.state]);
+
+  const visibleColumns = useMemo(() => COLUMNS.filter(c => !hiddenCols.has(c.key)), [hiddenCols]);
+
+  const toggleColVisibility = useCallback((key: string) => {
+    setHiddenCols(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
 
   const handleResize = useCallback((key: string, width: number) => {
     setColWidths((prev) => ({ ...prev, [key]: Math.max(50, width) }));
@@ -124,7 +136,6 @@ export default function Dashboard() {
     });
   }, []);
 
-  // Compute unique values per column for filter dropdowns
   const uniqueValues = useMemo(() => {
     if (!records) return {};
     const map: Record<string, string[]> = {};
@@ -150,17 +161,17 @@ export default function Dashboard() {
         (r.property_address ?? "").toLowerCase().includes(q) ||
         (r.agent_name ?? "").toLowerCase().includes(q) ||
         ((r as any).created_by_name ?? "").toLowerCase().includes(q);
-      return matchesStatus && matchesSearch;
+      // Hide Reconciled toggle
+      const matchesReconciled = !hideReconciled || r.wire_receipt !== true;
+      return matchesStatus && matchesSearch && matchesReconciled;
     });
 
-    // Apply column filters
     for (const [colKey, values] of Object.entries(columnFilters)) {
       const col = COLUMNS.find(c => c.key === colKey);
       if (!col) continue;
       result = result.filter(r => values.has(getFieldValue(r, col.field)));
     }
 
-    // Apply sorting
     if (sortCol && sortDir) {
       const col = COLUMNS.find(c => c.key === sortCol);
       if (col) {
@@ -176,7 +187,7 @@ export default function Dashboard() {
     }
 
     return result;
-  }, [records, statusFilter, search, columnFilters, sortCol, sortDir]);
+  }, [records, statusFilter, search, columnFilters, sortCol, sortDir, hideReconciled]);
 
   const isSorted = sortCol !== null;
 
@@ -194,6 +205,7 @@ export default function Dashboard() {
   };
 
   const activeFilterCount = Object.keys(columnFilters).length;
+  const visibleColCount = visibleColumns.length;
 
   return (
     <>
@@ -215,7 +227,7 @@ export default function Dashboard() {
         <SummaryCard label="Other" value={counts.other} color="rose" active={statusFilter === "Other - See Notes"} onClick={() => setStatusFilter("Other - See Notes")} />
       </div>
 
-      {/* Filters */}
+      {/* Filters row */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -239,6 +251,57 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Hide Reconciled toggle */}
+        <div className="flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1">
+          <Switch
+            id="hide-reconciled"
+            checked={hideReconciled}
+            onCheckedChange={setHideReconciled}
+            className="scale-75"
+          />
+          <Label htmlFor="hide-reconciled" className="cursor-pointer text-xs font-medium whitespace-nowrap">
+            Hide Reconciled
+          </Label>
+        </div>
+
+        {/* Manage Columns */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 gap-1">
+              <Columns3 className="h-4 w-4" />
+              <span className="text-xs">Columns</span>
+              {hiddenCols.size > 0 && (
+                <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                  {hiddenCols.size}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-2" align="end">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Manage Columns</span>
+              {hiddenCols.size > 0 && (
+                <button className="text-xs text-primary hover:underline" onClick={() => setHiddenCols(new Set())}>Show All</button>
+              )}
+            </div>
+            <div className="max-h-64 space-y-1 overflow-auto">
+              {COLUMNS.map((col) => (
+                <label key={col.key} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted">
+                  <Checkbox
+                    checked={!hiddenCols.has(col.key)}
+                    onCheckedChange={() => toggleColVisibility(col.key)}
+                  />
+                  <span className="flex items-center gap-1.5">
+                    {hiddenCols.has(col.key) ? <EyeOff className="h-3 w-3 text-muted-foreground" /> : <Eye className="h-3 w-3 text-primary" />}
+                    {col.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+
         {activeFilterCount > 0 && (
           <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setColumnFilters({})}>
             <X className="mr-1 h-3 w-3" />
@@ -266,10 +329,10 @@ export default function Dashboard() {
             </p>
           ) : (
             <div className="h-full overflow-auto">
-              <ResizableTable colWidths={colWidths} onResize={handleResize}>
-                <TableHeader>
+              <ResizableTable colWidths={colWidths} visibleColumns={visibleColumns}>
+                <TableHeader className="sticky top-0 z-10 bg-background shadow-sm">
                   <TableRow className="bg-muted/40">
-                    {COLUMNS.map((col) => {
+                    {visibleColumns.map((col) => {
                       const isAccounting = ["receipt", "amt_wired", "ar_date", "recon_notes"].includes(col.key);
                       const isRight = ["balance", "adjustments", "amt_wired"].includes(col.key);
                       const isActive = sortCol === col.key;
@@ -312,45 +375,44 @@ export default function Dashboard() {
                 </TableHeader>
                 <TableBody>
                   {isSorted ? (
-                    // When sorted, render flat list (no account grouping)
                     filtered.map((record) => (
-                      <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} />
+                      <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} hiddenCols={hiddenCols} />
                     ))
                   ) : (
                     <>
                       {filtered3694.length > 0 && (
                         <>
                           <TableRow>
-                            <TableCell colSpan={COLUMNS.length} className="bg-blue-50 py-2 font-semibold text-blue-800 border-b-2 border-blue-200">
+                            <TableCell colSpan={visibleColCount} className="bg-blue-50 py-2 font-semibold text-blue-800 border-b-2 border-blue-200">
                               WF Account 3694 ({filtered3694.length} records)
                             </TableCell>
                           </TableRow>
                           {filtered3694.map((record) => (
-                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} />
+                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} hiddenCols={hiddenCols} />
                           ))}
                         </>
                       )}
                       {filtered8022.length > 0 && (
                         <>
                           <TableRow>
-                            <TableCell colSpan={COLUMNS.length} className="bg-emerald-50 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-200">
+                            <TableCell colSpan={visibleColCount} className="bg-emerald-50 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-200">
                               WF Account 8022 ({filtered8022.length} records)
                             </TableCell>
                           </TableRow>
                           {filtered8022.map((record) => (
-                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} />
+                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} hiddenCols={hiddenCols} />
                           ))}
                         </>
                       )}
                       {filteredOther.length > 0 && (
                         <>
                           <TableRow>
-                            <TableCell colSpan={COLUMNS.length} className="bg-muted/60 py-2 font-semibold text-muted-foreground border-b-2 border-muted">
+                            <TableCell colSpan={visibleColCount} className="bg-muted/60 py-2 font-semibold text-muted-foreground border-b-2 border-muted">
                               Other Accounts ({filteredOther.length} records)
                             </TableCell>
                           </TableRow>
                           {filteredOther.map((record) => (
-                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} />
+                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} hiddenCols={hiddenCols} />
                           ))}
                         </>
                       )}
@@ -445,16 +507,18 @@ function ColumnFilterPopover({
 
 function ResizableTable({
   colWidths,
+  visibleColumns,
   children,
 }: {
   colWidths: Record<string, number>;
-  onResize: (key: string, width: number) => void;
+  visibleColumns: { key: string; label: string; field: string }[];
   children: React.ReactNode;
 }) {
+  const totalWidth = visibleColumns.reduce((sum, col) => sum + (colWidths[col.key] ?? 100), 0);
   return (
-    <table className="w-full caption-bottom text-sm" style={{ tableLayout: "fixed", minWidth: Object.values(colWidths).reduce((a, b) => a + b, 0) }}>
+    <table className="w-full caption-bottom text-sm" style={{ tableLayout: "fixed", minWidth: totalWidth }}>
       <colgroup>
-        {COLUMNS.map((col) => (
+        {visibleColumns.map((col) => (
           <col key={col.key} style={{ width: colWidths[col.key] }} />
         ))}
       </colgroup>
