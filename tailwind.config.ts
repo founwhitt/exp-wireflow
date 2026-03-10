@@ -82,10 +82,10 @@ export default {
 			},
 			'highlight-pulse': {
 				'0%, 100%': {
-					backgroundColor: 'hsl(var(--primary) / 0.05)'
+					backgroundColor: 'rgba(0, 86, 210, 0.06)'
 				},
 				'50%': {
-					backgroundColor: 'hsl(var(--primary) / 0.15)'
+					backgroundColor: 'rgba(0, 86, 210, 0.18)'
 				}
 			}
 		},

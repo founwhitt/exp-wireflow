@@ -155,6 +155,7 @@ export default function NewWire() {
         tid: tid.toUpperCase().trim(),
         address: tidData.propertyAddress,
         agent: tidData.agentName,
+        wireId: result.id,
       });
       setShowSuccess(true);
     } catch (err: any) {

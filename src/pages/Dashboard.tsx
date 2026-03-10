@@ -327,7 +327,7 @@ export default function Dashboard() {
             <p className="p-4 text-center text-sm text-destructive">Error loading records: {(error as Error).message}</p>
           ) : filtered.length === 0 ? (
             <p className="p-4 text-center text-sm text-muted-foreground">
-              {records?.length === 0 ? "No wire records yet. Create one from the New Wire page." : "No records match your filters."}
+              {records?.length === 0 ? "No wire records yet. Create one from the Send Wire Instructions page." : "No records match your filters."}
             </p>
           ) : (
             <div className="h-full overflow-auto">
