@@ -164,7 +164,8 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
                        {(record as any).created_by_name && (
                          <p className="text-muted-foreground"><span className="font-medium text-foreground">Created by:</span> {(record as any).created_by_name} on {new Date(record.created_at).toLocaleDateString()}</p>
                        )}
-                  </div>
+                     </div>
+                   </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
