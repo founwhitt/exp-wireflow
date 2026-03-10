@@ -16,6 +16,7 @@ import { getWireInstructions, formatEmailBody, type WireInstructionDetails } fro
 import { useCreateWireRecord } from "@/hooks/useWireRecords";
 import { useCustomWireInstructions, type CustomWireInstruction } from "@/hooks/useCustomWireInstructions";
 import { EmailPreviewDialog } from "@/components/EmailPreviewDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function NewWire() {
   const navigate = useNavigate();
