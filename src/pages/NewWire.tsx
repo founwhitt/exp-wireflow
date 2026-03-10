@@ -147,7 +147,7 @@ export default function NewWire() {
           description: `Sent to ${emailRecipient} with ${wireDetails?.accountLabel} instructions.`,
         });
       }
-      navigate("/dashboard");
+      navigate("/dashboard", { state: { highlightWireId: result.id } });
     } catch (err: any) {
       toast.error("Failed to create wire record", { description: err.message });
     }
