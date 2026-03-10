@@ -24,6 +24,7 @@ interface InlineEditRowProps {
 
 export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCols }: InlineEditRowProps) {
   const update = useUpdateWireRecord();
+  const softDelete = useSoftDeleteWireRecord();
   const { isAdmin } = useAuth();
   const canEditAccounting = isAdmin;
   const [highlight, setHighlight] = useState(isHighlighted);
