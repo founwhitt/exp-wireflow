@@ -133,6 +133,7 @@ export default function NewWire() {
         email_sent_at: testMode ? null : new Date().toISOString(),
         email_recipient: emailRecipient,
         status: "Pending",
+        created_by: user?.id ?? null,
       });
 
       setShowPreview(false);
