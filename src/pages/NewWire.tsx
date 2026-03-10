@@ -184,142 +184,159 @@ export default function NewWire() {
   const deptBorder = department ? getDeptBorderColor(department) : "";
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Send Wire Instructions</h1>
-          <p className="text-sm text-muted-foreground">
-            Select department, look up the TID, and dispatch wire instructions.
-          </p>
-        </div>
-
-        {/* Test Mode Toggle */}
-        <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-          <FlaskConical className="h-4 w-4 text-amber-600" />
-          <Label htmlFor="test-mode" className="text-sm font-medium text-amber-800 cursor-pointer">
-            Test Mode
-          </Label>
-          <Switch
-            id="test-mode"
-            checked={testMode}
-            onCheckedChange={setTestMode}
-          />
-        </div>
-      </div>
-
-      {testMode && (
-        <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          <strong>🧪 Test Mode Active</strong> — Records will be saved to the dashboard but no emails will actually be sent. You'll see a full preview of the email before saving.
-        </div>
-      )}
-
-      {/* Step 1: Department + TID — Floating Card */}
-      <Card className={`bg-white rounded-xl shadow-lg transition-all duration-300 ${department ? `border-2 ${deptBorder}` : ""}`}>
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Building2 className="h-5 w-5 text-primary" />
-            Department & TID Lookup
-          </CardTitle>
-          <CardDescription>Choose the department to determine the correct wire instructions.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Department</Label>
-              <Select value={department} onValueChange={(v) => {
-                setDepartment(v as Department);
-                setSelectedCustomId("");
-              }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select department..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(DEPARTMENTS).map(([key, cfg]) => (
-                    <SelectItem key={key} value={key}>
-                      {cfg.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {department && !isCustom && (
-                <Badge variant="secondary" className="font-mono text-xs">
-                  → {DEPARTMENTS[department as Department].accountLabel}
-                </Badge>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Transaction ID (TID)</Label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    placeholder="e.g. TID-10001"
-                    value={tid}
-                    onChange={(e) => setTid(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleLookup()}
-                    className="focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 pr-20"
-                  />
-                  {/* Bank Badge next to TID input */}
-                  {department && wfAccount && wfAccount !== "custom" && (
-                    <span className={`absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold font-mono ${
-                      wfAccount === "8022"
-                        ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
-                        : "bg-blue-100 text-blue-800 ring-1 ring-blue-300"
-                    }`}>
-                      {wfAccount}
-                    </span>
-                  )}
-                </div>
-                <Button variant="secondary" onClick={handleLookup} className="shrink-0" disabled={isLookingUp}>
-                  <Search className="mr-1 h-4 w-4" />
-                  {isLookingUp ? "Looking up..." : "Lookup"}
-                </Button>
-              </div>
-              {lookupError && (
-                <p className="flex items-center gap-1 text-sm text-destructive">
-                  <AlertCircle className="h-3 w-3" /> {lookupError}
-                </p>
-              )}
-            </div>
+    <div className="min-h-full space-y-8 p-4 sm:p-8" style={{ backgroundColor: '#F8FAFC' }}>
+      <div className="mx-auto max-w-3xl">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#00245D' }}>Send Wire Instructions</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Select department, look up the TID, and dispatch wire instructions.
+            </p>
           </div>
 
-          {/* Custom instruction selector */}
-          {isCustom && (
-            <div className="space-y-2 rounded-md border border-primary/20 bg-accent p-4">
-              <Label className="text-sm font-semibold">Select Custom Wire Instructions</Label>
-              {!customInstructions?.length ? (
-                <p className="text-sm text-muted-foreground">
-                  No custom instructions available. An admin must first add them via the Wire Instructions page.
-                </p>
-              ) : (
-                <Select value={selectedCustomId} onValueChange={setSelectedCustomId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose custom wire instructions..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customInstructions.map((ci) => (
-                      <SelectItem key={ci.id} value={ci.id}>
-                        {ci.name} — {ci.bank_name} (••{ci.account_number.slice(-4)})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {selectedCustom && (
-                <div className="mt-2 rounded-md border bg-muted/30 p-3 text-sm space-y-1">
-                  <p className="font-semibold text-foreground">{selectedCustom.name}</p>
-                  <p className="text-muted-foreground">
-                    Routing: {selectedCustom.routing_number} · Account: {selectedCustom.account_number}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {selectedCustom.bank_name}, {selectedCustom.bank_address}
-                  </p>
+          {/* Test Mode Toggle */}
+          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+            <FlaskConical className="h-4 w-4 text-amber-600" />
+            <Label htmlFor="test-mode" className="text-sm font-medium text-amber-800 cursor-pointer">
+              Test Mode
+            </Label>
+            <Switch
+              id="test-mode"
+              checked={testMode}
+              onCheckedChange={setTestMode}
+            />
+          </div>
+        </div>
+
+        {testMode && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 mb-6">
+            <strong>🧪 Test Mode Active</strong> — Records will be saved to the dashboard but no emails will actually be sent. You'll see a full preview of the email before saving.
+          </div>
+        )}
+
+        {/* Step 1: Department + TID — Premium Floating Card */}
+        <Card className={`border-0 bg-white rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptBorder === 'border-blue-500' ? 'ring-[#0056D2]/30' : deptBorder === 'border-slate-400' ? 'ring-slate-300' : deptBorder === 'border-blue-400' ? 'ring-blue-300' : 'ring-amber-300'}` : ""}`}>
+          <CardHeader className="pb-4 px-6 pt-6">
+            <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
+              <Building2 className="h-5 w-5" style={{ color: '#0056D2' }} />
+              Department & TID Lookup
+            </CardTitle>
+            <CardDescription>Choose the department to determine the correct wire instructions.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5 px-6 pb-6">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Department</Label>
+                <div className="relative">
+                  <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 z-10 pointer-events-none" />
+                  <Select value={department} onValueChange={(v) => {
+                    setDepartment(v as Department);
+                    setSelectedCustomId("");
+                  }}>
+                    <SelectTrigger className="h-11 rounded-[10px] pl-10 text-sm border-0 bg-[#F1F5F9] focus:bg-white focus:ring-2 focus:ring-[#0056D2] transition-all">
+                      <SelectValue placeholder="Select department..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(DEPARTMENTS).map(([key, cfg]) => (
+                        <SelectItem key={key} value={key}>
+                          {cfg.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
+                {department && !isCustom && (
+                  <Badge variant="secondary" className="font-mono text-xs">
+                    → {DEPARTMENTS[department as Department].accountLabel}
+                  </Badge>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Transaction ID (TID)</Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 pointer-events-none" />
+                    <Input
+                      placeholder="e.g. TID-10001"
+                      value={tid}
+                      onChange={(e) => setTid(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+                      className="h-11 rounded-[10px] pl-10 pr-20 text-sm border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                    />
+                    {/* Bank Badge next to TID input */}
+                    {department && wfAccount && wfAccount !== "custom" && (
+                      <span className={`absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold font-mono ${
+                        wfAccount === "8022"
+                          ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
+                          : "bg-blue-100 text-blue-800 ring-1 ring-blue-300"
+                      }`}>
+                        {wfAccount}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleLookup}
+                    disabled={isLookingUp}
+                    className="shrink-0 h-11 px-5 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
+                    style={{
+                      background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
+                      boxShadow: '0 2px 8px rgba(0, 86, 210, 0.25)',
+                    }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.boxShadow = '0 4px 20px rgba(0, 86, 210, 0.45)'; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.boxShadow = '0 2px 8px rgba(0, 86, 210, 0.25)'; }}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Search className="h-4 w-4" />
+                      {isLookingUp ? "Looking up..." : "Lookup"}
+                    </span>
+                  </button>
+                </div>
+                {lookupError && (
+                  <p className="flex items-center gap-1 text-sm text-destructive">
+                    <AlertCircle className="h-3 w-3" /> {lookupError}
+                  </p>
+                )}
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {/* Custom instruction selector */}
+            {isCustom && (
+              <div className="space-y-2 rounded-xl border border-[#0056D2]/15 bg-[#F1F5F9] p-4">
+                <Label className="text-sm font-semibold">Select Custom Wire Instructions</Label>
+                {!customInstructions?.length ? (
+                  <p className="text-sm text-muted-foreground">
+                    No custom instructions available. An admin must first add them via the Wire Instructions page.
+                  </p>
+                ) : (
+                  <Select value={selectedCustomId} onValueChange={setSelectedCustomId}>
+                    <SelectTrigger className="h-11 rounded-[10px] border-0 bg-white focus:ring-2 focus:ring-[#0056D2]">
+                      <SelectValue placeholder="Choose custom wire instructions..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customInstructions.map((ci) => (
+                        <SelectItem key={ci.id} value={ci.id}>
+                          {ci.name} — {ci.bank_name} (••{ci.account_number.slice(-4)})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {selectedCustom && (
+                  <div className="mt-2 rounded-lg border bg-white p-3 text-sm space-y-1">
+                    <p className="font-semibold text-foreground">{selectedCustom.name}</p>
+                    <p className="text-muted-foreground">
+                      Routing: {selectedCustom.routing_number} · Account: {selectedCustom.account_number}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {selectedCustom.bank_name}, {selectedCustom.bank_address}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
       {/* Skeleton Loading State */}
       {isLookingUp && (
