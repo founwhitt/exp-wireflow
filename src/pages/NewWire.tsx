@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 export default function NewWire() {
   const navigate = useNavigate();
   const createRecord = useCreateWireRecord();
+  const { user } = useAuth();
   const { data: customInstructions } = useCustomWireInstructions();
   const [department, setDepartment] = useState<Department | "">("");
   const [tid, setTid] = useState("");
