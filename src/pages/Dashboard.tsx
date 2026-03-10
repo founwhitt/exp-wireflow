@@ -395,7 +395,7 @@ export default function Dashboard() {
                       {filtered8022.length > 0 && (
                         <>
                           <TableRow>
-                            <TableCell colSpan={visibleColCount} className="bg-emerald-50 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-200">
+                            <TableCell colSpan={visibleColCount} className="bg-accent py-2 font-semibold text-secondary border-b-2 border-secondary/20">
                               WF Account 8022 ({filtered8022.length} records)
                             </TableCell>
                           </TableRow>
