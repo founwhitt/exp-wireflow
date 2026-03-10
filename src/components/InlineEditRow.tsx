@@ -64,7 +64,7 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
           {record.balance_due != null ? `$${Number(record.balance_due).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
         </TableCell>
       )}
-      {show("agent") && <TableCell className="text-sm">{record.agent_name}</TableCell>}
+      {show("agent") && <TableCell className="text-sm max-w-[120px] whitespace-normal break-words">{record.agent_name}</TableCell>}
       {show("status") && (
         <TableCell>
           <Select value={record.status} onValueChange={(v) => save("status", v)}>
