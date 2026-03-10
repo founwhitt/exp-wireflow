@@ -439,11 +439,11 @@ export default function Dashboard() {
 
 function SummaryCard({ label, value, color, active, onClick }: { label: string; value: number; color?: string; active?: boolean; onClick?: () => void }) {
   const colorMap: Record<string, string> = {
-    amber: "text-amber-600",
-    blue: "text-blue-600",
-    emerald: "text-emerald-600",
-    purple: "text-purple-600",
-    rose: "text-rose-600",
+    pending: "text-status-pending",
+    sent: "text-status-sent",
+    received: "text-status-received",
+    reconciled: "text-status-reconciled",
+    other: "text-destructive",
   };
   return (
     <Card
