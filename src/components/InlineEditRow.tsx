@@ -96,7 +96,7 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
       )}
       {show("txn_notes") && (
         <TableCell>
-          <EditableText value={record.transaction_notes ?? ""} placeholder="Notes..." onSave={(v) => save("transaction_notes", v)} />
+          <EditableText value={record.transaction_notes ?? ""} placeholder="Notes..." onSave={(v) => save("transaction_notes", v)} multiline />
         </TableCell>
       )}
       {show("receipt") && (
