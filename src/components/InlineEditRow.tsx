@@ -54,7 +54,7 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
         <TableCell className="text-sm max-w-[120px] whitespace-normal break-words">{(record as any).created_by_name ?? "—"}</TableCell>
       )}
       {show("customer") && (
-        <TableCell className="max-w-[120px] truncate text-sm">{record.customer_name}</TableCell>
+        <TableCell className="max-w-[120px] whitespace-normal break-words text-sm">{record.customer_name}</TableCell>
       )}
       {show("address") && (
         <TableCell className="max-w-[180px] truncate text-sm">{record.property_address}</TableCell>
