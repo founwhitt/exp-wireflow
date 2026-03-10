@@ -59,6 +59,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [colWidths, setColWidths] = useState<Record<string, number>>({ ...DEFAULT_COL_WIDTHS });
+  const [selectedRecord, setSelectedRecord] = useState<WireRecord | null>(null);
 
   const handleResize = useCallback((key: string, width: number) => {
     setColWidths((prev) => ({ ...prev, [key]: Math.max(50, width) }));
