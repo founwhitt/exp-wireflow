@@ -130,7 +130,7 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
       {show("recon_notes") && (
         <TableCell className="bg-primary/5">
           {canEditAccounting ? (
-            <EditableText value={record.reconciliation_notes ?? ""} placeholder="Notes..." onSave={(v) => save("reconciliation_notes", v)} />
+            <EditableText value={record.reconciliation_notes ?? ""} placeholder="Notes..." onSave={(v) => save("reconciliation_notes", v)} multiline />
           ) : (
             <span className="text-sm">{record.reconciliation_notes ?? "—"}</span>
           )}
