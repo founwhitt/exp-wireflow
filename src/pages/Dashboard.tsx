@@ -193,9 +193,16 @@ export default function Dashboard() {
 
   const isSorted = sortCol !== null;
 
-  const filtered3694 = isSorted ? [] : filtered.filter((r) => r.wf_account === "3694");
-  const filtered8022 = isSorted ? [] : filtered.filter((r) => r.wf_account === "8022");
-  const filteredOther = isSorted ? [] : filtered.filter((r) => r.wf_account !== "3694" && r.wf_account !== "8022");
+  const sortWithHighlightFirst = (arr: typeof filtered) => {
+    if (!highlightId) return arr;
+    const idx = arr.findIndex(r => r.id === highlightId);
+    if (idx <= 0) return arr;
+    return [arr[idx], ...arr.slice(0, idx), ...arr.slice(idx + 1)];
+  };
+
+  const filtered3694 = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.wf_account === "3694"));
+  const filtered8022 = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.wf_account === "8022"));
+  const filteredOther = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.wf_account !== "3694" && r.wf_account !== "8022"));
 
   const counts = {
     total: records?.length ?? 0,
