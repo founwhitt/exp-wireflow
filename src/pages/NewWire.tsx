@@ -180,17 +180,16 @@ export default function NewWire() {
       </div>
 
       {testMode && (
-        <div className="flex items-center gap-3 rounded-lg px-5 py-3 text-sm font-semibold shadow-sm" style={{ backgroundColor: '#FFDC00', color: '#00245D', borderLeft: '4px solid #00245D' }}>
-          <FlaskConical className="h-5 w-5 shrink-0" />
-          <span>🧪 Test Mode Active — Records will be saved to the dashboard but no emails will actually be sent. You'll see a full preview before saving.</span>
+        <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <strong>🧪 Test Mode Active</strong> — Records will be saved to the dashboard but no emails will actually be sent. You'll see a full preview of the email before saving.
         </div>
       )}
 
       {/* Step 1: Department + TID */}
-      <Card className="bg-white shadow-sm" style={{ borderColor: '#E2E8F0' }}>
+      <Card className="bg-white shadow-sm">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Building2 className="h-5 w-5" style={{ color: '#0056D2' }} />
+            <Building2 className="h-5 w-5 text-primary" />
             Department & TID Lookup
           </CardTitle>
           <CardDescription>Choose the department to determine the correct wire instructions.</CardDescription>
@@ -203,7 +202,7 @@ export default function NewWire() {
                 setDepartment(v as Department);
                 setSelectedCustomId("");
               }}>
-                <SelectTrigger className="focus:ring-2" style={{ '--tw-ring-color': '#0056D2' } as any}>
+                <SelectTrigger>
                   <SelectValue placeholder="Select department..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -214,14 +213,9 @@ export default function NewWire() {
                   ))}
                 </SelectContent>
               </Select>
-              {department && !isCustom && wfAccount && (
-                <Badge className="font-mono text-xs text-white" style={{ backgroundColor: '#00245D' }}>
-                  Selected: Wells Fargo {wfAccount}
-                </Badge>
-              )}
-              {department && isCustom && (
-                <Badge className="font-mono text-xs" variant="outline" style={{ borderColor: '#0056D2', color: '#0056D2' }}>
-                  Selected: Custom Instructions
+              {department && !isCustom && (
+                <Badge variant="secondary" className="font-mono text-xs">
+                  → {DEPARTMENTS[department as Department].accountLabel}
                 </Badge>
               )}
             </div>
@@ -234,14 +228,9 @@ export default function NewWire() {
                   value={tid}
                   onChange={(e) => setTid(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleLookup()}
-                  className="focus-visible:ring-2 focus-visible:ring-offset-1"
-                  style={{ '--tw-ring-color': '#0056D2' } as any}
+                  className="focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
                 />
-                <Button
-                  onClick={handleLookup}
-                  className="shrink-0 text-white transition-transform duration-200 hover:scale-105"
-                  style={{ background: 'linear-gradient(135deg, #00245D 0%, #003A8C 100%)' }}
-                >
+                <Button variant="secondary" onClick={handleLookup} className="shrink-0">
                   <Search className="mr-1 h-4 w-4" />
                   Lookup
                 </Button>
@@ -292,133 +281,127 @@ export default function NewWire() {
         </CardContent>
       </Card>
 
-      {/* Step 2: Deal Data — only after successful lookup */}
+      {/* Step 2: Deal Data */}
       {tidData && (
-        <div className="animate-fade-in">
-          <Card className="bg-white shadow-sm" style={{ borderColor: '#E2E8F0' }}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileText className="h-5 w-5" style={{ color: '#0056D2' }} />
-                Deal Data
-              </CardTitle>
-              <CardDescription>Auto-populated from Task Center. Review before sending.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h4 className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground">
-                  <DollarSign className="h-3.5 w-3.5" /> Financials
-                </h4>
-                <div className="grid gap-3 sm:grid-cols-4">
-                  <Field label="Invoice #" value={tidData.invoiceNumber} />
-                  <Field label="Invoice Date" value={tidData.invoiceDate} />
-                  <Field label="Original Amount" value={`$${tidData.originalAmount.toLocaleString()}`} />
-                  <Field label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
-                </div>
+        <Card className="bg-white shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <FileText className="h-5 w-5 text-primary" />
+              Deal Data
+            </CardTitle>
+            <CardDescription>Auto-populated from Task Center. Review before sending.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h4 className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground">
+                <DollarSign className="h-3.5 w-3.5" /> Financials
+              </h4>
+              <div className="grid gap-3 sm:grid-cols-4">
+                <Field label="Invoice #" value={tidData.invoiceNumber} />
+                <Field label="Invoice Date" value={tidData.invoiceDate} />
+                <Field label="Original Amount" value={`$${tidData.originalAmount.toLocaleString()}`} />
+                <Field label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
               </div>
-              <Separator />
-              <div>
-                <h4 className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground">
-                  <User className="h-3.5 w-3.5" /> Identity
-                </h4>
-                <div className="grid gap-3 sm:grid-cols-4">
-                  <Field label="Customer Name" value={tidData.customerName} />
-                  <Field label="Entity" value={tidData.entity} />
-                  <Field label="ID Prefix" value={tidData.customerIdPrefix} />
-                  <Field label="ID Suffix" value={tidData.customerIdSuffix} />
-                </div>
+            </div>
+            <Separator />
+            <div>
+              <h4 className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground">
+                <User className="h-3.5 w-3.5" /> Identity
+              </h4>
+              <div className="grid gap-3 sm:grid-cols-4">
+                <Field label="Customer Name" value={tidData.customerName} />
+                <Field label="Entity" value={tidData.entity} />
+                <Field label="ID Prefix" value={tidData.customerIdPrefix} />
+                <Field label="ID Suffix" value={tidData.customerIdSuffix} />
               </div>
-              <Separator />
-              <div>
-                <h4 className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" /> Logistics
-                </h4>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label="Property Address" value={tidData.propertyAddress} />
-                  <Field label="Transaction State" value={tidData.transactionState} />
-                  <Field label="Agent Name" value={tidData.agentName} />
-                  <Field label="Assigned Analyst" value={tidData.assignedAnalyst} />
-                </div>
+            </div>
+            <Separator />
+            <div>
+              <h4 className="mb-2 flex items-center gap-1 text-sm font-semibold text-muted-foreground">
+                <MapPin className="h-3.5 w-3.5" /> Logistics
+              </h4>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Property Address" value={tidData.propertyAddress} />
+                <Field label="Transaction State" value={tidData.transactionState} />
+                <Field label="Agent Name" value={tidData.agentName} />
+                <Field label="Assigned Analyst" value={tidData.assignedAnalyst} />
               </div>
-              <Separator />
-              <div>
-                <Label className="text-xs text-muted-foreground">Notes</Label>
-                <p className="mt-1 rounded-md bg-muted/50 p-3 text-sm text-foreground">{tidData.dealNotes}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <Separator />
+            <div>
+              <Label className="text-xs text-muted-foreground">Notes</Label>
+              <p className="mt-1 rounded-md bg-muted/50 p-3 text-sm text-foreground">{tidData.dealNotes}</p>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Step 3: Send — only after lookup + department */}
+      {/* Step 3: Send */}
       {canDispatch && (
-        <div className="animate-fade-in">
-          <Card className="bg-white shadow-sm" style={{ borderColor: '#E2E8F0' }}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Send className="h-5 w-5" style={{ color: '#0056D2' }} />
-                Dispatch Wire Instructions
-              </CardTitle>
-              <CardDescription>
-                Email will include TID, property address, agent name, fee disclosure, and the{" "}
-                <span className="font-semibold text-foreground">
-                  {wireDetails?.accountLabel}
-                </span>{" "}
-                {wireDetails?.pdfPath ? "PDF attachment" : "details"}.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Recipient Email</Label>
-                <Input
-                  type="email"
-                  placeholder="recipient@example.com"
-                  value={emailRecipient}
-                  onChange={(e) => setEmailRecipient(e.target.value)}
-                  className="focus-visible:ring-2 focus-visible:ring-offset-1"
-                  style={{ '--tw-ring-color': '#0056D2' } as any}
-                />
-              </div>
+        <Card className="border-primary/20 bg-white shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Send className="h-5 w-5 text-primary" />
+              Dispatch Wire Instructions
+            </CardTitle>
+            <CardDescription>
+              Email will include TID, property address, agent name, fee disclosure, and the{" "}
+              <span className="font-semibold text-foreground">
+                {wireDetails?.accountLabel}
+              </span>{" "}
+              {wireDetails?.pdfPath ? "PDF attachment" : "details"}.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Recipient Email</Label>
+              <Input
+                type="email"
+                placeholder="recipient@example.com"
+                value={emailRecipient}
+                onChange={(e) => setEmailRecipient(e.target.value)}
+                className="focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
+              />
+            </div>
 
-              {wireDetails && (
-                <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
-                  <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
-                  <p className="text-muted-foreground">
-                    Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {wireDetails.bankName}, {wireDetails.bankAddress}
-                  </p>
-                </div>
+            {wireDetails && (
+              <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
+                <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
+                <p className="text-muted-foreground">
+                  Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
+                </p>
+                <p className="text-muted-foreground">
+                  {wireDetails.bankName}, {wireDetails.bankAddress}
+                </p>
+              </div>
+            )}
+
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              <strong>Fee Disclosure:</strong> All bank fees (wire transfer fees) are to be paid by the
+              Originator (remitter). This will be included in the email body.
+            </div>
+
+            <Button
+              size="lg"
+              onClick={handlePreviewOrSend}
+              disabled={createRecord.isPending}
+              className="w-full"
+              variant={testMode ? "secondary" : "default"}
+            >
+              {testMode ? (
+                <>
+                  <FlaskConical className="mr-2 h-4 w-4" />
+                  Preview & Test
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Preview & Send
+                </>
               )}
-
-              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                <strong>Fee Disclosure:</strong> All bank fees (wire transfer fees) are to be paid by the
-                Originator (remitter). This will be included in the email body.
-              </div>
-
-              <Button
-                size="lg"
-                onClick={handlePreviewOrSend}
-                disabled={createRecord.isPending}
-                className="w-full text-white transition-transform duration-200 hover:scale-[1.02]"
-                style={{ background: testMode ? undefined : 'linear-gradient(135deg, #00245D 0%, #003A8C 100%)' }}
-                variant={testMode ? "secondary" : "default"}
-              >
-                {testMode ? (
-                  <>
-                    <FlaskConical className="mr-2 h-4 w-4" />
-                    Preview & Test
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-2 h-4 w-4" />
-                    Preview & Send
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* Email Preview Dialog */}
