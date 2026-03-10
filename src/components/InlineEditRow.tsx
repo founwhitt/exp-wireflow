@@ -5,9 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DepartmentBadge } from "@/components/DepartmentBadge";
-import { useUpdateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
+import { useUpdateWireRecord, useSoftDeleteWireRecord, type WireRecord } from "@/hooks/useWireRecords";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface InlineEditRowProps {
   record: WireRecord & { created_by_name?: string | null };
