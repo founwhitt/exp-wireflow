@@ -337,7 +337,7 @@ export default function NewWire() {
 
       {/* Step 3: Send */}
       {canDispatch && (
-        <Card className="border-primary/20">
+        <Card className="border-primary/20 bg-white shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Send className="h-5 w-5 text-primary" />
