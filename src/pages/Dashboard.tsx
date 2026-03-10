@@ -40,7 +40,7 @@ export const COLUMNS: { key: string; label: string; field: string }[] = [
   { key: "recon_notes", label: "Recon Notes", field: "reconciliation_notes" },
 ];
 
-const STATUS_OPTIONS = ["All", "Pending", "Wired", "Received", "Reconciled", "Other - See Notes"];
+const STATUS_OPTIONS = ["All", "Pending", "Sent", "Received", "Reconciled", "Other - See Notes"];
 
 function getFieldValue(record: any, field: string): string {
   const v = record[field];
