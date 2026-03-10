@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export interface AuditLogEntry {
   id: string;
@@ -9,11 +10,23 @@ export interface AuditLogEntry {
   old_value: string | null;
   new_value: string | null;
   changed_at: string;
-  // joined
   display_name?: string | null;
 }
 
 export function useAuditLog(wireId: string | null) {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!wireId) return;
+    const channel = supabase
+      .channel(`audit-${wireId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "wire_audit_log", filter: `wire_id=eq.${wireId}` },
+        () => qc.invalidateQueries({ queryKey: ["audit_log", wireId] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [wireId, qc]);
+
   return useQuery({
     queryKey: ["audit_log", wireId],
     enabled: !!wireId,
@@ -25,7 +38,6 @@ export function useAuditLog(wireId: string | null) {
         .order("changed_at", { ascending: false });
       if (error) throw error;
 
-      // Fetch display names for changed_by users
       const userIds = [...new Set((data ?? []).map((d: any) => d.changed_by).filter(Boolean))];
       let profileMap: Record<string, string> = {};
       if (userIds.length > 0) {
