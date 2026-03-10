@@ -9,10 +9,9 @@ import { useUpdateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-export function InlineEditRow({ record }: { record: WireRecord }) {
+export function InlineEditRow({ record, onSelectRecord }: { record: WireRecord; onSelectRecord?: (r: WireRecord) => void }) {
   const update = useUpdateWireRecord();
   const { isAdmin } = useAuth();
-  // Non-admin users (analysts) cannot edit accounting fields
   const canEditAccounting = isAdmin;
 
   const save = (field: string, value: any) => {
