@@ -338,236 +338,231 @@ export default function NewWire() {
           </CardContent>
         </Card>
 
-      {/* Skeleton Loading State */}
-      {isLookingUp && (
-        <Card className="bg-white rounded-xl shadow-lg animate-fade-in">
-          <CardHeader className="pb-4">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-4 w-56 mt-1" />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Skeleton className="h-4 w-20 mb-2" />
-              <div className="grid gap-3 sm:grid-cols-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-1">
-                    <Skeleton className="h-3 w-16" />
-                    <Skeleton className="h-5 w-full" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <Separator />
-            <div>
-              <Skeleton className="h-4 w-20 mb-2" />
-              <div className="grid gap-3 sm:grid-cols-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-1">
-                    <Skeleton className="h-3 w-16" />
-                    <Skeleton className="h-5 w-full" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <Separator />
-            <div>
-              <Skeleton className="h-4 w-20 mb-2" />
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-1">
-                    <Skeleton className="h-3 w-16" />
-                    <Skeleton className="h-5 w-full" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 2: Deal Data — Animated reveal */}
-      <div className={`transition-all duration-500 ease-out ${tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none h-0 overflow-hidden"}`}>
-        {tidData && (
-          <Card className={`bg-white rounded-xl shadow-lg border-2 ${deptBorder} animate-fade-in`}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileText className="h-5 w-5 text-primary" />
-                Deal Data
-              </CardTitle>
-              <CardDescription>Auto-populated from Task Center. Review before sending.</CardDescription>
+        {/* Skeleton Loading State */}
+        {isLookingUp && (
+          <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in mt-8">
+            <CardHeader className="pb-4 px-6 pt-6">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-56 mt-1" />
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 px-6 pb-6">
               <div>
-                <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                  <DollarSign className="h-4 w-4 text-emerald-600" /> Financials
-                </h4>
+                <Skeleton className="h-4 w-20 mb-2" />
                 <div className="grid gap-3 sm:grid-cols-4">
-                  <Field icon={<FileText className="h-3.5 w-3.5 text-muted-foreground" />} label="Invoice #" value={tidData.invoiceNumber} />
-                  <Field label="Invoice Date" value={tidData.invoiceDate} />
-                  <Field icon={<DollarSign className="h-3.5 w-3.5 text-muted-foreground" />} label="Original Amount" value={`$${tidData.originalAmount.toLocaleString()}`} />
-                  <Field icon={<DollarSign className="h-3.5 w-3.5 text-primary" />} label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="space-y-1">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-5 w-full" />
+                    </div>
+                  ))}
                 </div>
               </div>
               <Separator />
               <div>
-                <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                  <User className="h-4 w-4 text-blue-600" /> Identity
-                </h4>
+                <Skeleton className="h-4 w-20 mb-2" />
                 <div className="grid gap-3 sm:grid-cols-4">
-                  <Field icon={<User className="h-3.5 w-3.5 text-muted-foreground" />} label="Customer Name" value={tidData.customerName} />
-                  <Field label="Entity" value={tidData.entity} />
-                  <Field label="ID Prefix" value={tidData.customerIdPrefix} />
-                  <Field label="ID Suffix" value={tidData.customerIdSuffix} />
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="space-y-1">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-5 w-full" />
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <Separator />
-              <div>
-                <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                  <MapPin className="h-4 w-4 text-rose-500" /> Logistics
-                </h4>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Field icon={<MapPin className="h-3.5 w-3.5 text-muted-foreground" />} label="Property Address" value={tidData.propertyAddress} />
-                  <Field label="Transaction State" value={tidData.transactionState} />
-                  <Field icon={<User className="h-3.5 w-3.5 text-muted-foreground" />} label="Agent Name" value={tidData.agentName} />
-                  <Field label="Assigned Analyst" value={tidData.assignedAnalyst} />
-                </div>
-              </div>
-              <Separator />
-              <div>
-                <Label className="text-xs text-muted-foreground">Notes</Label>
-                <p className="mt-1 rounded-md bg-muted/50 p-3 text-sm text-foreground">{tidData.dealNotes}</p>
               </div>
             </CardContent>
           </Card>
         )}
-      </div>
 
-      {/* Step 3: Send — Animated reveal */}
-      <div className={`transition-all duration-500 ease-out delay-150 ${canDispatch ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none h-0 overflow-hidden"}`}>
-        {canDispatch && (
-          <Card className={`bg-white rounded-xl shadow-lg border-2 ${deptBorder} animate-fade-in`}>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Send className="h-5 w-5 text-primary" />
-                Dispatch Wire Instructions
-              </CardTitle>
-              <CardDescription>
-                Email will include TID, property address, agent name, fee disclosure, and the{" "}
-                <span className="font-semibold text-foreground">
-                  {wireDetails?.accountLabel}
-                </span>{" "}
-                {wireDetails?.pdfPath ? "PDF attachment" : "details"}.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Recipient Email</Label>
-                <Input
-                  type="email"
-                  placeholder="recipient@example.com"
-                  value={emailRecipient}
-                  onChange={(e) => setEmailRecipient(e.target.value)}
-                  className="focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
-                />
-              </div>
-
-              {wireDetails && (
-                <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
-                  <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
-                  <p className="text-muted-foreground">
-                    Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {wireDetails.bankName}, {wireDetails.bankAddress}
-                  </p>
-                </div>
-              )}
-
-              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                <strong>Fee Disclosure:</strong> All bank fees (wire transfer fees) are to be paid by the
-                Originator (remitter). This will be included in the email body.
-              </div>
-
-              <Button
-                size="lg"
-                onClick={handlePreviewOrSend}
-                disabled={createRecord.isPending}
-                className="w-full"
-                variant={testMode ? "secondary" : "default"}
-              >
-                {testMode ? (
-                  <>
-                    <FlaskConical className="mr-2 h-4 w-4" />
-                    Preview & Test
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-2 h-4 w-4" />
-                    Preview & Send
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Email Preview Dialog */}
-      <EmailPreviewDialog
-        open={showPreview}
-        onOpenChange={setShowPreview}
-        onConfirmSend={handleConfirmSend}
-        isSending={createRecord.isPending}
-        isTestMode={testMode}
-        recipientEmail={emailRecipient}
-        emailBody={emailBody}
-        pdfFileName={pdfFileName}
-        accountLabel={wireDetails?.accountLabel ?? ""}
-      />
-
-      {/* Success Modal */}
-      <Dialog open={showSuccess} onOpenChange={(open) => { if (!open) handleSuccessClose(); }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader className="items-center text-center">
-            <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-              <CheckCircle2 className="h-10 w-10 text-emerald-600" />
-            </div>
-            <DialogTitle className="text-xl">Wire Instructions Sent!</DialogTitle>
-            <DialogDescription>Your wire record has been created successfully.</DialogDescription>
-          </DialogHeader>
-          {lastSentData && (
-            <div className="space-y-3 mt-2">
-              <div className="rounded-lg border bg-muted/30 p-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Recipient</span>
-                  <span className="font-medium">{lastSentData.email}</span>
+        {/* Step 2: Deal Data — Animated reveal */}
+        <div className={`transition-all duration-500 ease-out mt-8 ${tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+          {tidData && (
+            <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
+              <CardHeader className="pb-4 px-6 pt-6">
+                <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
+                  <FileText className="h-5 w-5" style={{ color: '#0056D2' }} />
+                  Deal Data
+                </CardTitle>
+                <CardDescription>Auto-populated from Task Center. Review before sending.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 px-6 pb-6">
+                <div>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <DollarSign className="h-4 w-4 text-emerald-600" /> Financials
+                  </h4>
+                  <div className="grid gap-3 sm:grid-cols-4">
+                    <Field icon={<FileText className="h-3.5 w-3.5 text-muted-foreground" />} label="Invoice #" value={tidData.invoiceNumber} />
+                    <Field label="Invoice Date" value={tidData.invoiceDate} />
+                    <Field icon={<DollarSign className="h-3.5 w-3.5 text-muted-foreground" />} label="Original Amount" value={`$${tidData.originalAmount.toLocaleString()}`} />
+                    <Field icon={<DollarSign className="h-3.5 w-3.5" style={{ color: '#0056D2' }} />} label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
+                  </div>
                 </div>
                 <Separator />
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">PDF Attached</span>
-                  <Badge variant="secondary" className="font-mono text-xs">{lastSentData.pdf}</Badge>
+                <div>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <User className="h-4 w-4" style={{ color: '#0056D2' }} /> Identity
+                  </h4>
+                  <div className="grid gap-3 sm:grid-cols-4">
+                    <Field icon={<User className="h-3.5 w-3.5 text-muted-foreground" />} label="Customer Name" value={tidData.customerName} />
+                    <Field label="Entity" value={tidData.entity} />
+                    <Field label="ID Prefix" value={tidData.customerIdPrefix} />
+                    <Field label="ID Suffix" value={tidData.customerIdSuffix} />
+                  </div>
                 </div>
                 <Separator />
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">TID</span>
-                  <span className="font-bold font-mono" style={{ color: '#1e3a5f' }}>{lastSentData.tid}</span>
+                <div>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <MapPin className="h-4 w-4 text-rose-500" /> Logistics
+                  </h4>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field icon={<MapPin className="h-3.5 w-3.5 text-muted-foreground" />} label="Property Address" value={tidData.propertyAddress} />
+                    <Field label="Transaction State" value={tidData.transactionState} />
+                    <Field icon={<User className="h-3.5 w-3.5 text-muted-foreground" />} label="Agent Name" value={tidData.agentName} />
+                    <Field label="Assigned Analyst" value={tidData.assignedAnalyst} />
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> Address</span>
-                  <span className="font-medium text-right max-w-[200px]">{lastSentData.address}</span>
+                <Separator />
+                <div>
+                  <Label className="text-xs text-muted-foreground">Notes</Label>
+                  <p className="mt-1 rounded-lg bg-[#F1F5F9] p-3 text-sm text-foreground">{tidData.dealNotes}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> Agent</span>
-                  <span className="font-medium">{lastSentData.agent}</span>
-                </div>
-              </div>
-              <Button className="w-full" onClick={handleSuccessClose}>
-                Go to Dashboard
-              </Button>
-            </div>
+              </CardContent>
+            </Card>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+
+        {/* Step 3: Send — Animated reveal */}
+        <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${canDispatch ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+          {canDispatch && (
+            <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
+              <CardHeader className="pb-4 px-6 pt-6">
+                <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
+                  <Send className="h-5 w-5" style={{ color: '#0056D2' }} />
+                  Dispatch Wire Instructions
+                </CardTitle>
+                <CardDescription>
+                  Email will include TID, property address, agent name, fee disclosure, and the{" "}
+                  <span className="font-semibold text-foreground">
+                    {wireDetails?.accountLabel}
+                  </span>{" "}
+                  {wireDetails?.pdfPath ? "PDF attachment" : "details"}.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 px-6 pb-6">
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recipient Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="recipient@example.com"
+                    value={emailRecipient}
+                    onChange={(e) => setEmailRecipient(e.target.value)}
+                    className="h-11 rounded-[10px] border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                  />
+                </div>
+
+                {wireDetails && (
+                  <div className="rounded-xl border bg-[#F1F5F9] p-4 text-sm space-y-1">
+                    <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
+                    <p className="text-muted-foreground">
+                      Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {wireDetails.bankName}, {wireDetails.bankAddress}
+                    </p>
+                  </div>
+                )}
+
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                  <strong>Fee Disclosure:</strong> All bank fees (wire transfer fees) are to be paid by the
+                  Originator (remitter). This will be included in the email body.
+                </div>
+
+                <button
+                  onClick={handlePreviewOrSend}
+                  disabled={createRecord.isPending}
+                  className="w-full h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
+                  style={{
+                    background: testMode ? '#475569' : 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
+                    boxShadow: testMode ? 'none' : '0 2px 8px rgba(0, 86, 210, 0.25)',
+                  }}
+                >
+                  {testMode ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <FlaskConical className="h-4 w-4" />
+                      Preview & Test
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Send className="h-4 w-4" />
+                      Preview & Send
+                    </span>
+                  )}
+                </button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Email Preview Dialog */}
+        <EmailPreviewDialog
+          open={showPreview}
+          onOpenChange={setShowPreview}
+          onConfirmSend={handleConfirmSend}
+          isSending={createRecord.isPending}
+          isTestMode={testMode}
+          recipientEmail={emailRecipient}
+          emailBody={emailBody}
+          pdfFileName={pdfFileName}
+          accountLabel={wireDetails?.accountLabel ?? ""}
+        />
+
+        {/* Success Modal */}
+        <Dialog open={showSuccess} onOpenChange={(open) => { if (!open) handleSuccessClose(); }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader className="items-center text-center">
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                <CheckCircle2 className="h-10 w-10 text-emerald-600" />
+              </div>
+              <DialogTitle className="text-xl">Wire Instructions Sent!</DialogTitle>
+              <DialogDescription>Your wire record has been created successfully.</DialogDescription>
+            </DialogHeader>
+            {lastSentData && (
+              <div className="space-y-3 mt-2">
+                <div className="rounded-lg border bg-[#F1F5F9] p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Recipient</span>
+                    <span className="font-medium">{lastSentData.email}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">PDF Attached</span>
+                    <Badge variant="secondary" className="font-mono text-xs">{lastSentData.pdf}</Badge>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">TID</span>
+                    <span className="font-bold font-mono" style={{ color: '#00245D' }}>{lastSentData.tid}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> Address</span>
+                    <span className="font-medium text-right max-w-[200px]">{lastSentData.address}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1"><User className="h-3 w-3" /> Agent</span>
+                    <span className="font-medium">{lastSentData.agent}</span>
+                  </div>
+                </div>
+                <button
+                  className="w-full h-11 rounded-[10px] text-sm font-semibold text-white transition-all"
+                  style={{ background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)' }}
+                  onClick={handleSuccessClose}
+                >
+                  Go to Dashboard
+                </button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
@@ -579,7 +574,7 @@ function Field({ label, value, highlight, icon }: { label: string; value: string
         {icon}
         {label}
       </Label>
-      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-primary" : "text-foreground"}`}>
+      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-foreground font-bold" : "text-foreground"}`} style={highlight ? { color: '#0056D2' } : undefined}>
         {value}
       </p>
     </div>
