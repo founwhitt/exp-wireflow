@@ -198,7 +198,7 @@ export default function Dashboard() {
   const counts = {
     total: records?.length ?? 0,
     pending: records?.filter((r) => r.status === "Pending").length ?? 0,
-    wired: records?.filter((r) => r.status === "Wired").length ?? 0,
+    sent: records?.filter((r) => r.status === "Sent").length ?? 0,
     received: records?.filter((r) => r.status === "Received").length ?? 0,
     reconciled: records?.filter((r) => r.status === "Reconciled").length ?? 0,
     other: records?.filter((r) => r.status === "Other - See Notes").length ?? 0,
