@@ -30,7 +30,7 @@ export function AppNav() {
             activeClassName="bg-secondary text-foreground"
           >
             <Send className="h-4 w-4" />
-            New Wire
+            Send Wire Instructions
           </NavLink>
           <NavLink
             to="/dashboard"
