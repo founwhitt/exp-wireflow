@@ -51,13 +51,13 @@ export function InlineEditRow({ record, onSelectRecord, isHighlighted, hiddenCol
         <TableCell><DepartmentBadge department={record.department} wfAccount={record.wf_account} /></TableCell>
       )}
       {show("sent_by") && (
-        <TableCell className="text-sm truncate max-w-[120px]">{(record as any).created_by_name ?? "—"}</TableCell>
+        <TableCell className="text-sm">{(record as any).created_by_name ?? "—"}</TableCell>
       )}
       {show("customer") && (
-        <TableCell className="max-w-[120px] truncate text-sm">{record.customer_name}</TableCell>
+        <TableCell className="text-sm">{record.customer_name}</TableCell>
       )}
       {show("address") && (
-        <TableCell className="max-w-[180px] truncate text-sm">{record.property_address}</TableCell>
+        <TableCell className="text-sm">{record.property_address}</TableCell>
       )}
       {show("balance") && (
         <TableCell className="text-right font-mono text-sm">
