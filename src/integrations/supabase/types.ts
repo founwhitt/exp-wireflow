@@ -68,6 +68,7 @@ export type Database = {
           id: string
           is_read: boolean
           message: string
+          notification_type: string
           user_id: string
           wire_id: string | null
         }
@@ -76,6 +77,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           message: string
+          notification_type?: string
           user_id: string
           wire_id?: string | null
         }
@@ -84,6 +86,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           message?: string
+          notification_type?: string
           user_id?: string
           wire_id?: string | null
         }
@@ -302,6 +305,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      push_feature_announcement: {
+        Args: { p_message: string }
+        Returns: undefined
       }
     }
     Enums: {

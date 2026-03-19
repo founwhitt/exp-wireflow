@@ -116,39 +116,55 @@ export default function NewWire() {
     setShowPreview(true);
   };
 
+  const buildRecordPayload = (isSaveOnly: boolean) => {
+    const effectiveWfAccount = isCustom ? (selectedCustom?.account_number ?? "custom") : (wfAccount as string);
+    return {
+      tid: tid.toUpperCase().trim(),
+      department: department as string,
+      wf_account: effectiveWfAccount,
+      invoice_number: tidData!.invoiceNumber,
+      invoice_date: tidData!.invoiceDate,
+      original_amount: tidData!.originalAmount,
+      balance_due: tidData!.balanceDue,
+      customer_name: tidData!.customerName,
+      entity: tidData!.entity,
+      customer_id_prefix: tidData!.customerIdPrefix,
+      customer_id_suffix: tidData!.customerIdSuffix,
+      property_address: tidData!.propertyAddress,
+      transaction_state: tidData!.transactionState,
+      agent_name: tidData!.agentName,
+      assigned_analyst: tidData!.assignedAnalyst,
+      deal_notes: tidData!.dealNotes,
+      email_sent: isSaveOnly ? false : !testMode,
+      email_sent_at: isSaveOnly || testMode ? null : new Date().toISOString(),
+      email_recipient: isSaveOnly ? null : emailRecipient,
+      status: isSaveOnly ? "Pending" : "Sent",
+      created_by: user?.id ?? null,
+    };
+  };
+
+  const handleSaveOnly = async () => {
+    if (!department || !tidData) {
+      toast.error("Please select a department and look up a TID first");
+      return;
+    }
+    try {
+      const result: any = await createRecord.mutateAsync(buildRecordPayload(true));
+      toast.success(`Record ${tid.toUpperCase().trim()} saved to dashboard`);
+      navigate("/dashboard", { state: { highlightWireId: result.id } });
+    } catch (err: any) {
+      toast.error("Failed to save record", { description: err.message });
+    }
+  };
+
   const handleConfirmSend = async () => {
     if (!department || !tidData) return;
 
-    const effectiveWfAccount = isCustom ? (selectedCustom?.account_number ?? "custom") : (wfAccount as string);
-
     try {
-      const result: any = await createRecord.mutateAsync({
-        tid: tid.toUpperCase().trim(),
-        department,
-        wf_account: effectiveWfAccount,
-        invoice_number: tidData.invoiceNumber,
-        invoice_date: tidData.invoiceDate,
-        original_amount: tidData.originalAmount,
-        balance_due: tidData.balanceDue,
-        customer_name: tidData.customerName,
-        entity: tidData.entity,
-        customer_id_prefix: tidData.customerIdPrefix,
-        customer_id_suffix: tidData.customerIdSuffix,
-        property_address: tidData.propertyAddress,
-        transaction_state: tidData.transactionState,
-        agent_name: tidData.agentName,
-        assigned_analyst: tidData.assignedAnalyst,
-        deal_notes: tidData.dealNotes,
-        email_sent: !testMode,
-        email_sent_at: testMode ? null : new Date().toISOString(),
-        email_recipient: emailRecipient,
-        status: "Sent",
-        created_by: user?.id ?? null,
-      });
+      const result: any = await createRecord.mutateAsync(buildRecordPayload(false));
 
       setShowPreview(false);
 
-      // Show success modal
       setLastSentData({
         email: emailRecipient,
         pdf: pdfFileName,
