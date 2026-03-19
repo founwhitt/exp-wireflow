@@ -10,6 +10,7 @@ export interface Notification {
   message: string;
   is_read: boolean;
   created_at: string;
+  notification_type: string;
 }
 
 export function useNotifications() {
@@ -41,7 +42,10 @@ export function useNotifications() {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data as Notification[];
+      return (data ?? []).map((d: any) => ({
+        ...d,
+        notification_type: d.notification_type ?? "wire_update",
+      })) as Notification[];
     },
   });
 

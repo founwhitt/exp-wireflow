@@ -1,4 +1,4 @@
-import { Bell } from "lucide-react";
+import { Bell, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -33,18 +33,25 @@ export function NotificationBell() {
           {count === 0 ? (
             <p className="px-4 py-6 text-center text-sm text-muted-foreground">No unread notifications</p>
           ) : (
-            notifications?.map((n) => (
-              <button
-                key={n.id}
-                className="flex w-full flex-col gap-1 border-b px-4 py-3 text-left transition-colors hover:bg-muted/50 last:border-b-0"
-                onClick={() => markRead.mutate(n.id)}
-              >
-                <span className="text-sm">{n.message}</span>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                </span>
-              </button>
-            ))
+            notifications?.map((n) => {
+              const isFeature = n.notification_type === "feature_announcement";
+              return (
+                <button
+                  key={n.id}
+                  className={`flex w-full flex-col gap-1 border-b px-4 py-3 text-left transition-colors hover:bg-muted/50 last:border-b-0 ${isFeature ? "bg-primary/5" : ""}`}
+                  onClick={() => markRead.mutate(n.id)}
+                >
+                  <span className="flex items-center gap-1.5 text-sm">
+                    {isFeature && <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />}
+                    {n.message}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {isFeature && <span className="font-medium text-primary mr-1">New Feature</span>}
+                    {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                  </span>
+                </button>
+              );
+            })
           )}
         </div>
       </PopoverContent>
