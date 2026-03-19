@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,33 +8,55 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical, CheckCircle2, Layers, Hash } from "lucide-react";
+import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical, CheckCircle2, Layers, Hash, PenLine } from "lucide-react";
 import { toast } from "sonner";
 import { lookupTID, type TIDData } from "@/lib/mock-data";
 import { type Department, DEPARTMENTS, getWFAccount } from "@/lib/department-config";
 import { getWireInstructions, formatEmailBody, type WireInstructionDetails } from "@/lib/wire-instructions";
 import { useCreateWireRecord } from "@/hooks/useWireRecords";
-import { useCustomWireInstructions, type CustomWireInstruction } from "@/hooks/useCustomWireInstructions";
 import { EmailPreviewDialog } from "@/components/EmailPreviewDialog";
 import { useAuth } from "@/hooks/useAuth";
+
+type EntryMode = "lookup" | "manual";
 
 export default function NewWire() {
   const navigate = useNavigate();
   const createRecord = useCreateWireRecord();
   const { user } = useAuth();
-  const { data: customInstructions } = useCustomWireInstructions();
   const [department, setDepartment] = useState<Department | "">("");
+  const [entryMode, setEntryMode] = useState<EntryMode>("lookup");
   const [tid, setTid] = useState("");
   const [tidData, setTidData] = useState<TIDData | null>(null);
   const [emailRecipient, setEmailRecipient] = useState("");
   const [lookupError, setLookupError] = useState("");
   const [testMode, setTestMode] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
-  const [selectedCustomId, setSelectedCustomId] = useState("");
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastSentData, setLastSentData] = useState<{ email: string; pdf: string; tid: string; address: string; agent: string; wireId: string } | null>(null);
+
+  // Manual entry fields
+  const [manualData, setManualData] = useState({
+    invoiceNumber: "",
+    invoiceDate: "",
+    originalAmount: "",
+    balanceDue: "",
+    customerName: "",
+    entity: "",
+    customerIdPrefix: "",
+    customerIdSuffix: "",
+    propertyAddress: "",
+    transactionState: "",
+    agentName: "",
+    assignedAnalyst: "",
+    dealNotes: "",
+  });
+
+  const updateManual = (field: string, value: string) => {
+    setManualData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleLookup = () => {
     setLookupError("");
@@ -45,7 +66,6 @@ export default function NewWire() {
     }
     setIsLookingUp(true);
     setTidData(null);
-    // Simulate API delay
     setTimeout(() => {
       const data = lookupTID(tid);
       setIsLookingUp(false);
@@ -59,54 +79,55 @@ export default function NewWire() {
     }, 800);
   };
 
-  const wfAccount = department ? getWFAccount(department as Department) : null;
-  const isCustom = wfAccount === "custom";
+  // Resolved data from either lookup or manual entry
+  const resolvedData: TIDData | null = entryMode === "lookup"
+    ? tidData
+    : (tid.trim() && manualData.customerName.trim())
+      ? {
+          invoiceNumber: manualData.invoiceNumber,
+          invoiceDate: manualData.invoiceDate,
+          originalAmount: parseFloat(manualData.originalAmount) || 0,
+          balanceDue: parseFloat(manualData.balanceDue) || 0,
+          customerName: manualData.customerName,
+          entity: manualData.entity,
+          customerIdPrefix: manualData.customerIdPrefix,
+          customerIdSuffix: manualData.customerIdSuffix,
+          propertyAddress: manualData.propertyAddress,
+          transactionState: manualData.transactionState,
+          agentName: manualData.agentName,
+          assignedAnalyst: manualData.assignedAnalyst,
+          dealNotes: manualData.dealNotes,
+        }
+      : null;
 
-  const selectedCustom = isCustom
-    ? customInstructions?.find((c) => c.id === selectedCustomId) ?? null
-    : null;
+  const wfAccount = department ? getWFAccount(department as Department) : null;
 
   let wireDetails: WireInstructionDetails | null = null;
   let pdfFileName = "";
 
-  if (wfAccount && wfAccount !== "custom") {
-    wireDetails = getWireInstructions(wfAccount as "8022" | "3694");
+  if (wfAccount) {
+    wireDetails = getWireInstructions(wfAccount);
     pdfFileName = wfAccount === "8022" ? "8022_wire_instructions.pdf" : "3694_wire_instructions.pdf";
-  } else if (selectedCustom) {
-    wireDetails = {
-      accountNumber: selectedCustom.account_number,
-      accountLabel: selectedCustom.name,
-      bankName: selectedCustom.bank_name,
-      bankAddress: selectedCustom.bank_address,
-      accountName: selectedCustom.account_name,
-      accountHolderAddress: selectedCustom.account_holder_address,
-      routingNumber: selectedCustom.routing_number,
-      confirmationPhone: selectedCustom.confirmation_phone ?? "",
-      pdfPath: selectedCustom.pdf_path ?? "",
-    };
-    pdfFileName = selectedCustom.pdf_path
-      ? selectedCustom.pdf_path.split("/").pop() ?? "custom_wire_instructions.pdf"
-      : "No PDF attached";
   }
 
-  const emailBody = tidData && wireDetails
+  const emailBody = resolvedData && wireDetails
     ? formatEmailBody({
         tid: tid.toUpperCase().trim(),
-        propertyAddress: tidData.propertyAddress,
-        agentName: tidData.agentName,
-        balanceDue: tidData.balanceDue,
-        customerName: tidData.customerName,
+        propertyAddress: resolvedData.propertyAddress,
+        agentName: resolvedData.agentName,
+        balanceDue: resolvedData.balanceDue,
+        customerName: resolvedData.customerName,
         wire: wireDetails,
       })
     : "";
 
   const handlePreviewOrSend = () => {
-    if (!department || !tidData) {
-      toast.error("Please select a department and look up a TID first");
+    if (!department || !resolvedData) {
+      toast.error("Please select a department and enter deal data first");
       return;
     }
-    if (isCustom && !selectedCustom) {
-      toast.error("Please select a custom wire instruction");
+    if (!tid.trim()) {
+      toast.error("Please enter a TID");
       return;
     }
     if (!emailRecipient.trim()) {
@@ -117,24 +138,23 @@ export default function NewWire() {
   };
 
   const buildRecordPayload = (isSaveOnly: boolean) => {
-    const effectiveWfAccount = isCustom ? (selectedCustom?.account_number ?? "custom") : (wfAccount as string);
     return {
       tid: tid.toUpperCase().trim(),
       department: department as string,
-      wf_account: effectiveWfAccount,
-      invoice_number: tidData!.invoiceNumber,
-      invoice_date: tidData!.invoiceDate,
-      original_amount: tidData!.originalAmount,
-      balance_due: tidData!.balanceDue,
-      customer_name: tidData!.customerName,
-      entity: tidData!.entity,
-      customer_id_prefix: tidData!.customerIdPrefix,
-      customer_id_suffix: tidData!.customerIdSuffix,
-      property_address: tidData!.propertyAddress,
-      transaction_state: tidData!.transactionState,
-      agent_name: tidData!.agentName,
-      assigned_analyst: tidData!.assignedAnalyst,
-      deal_notes: tidData!.dealNotes,
+      wf_account: wfAccount as string,
+      invoice_number: resolvedData!.invoiceNumber,
+      invoice_date: resolvedData!.invoiceDate || null,
+      original_amount: resolvedData!.originalAmount || null,
+      balance_due: resolvedData!.balanceDue || null,
+      customer_name: resolvedData!.customerName,
+      entity: resolvedData!.entity || null,
+      customer_id_prefix: resolvedData!.customerIdPrefix || null,
+      customer_id_suffix: resolvedData!.customerIdSuffix || null,
+      property_address: resolvedData!.propertyAddress || null,
+      transaction_state: resolvedData!.transactionState || null,
+      agent_name: resolvedData!.agentName || null,
+      assigned_analyst: resolvedData!.assignedAnalyst || null,
+      deal_notes: resolvedData!.dealNotes || null,
       email_sent: isSaveOnly ? false : !testMode,
       email_sent_at: isSaveOnly || testMode ? null : new Date().toISOString(),
       email_recipient: isSaveOnly ? null : emailRecipient,
@@ -144,8 +164,8 @@ export default function NewWire() {
   };
 
   const handleSaveOnly = async () => {
-    if (!department || !tidData) {
-      toast.error("Please select a department and look up a TID first");
+    if (!department || !resolvedData || !tid.trim()) {
+      toast.error("Please fill in department, TID, and deal data");
       return;
     }
     try {
@@ -158,19 +178,16 @@ export default function NewWire() {
   };
 
   const handleConfirmSend = async () => {
-    if (!department || !tidData) return;
-
+    if (!department || !resolvedData) return;
     try {
       const result: any = await createRecord.mutateAsync(buildRecordPayload(false));
-
       setShowPreview(false);
-
       setLastSentData({
         email: emailRecipient,
         pdf: pdfFileName,
         tid: tid.toUpperCase().trim(),
-        address: tidData.propertyAddress,
-        agent: tidData.agentName,
+        address: resolvedData.propertyAddress,
+        agent: resolvedData.agentName,
         wireId: result.id,
       });
       setShowSuccess(true);
@@ -184,20 +201,19 @@ export default function NewWire() {
     navigate("/dashboard", { state: { highlightWireId: lastSentData?.wireId } });
   };
 
-  const canDispatch = tidData && department && (!isCustom || selectedCustom) && wireDetails;
+  const canDispatch = resolvedData && department && wireDetails && tid.trim();
 
-  // Department-based border color
   const getDeptBorderColor = (dept: string) => {
     switch (dept) {
-      case "Transactions": return "border-blue-500";
-      case "Solutions Hub": return "border-blue-400";
-      case "ASC": return "border-slate-400";
-      case "Other": return "border-amber-400";
-      default: return "border-primary/20";
+      case "Transactions": return "ring-[#0056D2]/30";
+      case "ASC": return "ring-slate-300";
+      default: return "ring-primary/20";
     }
   };
 
-  const deptBorder = department ? getDeptBorderColor(department) : "";
+  const deptRing = department ? getDeptBorderColor(department) : "";
+
+  const hasManualData = entryMode === "manual" && tid.trim() && manualData.customerName.trim();
 
   return (
     <div className="min-h-full space-y-8 p-4 sm:p-8" style={{ backgroundColor: '#F8FAFC' }}>
@@ -206,62 +222,78 @@ export default function NewWire() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#00245D' }}>Send Wire Instructions</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Select department, look up the TID, and dispatch wire instructions.
+              Select department, {entryMode === "lookup" ? "look up the TID" : "enter deal data manually"}, and dispatch wire instructions.
             </p>
           </div>
 
-          {/* Test Mode Toggle */}
           <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
             <FlaskConical className="h-4 w-4 text-amber-600" />
             <Label htmlFor="test-mode" className="text-sm font-medium text-amber-800 cursor-pointer">
               Test Mode
             </Label>
-            <Switch
-              id="test-mode"
-              checked={testMode}
-              onCheckedChange={setTestMode}
-            />
+            <Switch id="test-mode" checked={testMode} onCheckedChange={setTestMode} />
           </div>
         </div>
 
         {testMode && (
           <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 mb-6">
-            <strong>🧪 Test Mode Active</strong> — Records will be saved to the dashboard but no emails will actually be sent. You'll see a full preview of the email before saving.
+            <strong>🧪 Test Mode Active</strong> — Records will be saved to the dashboard but no emails will actually be sent.
           </div>
         )}
 
-        {/* Step 1: Department + TID — Premium Floating Card */}
-        <Card className={`border-0 bg-white rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptBorder === 'border-blue-500' ? 'ring-[#0056D2]/30' : deptBorder === 'border-slate-400' ? 'ring-slate-300' : deptBorder === 'border-blue-400' ? 'ring-blue-300' : 'ring-amber-300'}` : ""}`}>
+        {/* Step 1: Department + Entry Mode + TID */}
+        <Card className={`border-0 bg-white rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
           <CardHeader className="pb-4 px-6 pt-6">
             <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
               <Building2 className="h-5 w-5" style={{ color: '#0056D2' }} />
-              Department & TID Lookup
+              Department & Deal Entry
             </CardTitle>
-            <CardDescription>Choose the department to determine the correct wire instructions.</CardDescription>
+            <CardDescription>Choose department and how you want to enter deal data.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 px-6 pb-6">
+            {/* Entry Mode Toggle */}
+            <div className="flex items-center gap-1 rounded-lg bg-[#F1F5F9] p-1">
+              <button
+                onClick={() => { setEntryMode("lookup"); setTidData(null); setLookupError(""); }}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                  entryMode === "lookup"
+                    ? "bg-white text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Search className="h-3.5 w-3.5" />
+                TID Lookup
+              </button>
+              <button
+                onClick={() => { setEntryMode("manual"); setTidData(null); setLookupError(""); }}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                  entryMode === "manual"
+                    ? "bg-white text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <PenLine className="h-3.5 w-3.5" />
+                Manual Entry
+              </button>
+            </div>
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Department</Label>
                 <div className="relative">
                   <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 z-10 pointer-events-none" />
-                  <Select value={department} onValueChange={(v) => {
-                    setDepartment(v as Department);
-                    setSelectedCustomId("");
-                  }}>
+                  <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
                     <SelectTrigger className="h-11 rounded-[10px] pl-10 text-sm border-0 bg-[#F1F5F9] focus:bg-white focus:ring-2 focus:ring-[#0056D2] transition-all">
                       <SelectValue placeholder="Select department..." />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(DEPARTMENTS).map(([key, cfg]) => (
-                        <SelectItem key={key} value={key}>
-                          {cfg.label}
-                        </SelectItem>
+                        <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                {department && !isCustom && (
+                {department && (
                   <Badge variant="secondary" className="font-mono text-xs">
                     → {DEPARTMENTS[department as Department].accountLabel}
                   </Badge>
@@ -277,11 +309,10 @@ export default function NewWire() {
                       placeholder="e.g. TID-10001"
                       value={tid}
                       onChange={(e) => setTid(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleLookup()}
+                      onKeyDown={(e) => e.key === "Enter" && entryMode === "lookup" && handleLookup()}
                       className="h-11 rounded-[10px] pl-10 pr-20 text-sm border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
                     />
-                    {/* Bank Badge next to TID input */}
-                    {department && wfAccount && wfAccount !== "custom" && (
+                    {department && wfAccount && (
                       <span className={`absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold font-mono ${
                         wfAccount === "8022"
                           ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
@@ -291,22 +322,24 @@ export default function NewWire() {
                       </span>
                     )}
                   </div>
-                  <button
-                    onClick={handleLookup}
-                    disabled={isLookingUp}
-                    className="shrink-0 h-11 px-5 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
-                    style={{
-                      background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
-                      boxShadow: '0 2px 8px rgba(0, 86, 210, 0.25)',
-                    }}
-                    onMouseEnter={(e) => { (e.target as HTMLElement).style.boxShadow = '0 4px 20px rgba(0, 86, 210, 0.45)'; }}
-                    onMouseLeave={(e) => { (e.target as HTMLElement).style.boxShadow = '0 2px 8px rgba(0, 86, 210, 0.25)'; }}
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <Search className="h-4 w-4" />
-                      {isLookingUp ? "Looking up..." : "Lookup"}
-                    </span>
-                  </button>
+                  {entryMode === "lookup" && (
+                    <button
+                      onClick={handleLookup}
+                      disabled={isLookingUp}
+                      className="shrink-0 h-11 px-5 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
+                      style={{
+                        background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
+                        boxShadow: '0 2px 8px rgba(0, 86, 210, 0.25)',
+                      }}
+                      onMouseEnter={(e) => { (e.target as HTMLElement).style.boxShadow = '0 4px 20px rgba(0, 86, 210, 0.45)'; }}
+                      onMouseLeave={(e) => { (e.target as HTMLElement).style.boxShadow = '0 2px 8px rgba(0, 86, 210, 0.25)'; }}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Search className="h-4 w-4" />
+                        {isLookingUp ? "Looking up..." : "Lookup"}
+                      </span>
+                    </button>
+                  )}
                 </div>
                 {lookupError && (
                   <p className="flex items-center gap-1 text-sm text-destructive">
@@ -315,42 +348,6 @@ export default function NewWire() {
                 )}
               </div>
             </div>
-
-            {/* Custom instruction selector */}
-            {isCustom && (
-              <div className="space-y-2 rounded-xl border border-[#0056D2]/15 bg-[#F1F5F9] p-4">
-                <Label className="text-sm font-semibold">Select Custom Wire Instructions</Label>
-                {!customInstructions?.length ? (
-                  <p className="text-sm text-muted-foreground">
-                    No custom instructions available. An admin must first add them via the Wire Instructions page.
-                  </p>
-                ) : (
-                  <Select value={selectedCustomId} onValueChange={setSelectedCustomId}>
-                    <SelectTrigger className="h-11 rounded-[10px] border-0 bg-white focus:ring-2 focus:ring-[#0056D2]">
-                      <SelectValue placeholder="Choose custom wire instructions..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {customInstructions.map((ci) => (
-                        <SelectItem key={ci.id} value={ci.id}>
-                          {ci.name} — {ci.bank_name} (••{ci.account_number.slice(-4)})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-                {selectedCustom && (
-                  <div className="mt-2 rounded-lg border bg-white p-3 text-sm space-y-1">
-                    <p className="font-semibold text-foreground">{selectedCustom.name}</p>
-                    <p className="text-muted-foreground">
-                      Routing: {selectedCustom.routing_number} · Account: {selectedCustom.account_number}
-                    </p>
-                    <p className="text-muted-foreground">
-                      {selectedCustom.bank_name}, {selectedCustom.bank_address}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -362,36 +359,84 @@ export default function NewWire() {
               <Skeleton className="h-4 w-56 mt-1" />
             </CardHeader>
             <CardContent className="space-y-4 px-6 pb-6">
-              <div>
-                <Skeleton className="h-4 w-20 mb-2" />
-                <div className="grid gap-3 sm:grid-cols-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="space-y-1">
-                      <Skeleton className="h-3 w-16" />
-                      <Skeleton className="h-5 w-full" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <Separator />
-              <div>
-                <Skeleton className="h-4 w-20 mb-2" />
-                <div className="grid gap-3 sm:grid-cols-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="space-y-1">
-                      <Skeleton className="h-3 w-16" />
-                      <Skeleton className="h-5 w-full" />
-                    </div>
-                  ))}
-                </div>
+              <div className="grid gap-3 sm:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="space-y-1">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-5 w-full" />
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Step 2: Deal Data — Animated reveal */}
-        <div className={`transition-all duration-500 ease-out mt-8 ${tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
-          {tidData && (
+        {/* Manual Entry Form */}
+        <div className={`transition-all duration-500 ease-out mt-8 ${entryMode === "manual" && tid.trim() ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+          {entryMode === "manual" && (
+            <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
+              <CardHeader className="pb-4 px-6 pt-6">
+                <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
+                  <PenLine className="h-5 w-5" style={{ color: '#0056D2' }} />
+                  Manual Deal Entry
+                </CardTitle>
+                <CardDescription>Enter the deal data manually. Fields marked with * are required.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 px-6 pb-6">
+                <div>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <DollarSign className="h-4 w-4 text-emerald-600" /> Financials
+                  </h4>
+                  <div className="grid gap-3 sm:grid-cols-4">
+                    <ManualField label="Invoice #" value={manualData.invoiceNumber} onChange={(v) => updateManual("invoiceNumber", v)} placeholder="INV-2026-..." />
+                    <ManualField label="Invoice Date" value={manualData.invoiceDate} onChange={(v) => updateManual("invoiceDate", v)} type="date" />
+                    <ManualField label="Original Amount" value={manualData.originalAmount} onChange={(v) => updateManual("originalAmount", v)} type="number" placeholder="0.00" />
+                    <ManualField label="Balance Due *" value={manualData.balanceDue} onChange={(v) => updateManual("balanceDue", v)} type="number" placeholder="0.00" highlight />
+                  </div>
+                </div>
+                <Separator />
+                <div>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <User className="h-4 w-4" style={{ color: '#0056D2' }} /> Identity
+                  </h4>
+                  <div className="grid gap-3 sm:grid-cols-4">
+                    <ManualField label="Customer Name *" value={manualData.customerName} onChange={(v) => updateManual("customerName", v)} placeholder="Company LLC" />
+                    <ManualField label="Entity" value={manualData.entity} onChange={(v) => updateManual("entity", v)} placeholder="Parent entity" />
+                    <ManualField label="ID Prefix" value={manualData.customerIdPrefix} onChange={(v) => updateManual("customerIdPrefix", v)} placeholder="ABC" />
+                    <ManualField label="ID Suffix" value={manualData.customerIdSuffix} onChange={(v) => updateManual("customerIdSuffix", v)} placeholder="1234" />
+                  </div>
+                </div>
+                <Separator />
+                <div>
+                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <MapPin className="h-4 w-4 text-rose-500" /> Logistics
+                  </h4>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <ManualField label="Property Address" value={manualData.propertyAddress} onChange={(v) => updateManual("propertyAddress", v)} placeholder="123 Main St, City, ST 00000" />
+                    <ManualField label="Transaction State" value={manualData.transactionState} onChange={(v) => updateManual("transactionState", v)} placeholder="State" />
+                    <ManualField label="Agent Name" value={manualData.agentName} onChange={(v) => updateManual("agentName", v)} placeholder="Agent name" />
+                    <ManualField label="Assigned Analyst" value={manualData.assignedAnalyst} onChange={(v) => updateManual("assignedAnalyst", v)} placeholder="Analyst name" />
+                  </div>
+                </div>
+                <Separator />
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Notes</Label>
+                  <Textarea
+                    value={manualData.dealNotes}
+                    onChange={(e) => updateManual("dealNotes", e.target.value)}
+                    placeholder="Any additional deal notes..."
+                    className="rounded-[10px] border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Lookup Result — Deal Data (read-only display) */}
+        <div className={`transition-all duration-500 ease-out mt-8 ${entryMode === "lookup" && tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+          {tidData && entryMode === "lookup" && (
             <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
@@ -446,7 +491,7 @@ export default function NewWire() {
           )}
         </div>
 
-        {/* Step 3: Send — Animated reveal */}
+        {/* Step 3: Dispatch — Animated reveal */}
         <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${canDispatch ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
           {canDispatch && (
             <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
@@ -457,10 +502,8 @@ export default function NewWire() {
                 </CardTitle>
                 <CardDescription>
                   Email will include TID, property address, agent name, fee disclosure, and the{" "}
-                  <span className="font-semibold text-foreground">
-                    {wireDetails?.accountLabel}
-                  </span>{" "}
-                  {wireDetails?.pdfPath ? "PDF attachment" : "details"}.
+                  <span className="font-semibold text-foreground">{wireDetails?.accountLabel}</span>{" "}
+                  PDF attachment.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 px-6 pb-6">
@@ -610,6 +653,28 @@ function Field({ label, value, highlight, icon }: { label: string; value: string
       <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-foreground font-bold" : "text-foreground"}`} style={highlight ? { color: '#0056D2' } : undefined}>
         {value}
       </p>
+    </div>
+  );
+}
+
+function ManualField({ label, value, onChange, placeholder = "", type = "text", highlight }: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label className={`text-xs ${highlight ? "font-semibold" : ""} text-muted-foreground`}>{label}</Label>
+      <Input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`h-9 rounded-[10px] border-0 bg-[#F1F5F9] text-sm focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all ${highlight ? "ring-1 ring-[#0056D2]/30" : ""}`}
+      />
     </div>
   );
 }
