@@ -116,39 +116,55 @@ export default function NewWire() {
     setShowPreview(true);
   };
 
+  const buildRecordPayload = (isSaveOnly: boolean) => {
+    const effectiveWfAccount = isCustom ? (selectedCustom?.account_number ?? "custom") : (wfAccount as string);
+    return {
+      tid: tid.toUpperCase().trim(),
+      department: department as string,
+      wf_account: effectiveWfAccount,
+      invoice_number: tidData!.invoiceNumber,
+      invoice_date: tidData!.invoiceDate,
+      original_amount: tidData!.originalAmount,
+      balance_due: tidData!.balanceDue,
+      customer_name: tidData!.customerName,
+      entity: tidData!.entity,
+      customer_id_prefix: tidData!.customerIdPrefix,
+      customer_id_suffix: tidData!.customerIdSuffix,
+      property_address: tidData!.propertyAddress,
+      transaction_state: tidData!.transactionState,
+      agent_name: tidData!.agentName,
+      assigned_analyst: tidData!.assignedAnalyst,
+      deal_notes: tidData!.dealNotes,
+      email_sent: isSaveOnly ? false : !testMode,
+      email_sent_at: isSaveOnly || testMode ? null : new Date().toISOString(),
+      email_recipient: isSaveOnly ? null : emailRecipient,
+      status: isSaveOnly ? "Pending" : "Sent",
+      created_by: user?.id ?? null,
+    };
+  };
+
+  const handleSaveOnly = async () => {
+    if (!department || !tidData) {
+      toast.error("Please select a department and look up a TID first");
+      return;
+    }
+    try {
+      const result: any = await createRecord.mutateAsync(buildRecordPayload(true));
+      toast.success(`Record ${tid.toUpperCase().trim()} saved to dashboard`);
+      navigate("/dashboard", { state: { highlightWireId: result.id } });
+    } catch (err: any) {
+      toast.error("Failed to save record", { description: err.message });
+    }
+  };
+
   const handleConfirmSend = async () => {
     if (!department || !tidData) return;
 
-    const effectiveWfAccount = isCustom ? (selectedCustom?.account_number ?? "custom") : (wfAccount as string);
-
     try {
-      const result: any = await createRecord.mutateAsync({
-        tid: tid.toUpperCase().trim(),
-        department,
-        wf_account: effectiveWfAccount,
-        invoice_number: tidData.invoiceNumber,
-        invoice_date: tidData.invoiceDate,
-        original_amount: tidData.originalAmount,
-        balance_due: tidData.balanceDue,
-        customer_name: tidData.customerName,
-        entity: tidData.entity,
-        customer_id_prefix: tidData.customerIdPrefix,
-        customer_id_suffix: tidData.customerIdSuffix,
-        property_address: tidData.propertyAddress,
-        transaction_state: tidData.transactionState,
-        agent_name: tidData.agentName,
-        assigned_analyst: tidData.assignedAnalyst,
-        deal_notes: tidData.dealNotes,
-        email_sent: !testMode,
-        email_sent_at: testMode ? null : new Date().toISOString(),
-        email_recipient: emailRecipient,
-        status: "Sent",
-        created_by: user?.id ?? null,
-      });
+      const result: any = await createRecord.mutateAsync(buildRecordPayload(false));
 
       setShowPreview(false);
 
-      // Show success modal
       setLastSentData({
         email: emailRecipient,
         pdf: pdfFileName,
@@ -476,27 +492,44 @@ export default function NewWire() {
                   Originator (remitter). This will be included in the email body.
                 </div>
 
-                <button
-                  onClick={handlePreviewOrSend}
-                  disabled={createRecord.isPending}
-                  className="w-full h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
-                  style={{
-                    background: testMode ? '#475569' : 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
-                    boxShadow: testMode ? 'none' : '0 2px 8px rgba(0, 86, 210, 0.25)',
-                  }}
-                >
-                  {testMode ? (
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleSaveOnly}
+                    disabled={createRecord.isPending}
+                    className="flex-1 h-12 rounded-[10px] text-sm font-semibold transition-all disabled:opacity-60 border-2"
+                    style={{
+                      borderColor: '#0056D2',
+                      color: '#0056D2',
+                      backgroundColor: 'transparent',
+                    }}
+                  >
                     <span className="flex items-center justify-center gap-2">
-                      <FlaskConical className="h-4 w-4" />
-                      Preview & Test
+                      <FileText className="h-4 w-4" />
+                      Save to Dashboard
                     </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <Send className="h-4 w-4" />
-                      Preview & Send
-                    </span>
-                  )}
-                </button>
+                  </button>
+                  <button
+                    onClick={handlePreviewOrSend}
+                    disabled={createRecord.isPending}
+                    className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
+                    style={{
+                      background: testMode ? '#475569' : 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
+                      boxShadow: testMode ? 'none' : '0 2px 8px rgba(0, 86, 210, 0.25)',
+                    }}
+                  >
+                    {testMode ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <FlaskConical className="h-4 w-4" />
+                        Preview & Test
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <Send className="h-4 w-4" />
+                        Preview & Send
+                      </span>
+                    )}
+                  </button>
+                </div>
               </CardContent>
             </Card>
           )}
