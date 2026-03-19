@@ -19,6 +19,6 @@ export const DEPARTMENTS: Record<Department, DepartmentConfig> = {
   },
 };
 
-export function getWFAccount(department: Department): "8022" | "3694" | "custom" {
+export function getWFAccount(department: Department): "8022" | "3694" {
   return DEPARTMENTS[department].wfAccount;
 }
