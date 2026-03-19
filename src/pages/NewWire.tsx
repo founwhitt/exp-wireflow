@@ -492,27 +492,44 @@ export default function NewWire() {
                   Originator (remitter). This will be included in the email body.
                 </div>
 
-                <button
-                  onClick={handlePreviewOrSend}
-                  disabled={createRecord.isPending}
-                  className="w-full h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
-                  style={{
-                    background: testMode ? '#475569' : 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
-                    boxShadow: testMode ? 'none' : '0 2px 8px rgba(0, 86, 210, 0.25)',
-                  }}
-                >
-                  {testMode ? (
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleSaveOnly}
+                    disabled={createRecord.isPending}
+                    className="flex-1 h-12 rounded-[10px] text-sm font-semibold transition-all disabled:opacity-60 border-2"
+                    style={{
+                      borderColor: '#0056D2',
+                      color: '#0056D2',
+                      backgroundColor: 'transparent',
+                    }}
+                  >
                     <span className="flex items-center justify-center gap-2">
-                      <FlaskConical className="h-4 w-4" />
-                      Preview & Test
+                      <FileText className="h-4 w-4" />
+                      Save to Dashboard
                     </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <Send className="h-4 w-4" />
-                      Preview & Send
-                    </span>
-                  )}
-                </button>
+                  </button>
+                  <button
+                    onClick={handlePreviewOrSend}
+                    disabled={createRecord.isPending}
+                    className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
+                    style={{
+                      background: testMode ? '#475569' : 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
+                      boxShadow: testMode ? 'none' : '0 2px 8px rgba(0, 86, 210, 0.25)',
+                    }}
+                  >
+                    {testMode ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <FlaskConical className="h-4 w-4" />
+                        Preview & Test
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        <Send className="h-4 w-4" />
+                        Preview & Send
+                      </span>
+                    )}
+                  </button>
+                </div>
               </CardContent>
             </Card>
           )}
