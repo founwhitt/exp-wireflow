@@ -72,7 +72,7 @@ type SaveStatus = "idle" | "saving" | "saved";
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === "idle") return null;
   return (
-    <div className="flex items-center gap-1.5 text-[13px] animate-in fade-in duration-200">
+    <div className="flex items-center gap-1.5 text-[14px] animate-in fade-in duration-200">
       {status === "saving" ? (
         <>
           <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
