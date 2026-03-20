@@ -9,7 +9,6 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical, CheckCircle2, Layers, Hash, PenLine, MailX } from "lucide-react";
 import { toast } from "sonner";
@@ -173,7 +172,7 @@ export default function NewWire() {
     try {
       const result: any = await createRecord.mutateAsync(buildRecordPayload(true));
       toast.success(`Record ${tid.toUpperCase().trim()} saved to dashboard`);
-      navigate("/dashboard", { state: { highlightWireId: result.id } });
+      navigate("/expected-wires", { state: { highlightWireId: result.id } });
     } catch (err: any) {
       toast.error("Failed to save record", { description: err.message });
     }
@@ -200,7 +199,7 @@ export default function NewWire() {
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    navigate("/dashboard", { state: { highlightWireId: lastSentData?.wireId } });
+    navigate("/expected-wires", { state: { highlightWireId: lastSentData?.wireId } });
   };
 
   const canDispatch = resolvedData && department && wireDetails && tid.trim();
@@ -525,20 +524,20 @@ export default function NewWire() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 px-6 pb-6">
-                {/* Skip Email Checkbox */}
+                {/* Skip Email Toggle */}
                 <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3">
-                  <Checkbox
+                  <Switch
                     id="skip-email"
                     checked={skipEmail}
-                    onCheckedChange={(v) => setSkipEmail(v === true)}
+                    onCheckedChange={setSkipEmail}
                   />
                   <div className="flex items-center gap-2">
                     <MailX className="h-4 w-4 text-muted-foreground" />
                     <Label htmlFor="skip-email" className="text-sm font-medium cursor-pointer">
-                      Skip Email Dispatch
+                      Save to Dashboard Only
                     </Label>
                   </div>
-                  <span className="ml-auto text-xs text-muted-foreground">Save record only, no email sent</span>
+                  <span className="ml-auto text-xs text-muted-foreground">Log record without sending email</span>
                 </div>
 
                 {!skipEmail && (
@@ -673,7 +672,7 @@ export default function NewWire() {
                   className="w-full h-11 rounded-[10px] text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all shadow-md"
                   onClick={handleSuccessClose}
                 >
-                  Go to Dashboard
+                  Go to Expected Wires
                 </button>
               </div>
             )}

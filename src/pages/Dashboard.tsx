@@ -220,9 +220,9 @@ export default function Dashboard() {
     <>
     <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Wire Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Expected Wires</h1>
         <p className="text-sm text-muted-foreground">
-          Track all wire records. Analysts edit deal data; Accounting finalizes reconciliation.
+          Track all expected wire records. Analysts edit deal data; Accounting finalizes reconciliation.
         </p>
       </div>
 
@@ -393,7 +393,7 @@ export default function Dashboard() {
                       {filtered3694.length > 0 && (
                         <>
                           <TableRow>
-                            <TableCell colSpan={visibleColCount} className="bg-blue-50 py-2 font-semibold text-blue-800 border-b-2 border-blue-200">
+                            <TableCell colSpan={visibleColCount} className="bg-blue-50 dark:bg-blue-950/30 py-2 font-semibold text-blue-800 dark:text-blue-300 border-b-2 border-blue-200 dark:border-blue-800">
                               WF Account 3694 ({filtered3694.length} records)
                             </TableCell>
                           </TableRow>
@@ -405,7 +405,7 @@ export default function Dashboard() {
                       {filtered8022.length > 0 && (
                         <>
                           <TableRow>
-                            <TableCell colSpan={visibleColCount} className="bg-emerald-50 py-2 font-semibold text-emerald-800 border-b-2 border-emerald-200">
+                            <TableCell colSpan={visibleColCount} className="bg-emerald-50 dark:bg-emerald-950/30 py-2 font-semibold text-emerald-800 dark:text-emerald-300 border-b-2 border-emerald-200 dark:border-emerald-800">
                               WF Account 8022 ({filtered8022.length} records)
                             </TableCell>
                           </TableRow>
