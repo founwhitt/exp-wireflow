@@ -653,7 +653,7 @@ function LiveGrid({
         onSuccess: () => {
           setEmptyRows((prev) => {
             const remaining = prev.filter((r) => !filledKeys.has(r._key));
-            const needed = Math.max(0, EMPTY_ROWS_COUNT - remaining.length);
+            const needed = Math.max(0, DEFAULT_EMPTY_ROWS - remaining.length);
             return [...remaining, ...makeEmptyRows(needed, defaultAccount)];
           });
           onSaved();
