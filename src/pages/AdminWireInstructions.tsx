@@ -139,11 +139,15 @@ export default function AdminWireInstructions() {
             Manage default and custom wire instructions. All sensitive data is masked for demo purposes.
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Custom
-        </Button>
-      </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setManageAccountsOpen(true)}>
+            Manage Accounts
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Custom
+          </Button>
+        </div>
 
       {/* Built-in instructions */}
       <Card>
