@@ -577,11 +577,7 @@ export default function NewWire() {
                   <button
                     onClick={handleSaveOnly}
                     disabled={createRecord.isPending}
-                    className="w-full h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
-                    style={{
-                      background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
-                      boxShadow: '0 2px 8px rgba(0, 86, 210, 0.25)',
-                    }}
+                    className="w-full h-12 rounded-[10px] text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all disabled:opacity-60 shadow-md"
                   >
                     <span className="flex items-center justify-center gap-2">
                       <FileText className="h-4 w-4" />
@@ -593,12 +589,7 @@ export default function NewWire() {
                     <button
                       onClick={handleSaveOnly}
                       disabled={createRecord.isPending}
-                      className="flex-1 h-12 rounded-[10px] text-sm font-semibold transition-all disabled:opacity-60 border-2"
-                      style={{
-                        borderColor: '#0056D2',
-                        color: '#0056D2',
-                        backgroundColor: 'transparent',
-                      }}
+                      className="flex-1 h-12 rounded-[10px] text-sm font-semibold transition-all disabled:opacity-60 border-2 border-accent text-accent bg-transparent hover:bg-accent/10"
                     >
                       <span className="flex items-center justify-center gap-2">
                         <FileText className="h-4 w-4" />
