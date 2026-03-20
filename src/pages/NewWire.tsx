@@ -673,7 +673,7 @@ export default function NewWire() {
                   className="w-full h-11 rounded-[10px] text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all shadow-md"
                   onClick={handleSuccessClose}
                 >
-                  Go to Dashboard
+                  Go to Expected Wires
                 </button>
               </div>
             )}
