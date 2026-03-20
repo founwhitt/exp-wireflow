@@ -200,7 +200,7 @@ export default function NewWire() {
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    navigate("/dashboard", { state: { highlightWireId: lastSentData?.wireId } });
+    navigate("/expected-wires", { state: { highlightWireId: lastSentData?.wireId } });
   };
 
   const canDispatch = resolvedData && department && wireDetails && tid.trim();
