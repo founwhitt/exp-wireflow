@@ -670,8 +670,7 @@ export default function NewWire() {
                   </div>
                 </div>
                 <button
-                  className="w-full h-11 rounded-[10px] text-sm font-semibold text-white transition-all"
-                  style={{ background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)' }}
+                  className="w-full h-11 rounded-[10px] text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all shadow-md"
                   onClick={handleSuccessClose}
                 >
                   Go to Dashboard
