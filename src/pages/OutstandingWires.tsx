@@ -136,7 +136,7 @@ export default function OutstandingWires() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[1.65rem] font-bold tracking-tight text-foreground">Outstanding Wires</h1>
+          <h1 className="text-[1.75rem] font-bold tracking-tight text-foreground">Outstanding Wires</h1>
           <p className="text-[13px] text-muted-foreground">
             Live editable grid — paste from Excel or edit inline. Independent from Expected Wires.
           </p>
