@@ -414,7 +414,7 @@ export default function NewWire() {
                 <Separator />
                 <div>
                   <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                    <User className="h-4 w-4 text-accent-foreground" /> Identity
+                    <User className="h-4 w-4 text-primary" /> Identity
                   </h4>
                   <div className="grid gap-3 sm:grid-cols-4">
                     <ManualField label="Customer Name *" value={manualData.customerName} onChange={(v) => updateManual("customerName", v)} placeholder="Company LLC" />
