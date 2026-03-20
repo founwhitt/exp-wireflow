@@ -270,7 +270,7 @@ export default function NewWire() {
           </CardHeader>
           <CardContent className="space-y-5 px-6 pb-6">
             {/* Entry Mode Toggle */}
-            <div className="flex items-center gap-1 rounded-lg bg-[#F1F5F9] p-1">
+            <div className="flex items-center gap-1 rounded-lg bg-muted/30 p-1">
               <button
                 onClick={() => { setEntryMode("lookup"); setTidData(null); setLookupError(""); }}
                 className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
