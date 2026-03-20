@@ -231,7 +231,7 @@ export default function NewWire() {
         </span>
       </div>
 
-      <div className={`relative z-10 mx-auto max-w-3xl transition-all duration-500 ${!hasDataBelow ? "flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center" : "space-y-8"}`}>
+      <div className={`relative z-10 mx-auto max-w-4xl transition-all duration-500 ${!hasDataBelow ? "flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center" : "space-y-8"}`}>
         {/* Header — always visible */}
         <div className={`w-full ${!hasDataBelow ? "mb-6" : "mb-0"}`}>
           <div className="flex items-start justify-between mb-6">
