@@ -9,8 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical, CheckCircle2, Layers, Hash, PenLine } from "lucide-react";
+import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical, CheckCircle2, Layers, Hash, PenLine, MailX } from "lucide-react";
 import { toast } from "sonner";
 import { lookupTID, type TIDData } from "@/lib/mock-data";
 import { type Department, DEPARTMENTS, getWFAccount } from "@/lib/department-config";
@@ -35,6 +36,7 @@ export default function NewWire() {
   const [showPreview, setShowPreview] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [skipEmail, setSkipEmail] = useState(false);
   const [lastSentData, setLastSentData] = useState<{ email: string; pdf: string; tid: string; address: string; agent: string; wireId: string } | null>(null);
 
   // Manual entry fields
@@ -213,36 +215,53 @@ export default function NewWire() {
 
   const deptRing = department ? getDeptBorderColor(department) : "";
 
-  const hasManualData = entryMode === "manual" && tid.trim() && manualData.customerName.trim();
+  // Determine if we have data to show below the first card
+  const hasDataBelow = isLookingUp || (entryMode === "lookup" && tidData) || (entryMode === "manual" && tid.trim()) || canDispatch;
 
   return (
-    <div className="min-h-full space-y-8 p-4 sm:p-8" style={{ backgroundColor: '#F8FAFC' }}>
-      <div className="mx-auto max-w-3xl">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#00245D' }}>Send Wire Instructions</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Select department, {entryMode === "lookup" ? "look up the TID" : "enter deal data manually"}, and dispatch wire instructions.
-            </p>
+    <div className="relative min-h-full p-4 sm:p-8 overflow-hidden" style={{ backgroundColor: '#F8FAFC' }}>
+      {/* eXp watermark */}
+      <div
+        className="pointer-events-none absolute inset-0 flex items-center justify-center select-none"
+        aria-hidden="true"
+      >
+        <span
+          className="text-[12rem] sm:text-[18rem] font-black tracking-tighter"
+          style={{ color: 'rgba(0, 36, 93, 0.025)' }}
+        >
+          eXp
+        </span>
+      </div>
+
+      <div className={`relative z-10 mx-auto max-w-3xl transition-all duration-500 ${!hasDataBelow ? "flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center" : "space-y-8"}`}>
+        {/* Header — always visible */}
+        <div className={`w-full ${!hasDataBelow ? "mb-6" : "mb-0"}`}>
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#00245D' }}>Send Wire Instructions</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Select department, {entryMode === "lookup" ? "look up the TID" : "enter deal data manually"}, and dispatch wire instructions.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+              <FlaskConical className="h-4 w-4 text-amber-600" />
+              <Label htmlFor="test-mode" className="text-sm font-medium text-amber-800 cursor-pointer">
+                Test Mode
+              </Label>
+              <Switch id="test-mode" checked={testMode} onCheckedChange={setTestMode} />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-            <FlaskConical className="h-4 w-4 text-amber-600" />
-            <Label htmlFor="test-mode" className="text-sm font-medium text-amber-800 cursor-pointer">
-              Test Mode
-            </Label>
-            <Switch id="test-mode" checked={testMode} onCheckedChange={setTestMode} />
-          </div>
+          {testMode && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 mb-6">
+              <strong>🧪 Test Mode Active</strong> — Records will be saved to the dashboard but no emails will actually be sent.
+            </div>
+          )}
         </div>
 
-        {testMode && (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 mb-6">
-            <strong>🧪 Test Mode Active</strong> — Records will be saved to the dashboard but no emails will actually be sent.
-          </div>
-        )}
-
         {/* Step 1: Department + Entry Mode + TID */}
-        <Card className={`border-0 bg-white rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
+        <Card className={`w-full border-0 bg-white rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
           <CardHeader className="pb-4 px-6 pt-6">
             <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
               <Building2 className="h-5 w-5" style={{ color: '#0056D2' }} />
@@ -507,43 +526,62 @@ export default function NewWire() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 px-6 pb-6">
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recipient Email</Label>
-                  <Input
-                    type="email"
-                    placeholder="recipient@example.com"
-                    value={emailRecipient}
-                    onChange={(e) => setEmailRecipient(e.target.value)}
-                    className="h-11 rounded-[10px] border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                {/* Skip Email Checkbox */}
+                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-[#F1F5F9] p-3">
+                  <Checkbox
+                    id="skip-email"
+                    checked={skipEmail}
+                    onCheckedChange={(v) => setSkipEmail(v === true)}
                   />
+                  <div className="flex items-center gap-2">
+                    <MailX className="h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="skip-email" className="text-sm font-medium cursor-pointer">
+                      Skip Email Dispatch
+                    </Label>
+                  </div>
+                  <span className="ml-auto text-xs text-muted-foreground">Save record only, no email sent</span>
                 </div>
 
-                {wireDetails && (
-                  <div className="rounded-xl border bg-[#F1F5F9] p-4 text-sm space-y-1">
-                    <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
-                    <p className="text-muted-foreground">
-                      Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
-                    </p>
-                    <p className="text-muted-foreground">
-                      {wireDetails.bankName}, {wireDetails.bankAddress}
-                    </p>
-                  </div>
+                {!skipEmail && (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recipient Email</Label>
+                      <Input
+                        type="email"
+                        placeholder="recipient@example.com"
+                        value={emailRecipient}
+                        onChange={(e) => setEmailRecipient(e.target.value)}
+                        className="h-11 rounded-[10px] border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                      />
+                    </div>
+
+                    {wireDetails && (
+                      <div className="rounded-xl border bg-[#F1F5F9] p-4 text-sm space-y-1">
+                        <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
+                        <p className="text-muted-foreground">
+                          Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
+                        </p>
+                        <p className="text-muted-foreground">
+                          {wireDetails.bankName}, {wireDetails.bankAddress}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                      <strong>Fee Disclosure:</strong> All bank fees (wire transfer fees) are to be paid by the
+                      Originator (remitter). This will be included in the email body.
+                    </div>
+                  </>
                 )}
 
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                  <strong>Fee Disclosure:</strong> All bank fees (wire transfer fees) are to be paid by the
-                  Originator (remitter). This will be included in the email body.
-                </div>
-
-                <div className="flex gap-3">
+                {skipEmail ? (
                   <button
                     onClick={handleSaveOnly}
                     disabled={createRecord.isPending}
-                    className="flex-1 h-12 rounded-[10px] text-sm font-semibold transition-all disabled:opacity-60 border-2"
+                    className="w-full h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
                     style={{
-                      borderColor: '#0056D2',
-                      color: '#0056D2',
-                      backgroundColor: 'transparent',
+                      background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
+                      boxShadow: '0 2px 8px rgba(0, 86, 210, 0.25)',
                     }}
                   >
                     <span className="flex items-center justify-center gap-2">
@@ -551,28 +589,46 @@ export default function NewWire() {
                       Save to Dashboard
                     </span>
                   </button>
-                  <button
-                    onClick={handlePreviewOrSend}
-                    disabled={createRecord.isPending}
-                    className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
-                    style={{
-                      background: testMode ? '#475569' : 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
-                      boxShadow: testMode ? 'none' : '0 2px 8px rgba(0, 86, 210, 0.25)',
-                    }}
-                  >
-                    {testMode ? (
+                ) : (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleSaveOnly}
+                      disabled={createRecord.isPending}
+                      className="flex-1 h-12 rounded-[10px] text-sm font-semibold transition-all disabled:opacity-60 border-2"
+                      style={{
+                        borderColor: '#0056D2',
+                        color: '#0056D2',
+                        backgroundColor: 'transparent',
+                      }}
+                    >
                       <span className="flex items-center justify-center gap-2">
-                        <FlaskConical className="h-4 w-4" />
-                        Preview & Test
+                        <FileText className="h-4 w-4" />
+                        Save to Dashboard
                       </span>
-                    ) : (
-                      <span className="flex items-center justify-center gap-2">
-                        <Send className="h-4 w-4" />
-                        Preview & Send
-                      </span>
-                    )}
-                  </button>
-                </div>
+                    </button>
+                    <button
+                      onClick={handlePreviewOrSend}
+                      disabled={createRecord.isPending}
+                      className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
+                      style={{
+                        background: testMode ? '#475569' : 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
+                        boxShadow: testMode ? 'none' : '0 2px 8px rgba(0, 86, 210, 0.25)',
+                      }}
+                    >
+                      {testMode ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <FlaskConical className="h-4 w-4" />
+                          Preview & Test
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center gap-2">
+                          <Send className="h-4 w-4" />
+                          Preview & Send
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
