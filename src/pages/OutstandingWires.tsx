@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, Download, Trash2, Check, Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, Filter, Download, Trash2, Check, Loader2, ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   useOutstandingWires,
@@ -20,23 +21,46 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 const STATUS_OPTIONS = ["All", "Needs TRX ID", "Waiting on Settlement"];
 
-const GRID_COLS = [
-  { key: "status", label: "Status", width: "w-[140px]", type: "status" },
-  { key: "wf_account", label: "Account", width: "w-[130px]", type: "account" },
-  { key: "wiring_date", label: "Date", width: "w-[130px]", type: "text" },
-  { key: "amount", label: "Amount", width: "w-[120px]", type: "text" },
-  { key: "receipt_number", label: "Receipt #", width: "w-[120px]", type: "text" },
-  { key: "invoice_number", label: "Invoice #", width: "w-[120px]", type: "text" },
-  { key: "description", label: "Description", width: "w-[190px]", type: "text" },
-  { key: "accounting_notes", label: "Acct. Notes", width: "w-[190px]", type: "text" },
-  { key: "trx_notes", label: "TRX Notes", width: "w-[190px]", type: "text" },
-] as const;
+// Column definitions
+interface ColDef {
+  key: string;
+  label: string;
+  width: number; // default px width
+  minWidth: number;
+  type: "status" | "account" | "text";
+}
 
-type ColKey = typeof GRID_COLS[number]["key"];
+const DEFAULT_COLS: ColDef[] = [
+  { key: "status", label: "Status", width: 140, minWidth: 80, type: "status" },
+  { key: "wf_account", label: "Account", width: 130, minWidth: 80, type: "account" },
+  { key: "wiring_date", label: "Date", width: 130, minWidth: 80, type: "text" },
+  { key: "amount", label: "Amount", width: 120, minWidth: 80, type: "text" },
+  { key: "receipt_number", label: "Receipt #", width: 120, minWidth: 80, type: "text" },
+  { key: "invoice_number", label: "Invoice #", width: 120, minWidth: 80, type: "text" },
+  { key: "description", label: "Description", width: 190, minWidth: 100, type: "text" },
+  { key: "accounting_notes", label: "Acct. Notes", width: 190, minWidth: 100, type: "text" },
+  { key: "trx_notes", label: "TRX Notes", width: 190, minWidth: 100, type: "text" },
+];
+
+const PAYLOAD_COLS: ColDef[] = [
+  { key: "status", label: "Status", width: 140, minWidth: 80, type: "status" },
+  { key: "wiring_date", label: "Date", width: 130, minWidth: 80, type: "text" },
+  { key: "amount", label: "Amount", width: 120, minWidth: 80, type: "text" },
+  { key: "receipt_number", label: "Receipt #", width: 120, minWidth: 80, type: "text" },
+  { key: "invoice_number", label: "TID/Invoice", width: 140, minWidth: 80, type: "text" },
+  { key: "description", label: "Customer", width: 160, minWidth: 100, type: "text" },
+  { key: "accounting_notes", label: "Agent", width: 140, minWidth: 100, type: "text" },
+  { key: "trx_notes", label: "Please add TID Here If known", width: 220, minWidth: 100, type: "text" },
+];
+
+type ColKey = string;
 const ACCOUNTING_COLS: ColKey[] = ["status", "wf_account", "wiring_date", "amount", "receipt_number", "invoice_number", "description", "accounting_notes"];
 
 function normalizeAccount(raw: string): string {
@@ -50,9 +74,9 @@ function normalizeStatus(raw: string): string {
   return "Needs TRX ID";
 }
 
-function exportCSV(rows: OutstandingWire[], tab: string) {
-  const headers = GRID_COLS.map((c) => c.label);
-  const fields = GRID_COLS.map((c) => c.key);
+function exportCSV(rows: OutstandingWire[], cols: ColDef[], tab: string) {
+  const headers = cols.map((c) => c.label);
+  const fields = cols.map((c) => c.key);
   const csv = [
     headers.join(","),
     ...rows.map((r) => fields.map((f) => `"${String((r as any)[f] ?? "").replace(/"/g, '""')}"`).join(",")),
@@ -72,7 +96,7 @@ type SaveStatus = "idle" | "saving" | "saved";
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === "idle") return null;
   return (
-    <div className="flex items-center gap-1.5 text-[14px] animate-in fade-in duration-200">
+    <div className="flex items-center gap-1.5 animate-in fade-in duration-200">
       {status === "saving" ? (
         <>
           <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
@@ -88,16 +112,26 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   );
 }
 
+// ---- Undo Stack ----
+interface UndoEntry {
+  type: "edit";
+  id: string;
+  field: string;
+  oldValue: any;
+}
+
 // ---- Main Component ----
 
 export default function OutstandingWires() {
   const { data: records, isLoading, error } = useOutstandingWires();
-  const { isAccounting, user } = useAuth();
+  const { isAccounting, isAdmin, user } = useAuth();
   const [tab, setTab] = useState("realty");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const undoStackRef = useRef<UndoEntry[]>([]);
+  const update = useUpdateOutstandingWire();
 
   const markSaving = useCallback(() => {
     setSaveStatus("saving");
@@ -109,6 +143,38 @@ export default function OutstandingWires() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => setSaveStatus("idle"), 3000);
   }, []);
+
+  const pushUndo = useCallback((entry: UndoEntry) => {
+    undoStackRef.current.push(entry);
+    if (undoStackRef.current.length > 100) undoStackRef.current.shift();
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    const entry = undoStackRef.current.pop();
+    if (!entry) return;
+    markSaving();
+    update.mutate(
+      { id: entry.id, [entry.field]: entry.oldValue },
+      {
+        onSuccess: () => { markSaved(); toast.success("Undo successful"); },
+        onError: () => { markSaved(); toast.error("Undo failed"); },
+      }
+    );
+  }, [update, markSaving, markSaved]);
+
+  // Global Ctrl+Z handler
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return; // let native undo work in inputs
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [handleUndo]);
 
   const filtered = useMemo(() => {
     let result = (records ?? []).filter((r) => r.category === tab);
@@ -127,9 +193,10 @@ export default function OutstandingWires() {
     return result;
   }, [records, tab, statusFilter, search]);
 
-  // Realty split by account
   const realty8022 = useMemo(() => filtered.filter((r) => r.wf_account === "WF-8022"), [filtered]);
   const realty3694 = useMemo(() => filtered.filter((r) => r.wf_account === "WF-3694"), [filtered]);
+
+  const activeCols = tab === "payload" ? PAYLOAD_COLS : DEFAULT_COLS;
 
   return (
     <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
@@ -137,8 +204,8 @@ export default function OutstandingWires() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[1.75rem] font-bold tracking-tight text-foreground">Outstanding Wires</h1>
-          <p className="text-[14px] text-muted-foreground">
-            Live editable grid — paste from Excel or edit inline. Independent from Expected Wires.
+          <p className="text-muted-foreground">
+            Live editable grid — paste from Excel or edit inline. Ctrl+Z to undo.
           </p>
         </div>
         <SaveIndicator status={saveStatus} />
@@ -148,18 +215,18 @@ export default function OutstandingWires() {
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search description, invoice, receipt..." className="h-9 pl-9 text-[14px]" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Search description, invoice, receipt..." className="h-9 pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex items-center gap-1">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-9 w-[180px] text-[14px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" size="sm" className="h-9 text-[14px]" onClick={() => exportCSV(filtered, tab)} disabled={filtered.length === 0}>
+        <Button variant="outline" size="sm" className="h-9" onClick={() => exportCSV(filtered, activeCols, tab)} disabled={filtered.length === 0}>
           <Download className="h-4 w-4 mr-1" />Export
         </Button>
       </div>
@@ -167,50 +234,45 @@ export default function OutstandingWires() {
       {/* Sub-tabs */}
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-fit">
-          <TabsTrigger value="realty" className="text-[14px]">Realty</TabsTrigger>
-          <TabsTrigger value="payload" className="text-[14px]">Payload</TabsTrigger>
-          <TabsTrigger value="commercial" className="text-[14px]">Commercial</TabsTrigger>
-          <TabsTrigger value="international" className="text-[14px]">International</TabsTrigger>
+          <TabsTrigger value="realty">Realty</TabsTrigger>
+          <TabsTrigger value="payload">Payload</TabsTrigger>
+          <TabsTrigger value="commercial">Commercial</TabsTrigger>
+          <TabsTrigger value="international">International</TabsTrigger>
         </TabsList>
 
         <TabsContent value="realty" className="mt-4 space-y-6">
           {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
             <>
-              {/* WF-8022 Section */}
-              <div>
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <div className="h-3 w-3 rounded-full bg-accent" />
-                  <h2 className="text-[16px] font-semibold text-foreground">Wells Fargo — XXXX-8022</h2>
-                  <span className="text-[13px] text-muted-foreground ml-1 tabular-nums">({realty8022.length} records)</span>
-                </div>
-                <LiveGrid
-                  records={realty8022}
-                  category="realty"
-                  defaultAccount="WF-8022"
-                  isAccounting={isAccounting}
-                  userId={user?.id ?? null}
-                  onSaving={markSaving}
-                  onSaved={markSaved}
-                />
-              </div>
-
-              {/* WF-3694 Section */}
-              <div>
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <div className="h-3 w-3 rounded-full bg-[hsl(var(--success))]" />
-                  <h2 className="text-[16px] font-semibold text-foreground">Wells Fargo — XXXX-3694</h2>
-                  <span className="text-[13px] text-muted-foreground ml-1 tabular-nums">({realty3694.length} records)</span>
-                </div>
-                <LiveGrid
-                  records={realty3694}
-                  category="realty"
-                  defaultAccount="WF-3694"
-                  isAccounting={isAccounting}
-                  userId={user?.id ?? null}
-                  onSaving={markSaving}
-                  onSaved={markSaved}
-                />
-              </div>
+              <CollapsibleAccountSection
+                title="Wells Fargo — XXXX-8022"
+                dotColor="bg-accent"
+                records={realty8022}
+                cols={DEFAULT_COLS}
+                category="realty"
+                defaultAccount="WF-8022"
+                isAccounting={isAccounting}
+                isAdmin={isAdmin}
+                userId={user?.id ?? null}
+                onSaving={markSaving}
+                onSaved={markSaved}
+                pushUndo={pushUndo}
+                initialLimit={10}
+              />
+              <CollapsibleAccountSection
+                title="Wells Fargo — XXXX-3694"
+                dotColor="bg-[hsl(var(--success))]"
+                records={realty3694}
+                cols={DEFAULT_COLS}
+                category="realty"
+                defaultAccount="WF-3694"
+                isAccounting={isAccounting}
+                isAdmin={isAdmin}
+                userId={user?.id ?? null}
+                onSaving={markSaving}
+                onSaved={markSaved}
+                pushUndo={pushUndo}
+                initialLimit={10}
+              />
             </>
           )}
         </TabsContent>
@@ -220,17 +282,71 @@ export default function OutstandingWires() {
             {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
               <LiveGrid
                 records={filtered}
+                cols={t === "payload" ? PAYLOAD_COLS : DEFAULT_COLS}
                 category={t}
                 defaultAccount="WF-8022"
                 isAccounting={isAccounting}
+                isAdmin={isAdmin}
                 userId={user?.id ?? null}
                 onSaving={markSaving}
                 onSaved={markSaved}
+                pushUndo={pushUndo}
               />
             )}
           </TabsContent>
         ))}
       </Tabs>
+    </div>
+  );
+}
+
+// ---- Collapsible Account Section for Realty ----
+
+function CollapsibleAccountSection({
+  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit,
+}: {
+  title: string; dotColor: string; records: OutstandingWire[]; cols: ColDef[];
+  category: string; defaultAccount: string; isAccounting: boolean; isAdmin: boolean;
+  userId: string | null; onSaving: () => void; onSaved: () => void;
+  pushUndo: (e: UndoEntry) => void; initialLimit: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visibleRecords = expanded ? records : records.slice(0, initialLimit);
+  const hasMore = records.length > initialLimit;
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2 px-1">
+        <div className={`h-3 w-3 rounded-full ${dotColor}`} />
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <span className="text-sm text-muted-foreground ml-1 tabular-nums">({records.length} records)</span>
+      </div>
+      <LiveGrid
+        records={visibleRecords}
+        cols={cols}
+        category={category}
+        defaultAccount={defaultAccount}
+        isAccounting={isAccounting}
+        isAdmin={isAdmin}
+        userId={userId}
+        onSaving={onSaving}
+        onSaved={onSaved}
+        pushUndo={pushUndo}
+      />
+      {hasMore && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-1 w-full text-muted-foreground hover:text-foreground"
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? (
+            <><ChevronUp className="h-4 w-4 mr-1" />Show first {initialLimit} rows</>
+          ) : (
+            <><ChevronDown className="h-4 w-4 mr-1" />See all {records.length} rows</>
+          )}
+        </Button>
+      )}
     </div>
   );
 }
@@ -242,15 +358,7 @@ const EMPTY_ROWS_COUNT = 50;
 interface EmptyRow {
   _empty: true;
   _key: string;
-  status: string;
-  wf_account: string;
-  wiring_date: string;
-  amount: string;
-  receipt_number: string;
-  invoice_number: string;
-  description: string;
-  accounting_notes: string;
-  trx_notes: string;
+  [key: string]: any;
 }
 
 let emptyKeyCounter = 0;
@@ -285,37 +393,53 @@ function rowHasData(r: EmptyRow): boolean {
 }
 
 function LiveGrid({
-  records,
-  category,
-  defaultAccount,
-  isAccounting,
-  userId,
-  onSaving,
-  onSaved,
+  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo,
 }: {
-  records: OutstandingWire[];
-  category: string;
-  defaultAccount: string;
-  isAccounting: boolean;
+  records: OutstandingWire[]; cols: ColDef[];
+  category: string; defaultAccount: string;
+  isAccounting: boolean; isAdmin: boolean;
   userId: string | null;
-  onSaving: () => void;
-  onSaved: () => void;
+  onSaving: () => void; onSaved: () => void;
+  pushUndo: (e: UndoEntry) => void;
 }) {
   const create = useCreateOutstandingWires();
   const update = useUpdateOutstandingWire();
   const remove = useDeleteOutstandingWire();
 
   const [emptyRows, setEmptyRows] = useState<EmptyRow[]>(() => makeEmptyRows(EMPTY_ROWS_COUNT, defaultAccount));
+  const [colWidths, setColWidths] = useState<Record<string, number>>(() =>
+    Object.fromEntries(cols.map((c) => [c.key, c.width]))
+  );
+  const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
+  const [colFilters, setColFilters] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
+  const resizingRef = useRef<{ key: string; startX: number; startW: number } | null>(null);
 
-  const displayRows: DisplayRow[] = useMemo(() => [...records, ...emptyRows], [records, emptyRows]);
+  const visibleCols = useMemo(() => cols.filter((c) => !hiddenCols.has(c.key)), [cols, hiddenCols]);
 
-  const canEditCol = useCallback((col: ColKey) => {
+  const displayRows: DisplayRow[] = useMemo(() => {
+    let rows: DisplayRow[] = [...records, ...emptyRows];
+    // Apply column filters to saved records
+    Object.entries(colFilters).forEach(([key, val]) => {
+      if (!val) return;
+      const q = val.toLowerCase();
+      rows = rows.filter((r) => {
+        if (isEmptyRow(r)) return true;
+        return String((r as any)[key] ?? "").toLowerCase().includes(q);
+      });
+    });
+    return rows;
+  }, [records, emptyRows, colFilters]);
+
+  const canEditCol = useCallback((col: string) => {
     if (col === "trx_notes") return true;
     return isAccounting && ACCOUNTING_COLS.includes(col);
   }, [isAccounting]);
 
-  const saveField = useCallback((id: string, field: string, value: any) => {
+  const saveField = useCallback((id: string, field: string, value: any, oldValue?: any) => {
+    if (oldValue !== undefined) pushUndo({ type: "edit", id, field, oldValue });
     onSaving();
     update.mutate(
       { id, [field]: value },
@@ -324,7 +448,7 @@ function LiveGrid({
         onError: (err: any) => { onSaved(); toast.error("Failed to update", { description: err.message }); },
       }
     );
-  }, [update, onSaving, onSaved]);
+  }, [update, onSaving, onSaved, pushUndo]);
 
   const commitEmptyRow = useCallback((row: EmptyRow) => {
     if (!rowHasData(row)) return;
@@ -351,7 +475,7 @@ function LiveGrid({
     });
   }, [create, category, defaultAccount, userId, onSaving, onSaved]);
 
-  const updateEmptyCell = useCallback((key: string, field: ColKey, value: string) => {
+  const updateEmptyCell = useCallback((key: string, field: string, value: string) => {
     setEmptyRows((prev) => prev.map((r) => r._key === key ? { ...r, [field]: value } : r));
   }, []);
 
@@ -368,29 +492,28 @@ function LiveGrid({
     if (active?.dataset.gridrow) startRow = parseInt(active.dataset.gridrow, 10) || 0;
     if (active?.dataset.gridcol) startCol = parseInt(active.dataset.gridcol, 10) || 0;
 
-    const fieldKeys = GRID_COLS.map((c) => c.key);
-    const existingUpdates: { id: string; field: string; value: any }[] = [];
-    const newEmptyUpdates: { key: string; field: ColKey; value: string }[] = [];
-
+    const fieldKeys = visibleCols.map((c) => c.key);
+    const existingUpdates: { id: string; field: string; value: any; oldValue: any }[] = [];
     const currentEmpty = [...emptyRows];
 
     for (let i = 0; i < lines.length; i++) {
       const rowIdx = startRow + i;
-      const cols = lines[i].split("\t");
+      const colValues = lines[i].split("\t");
 
       if (rowIdx < records.length) {
         const rec = records[rowIdx];
-        cols.forEach((val, ci) => {
+        colValues.forEach((val, ci) => {
           const colIdx = startCol + ci;
           if (colIdx >= fieldKeys.length) return;
           const field = fieldKeys[colIdx];
           if (!canEditCol(field)) return;
           let normalized: any = val.trim();
+          const oldValue = (rec as any)[field];
           if (field === "wf_account") normalized = normalizeAccount(normalized);
           else if (field === "status") normalized = normalizeStatus(normalized);
           else if (field === "amount") normalized = parseFloat(normalized.replace(/[^0-9.\-]/g, "")) || null;
           else normalized = normalized || null;
-          existingUpdates.push({ id: rec.id, field, value: normalized });
+          existingUpdates.push({ id: rec.id, field, value: normalized, oldValue });
         });
       } else {
         const emptyIdx = rowIdx - records.length;
@@ -399,7 +522,7 @@ function LiveGrid({
           for (let n = 0; n < needed; n++) currentEmpty.push(makeEmptyRow(defaultAccount));
         }
         const emptyRow = currentEmpty[emptyIdx];
-        cols.forEach((val, ci) => {
+        colValues.forEach((val, ci) => {
           const colIdx = startCol + ci;
           if (colIdx >= fieldKeys.length) return;
           const field = fieldKeys[colIdx];
@@ -407,13 +530,14 @@ function LiveGrid({
           let normalized = val.trim();
           if (field === "wf_account") normalized = normalizeAccount(normalized);
           else if (field === "status") normalized = normalizeStatus(normalized);
-          newEmptyUpdates.push({ key: emptyRow._key, field, value: normalized });
+          emptyRow[field] = normalized;
         });
       }
     }
 
     // Save existing row updates
     existingUpdates.forEach((u) => {
+      pushUndo({ type: "edit", id: u.id, field: u.field, oldValue: u.oldValue });
       onSaving();
       update.mutate({ id: u.id, [u.field]: u.value }, {
         onSuccess: () => onSaved(),
@@ -421,15 +545,8 @@ function LiveGrid({
       });
     });
 
-    // Apply updates to empty rows, then auto-save any that have data
-    const updated = [...currentEmpty];
-    newEmptyUpdates.forEach((u) => {
-      const idx = updated.findIndex((r) => r._key === u.key);
-      if (idx >= 0) updated[idx] = { ...updated[idx], [u.field]: u.value };
-    });
-
-    // Find filled rows and auto-commit them
-    const filledFromPaste = updated.filter(rowHasData);
+    // Auto-save filled empty rows
+    const filledFromPaste = currentEmpty.filter(rowHasData);
     if (filledFromPaste.length > 0) {
       onSaving();
       const inserts: OutstandingWireInsert[] = filledFromPaste.map((r) => ({
@@ -459,59 +576,161 @@ function LiveGrid({
         onError: (err: any) => { onSaved(); toast.error("Failed", { description: err.message }); },
       });
     } else {
-      setEmptyRows(updated);
+      setEmptyRows([...currentEmpty]);
     }
 
     toast.success(`Pasted ${lines.length} row${lines.length > 1 ? "s" : ""}`);
-  }, [records, emptyRows, defaultAccount, canEditCol, update, create, category, userId, onSaving, onSaved]);
+  }, [records, emptyRows, defaultAccount, canEditCol, update, create, category, userId, onSaving, onSaved, pushUndo, visibleCols]);
 
-  const commitAllFilled = useCallback(() => {
-    const filled = emptyRows.filter(rowHasData);
-    if (filled.length === 0) return;
-    onSaving();
-    const inserts: OutstandingWireInsert[] = filled.map((r) => ({
-      status: r.status,
-      wf_account: r.wf_account,
-      wiring_date: r.wiring_date || null,
-      amount: r.amount ? parseFloat(r.amount.replace(/[^0-9.\-]/g, "")) : null,
-      receipt_number: r.receipt_number || null,
-      invoice_number: r.invoice_number || null,
-      description: r.description || null,
-      accounting_notes: r.accounting_notes || null,
-      trx_notes: r.trx_notes || null,
-      category,
-      created_by: userId,
-    }));
-    create.mutate(inserts, {
-      onSuccess: () => {
-        setEmptyRows((prev) => {
-          const remaining = prev.filter((r) => !rowHasData(r));
-          const needed = Math.max(0, EMPTY_ROWS_COUNT - remaining.length);
-          return [...remaining, ...makeEmptyRows(needed, defaultAccount)];
-        });
-        onSaved();
-        toast.success(`${inserts.length} wire${inserts.length > 1 ? "s" : ""} saved`);
-      },
-      onError: (err: any) => { onSaved(); toast.error("Failed", { description: err.message }); },
+  // Bulk delete
+  const handleBulkDelete = useCallback(() => {
+    if (selected.size === 0) return;
+    selected.forEach((id) => {
+      remove.mutate(id, {
+        onSuccess: () => toast.success("Deleted"),
+        onError: (err: any) => toast.error("Failed", { description: err.message }),
+      });
     });
-  }, [emptyRows, create, category, defaultAccount, userId, onSaving, onSaved]);
+    setSelected(new Set());
+    setSelectAll(false);
+  }, [selected, remove]);
 
-  const filledCount = emptyRows.filter(rowHasData).length;
+  const toggleSelect = useCallback((id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (selectAll) {
+      setSelected(new Set());
+      setSelectAll(false);
+    } else {
+      const allIds = new Set(records.map((r) => r.id));
+      setSelected(allIds);
+      setSelectAll(true);
+    }
+  }, [selectAll, records]);
+
+  // Column resize handlers
+  const onResizeStart = useCallback((key: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    resizingRef.current = { key, startX: e.clientX, startW: colWidths[key] || 120 };
+    const onMove = (ev: MouseEvent) => {
+      if (!resizingRef.current) return;
+      const diff = ev.clientX - resizingRef.current.startX;
+      const col = cols.find((c) => c.key === resizingRef.current!.key);
+      const min = col?.minWidth ?? 60;
+      setColWidths((prev) => ({ ...prev, [resizingRef.current!.key]: Math.max(min, resizingRef.current!.startW + diff) }));
+    };
+    const onUp = () => {
+      resizingRef.current = null;
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }, [colWidths, cols]);
 
   return (
     <Card className="bg-card shadow-sm overflow-hidden">
       <CardContent className="p-0">
+        {/* Toolbar: column visibility + bulk delete */}
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/20">
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 text-xs">
+                  <Eye className="h-3.5 w-3.5 mr-1" />Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {cols.map((col) => (
+                  <DropdownMenuCheckboxItem
+                    key={col.key}
+                    checked={!hiddenCols.has(col.key)}
+                    onCheckedChange={(checked) => {
+                      setHiddenCols((prev) => {
+                        const next = new Set(prev);
+                        if (checked) next.delete(col.key);
+                        else next.add(col.key);
+                        return next;
+                      });
+                    }}
+                  >
+                    {col.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          {isAdmin && selected.size > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="h-7 text-xs">
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />Delete {selected.size} selected
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {selected.size} wires?</AlertDialogTitle>
+                  <AlertDialogDescription>This will permanently remove the selected entries.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleBulkDelete}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
 
         <div ref={gridRef} className="overflow-auto max-h-[70vh]" onPaste={handlePaste}>
-          <table className="w-full text-[14px] border-collapse">
+          <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
             <thead className="sticky top-0 z-10">
+              {/* Filter row */}
+              <tr className="bg-muted/40 border-b border-border/40">
+                {isAdmin && <th className="w-8" />}
+                <th className="w-8" />
+                {visibleCols.map((col) => (
+                  <th key={col.key} style={{ width: colWidths[col.key] ?? col.width }}>
+                    <input
+                      className="w-full h-6 text-xs bg-transparent border-0 outline-none px-1.5 placeholder:text-muted-foreground/40"
+                      placeholder={`Filter ${col.label}…`}
+                      value={colFilters[col.key] || ""}
+                      onChange={(e) => setColFilters((prev) => ({ ...prev, [col.key]: e.target.value }))}
+                    />
+                  </th>
+                ))}
+                {isAccounting && <th className="w-8" />}
+              </tr>
+              {/* Header row */}
               <tr className="bg-muted/60 border-b">
-                <th className="px-1 py-2 text-center text-[12px] font-medium text-muted-foreground w-8">#</th>
-                {GRID_COLS.map((col) => {
+                {isAdmin && (
+                  <th className="px-1 py-2 w-8">
+                    <Checkbox checked={selectAll} onCheckedChange={toggleSelectAll} />
+                  </th>
+                )}
+                <th className="px-1 py-2 text-center font-medium text-muted-foreground w-8">#</th>
+                {visibleCols.map((col) => {
                   const locked = ACCOUNTING_COLS.includes(col.key) && !isAccounting;
                   return (
-                    <th key={col.key} className={`px-1.5 py-2 text-left text-[12px] font-semibold text-muted-foreground uppercase tracking-wider ${col.width}`}>
-                      {col.label}{locked ? " 🔒" : ""}
+                    <th
+                      key={col.key}
+                      className="px-1.5 py-2 text-left font-semibold text-muted-foreground uppercase tracking-wider relative select-none"
+                      style={{ width: colWidths[col.key] ?? col.width }}
+                    >
+                      <span>{col.label}{locked ? " 🔒" : ""}</span>
+                      {/* Resize handle */}
+                      <div
+                        className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-accent/40 transition-colors"
+                        onMouseDown={(e) => onResizeStart(col.key, e)}
+                      />
                     </th>
                   );
                 })}
@@ -526,25 +745,30 @@ function LiveGrid({
                 return (
                   <tr
                     key={rowKey}
-                    className={`border-b border-border/40 group transition-colors ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
+                    className={`border-b border-border/40 group transition-colors ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"} ${!empty && selected.has(row.id) ? "bg-accent/10" : ""}`}
                   >
-                    <td className="px-1 py-0.5 text-center text-[12px] text-muted-foreground tabular-nums select-none">
+                    {isAdmin && (
+                      <td className="px-1 py-0.5 w-8">
+                        {!empty && <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleSelect(row.id)} />}
+                      </td>
+                    )}
+                    <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none">
                       {ri + 1}
                     </td>
 
-                    {GRID_COLS.map((col, ci) => {
+                    {visibleCols.map((col, ci) => {
                       const editable = canEditCol(col.key);
                       const value = (row as any)[col.key] ?? "";
 
                       if (!editable) {
                         return (
-                          <td key={col.key} className="px-1.5 py-0.5 break-words" style={{ overflowWrap: "break-word" }}>
+                          <td key={col.key} className="px-1.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
                             {col.key === "status" ? (
-                              empty ? <span className="text-[14px] text-muted-foreground/40">—</span> : <StatusBadge status={value} />
+                              empty ? <span className="text-muted-foreground/40">—</span> : <StatusBadge status={value} />
                             ) : col.key === "amount" && value ? (
-                              <span className="font-mono text-[14px]">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              <span className="font-mono">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             ) : (
-                              <span className="text-[14px] text-muted-foreground break-words">{value || "—"}</span>
+                              <span className="text-muted-foreground break-words">{value || "—"}</span>
                             )}
                           </td>
                         );
@@ -552,15 +776,15 @@ function LiveGrid({
 
                       if (col.type === "status") {
                         return (
-                          <td key={col.key} className="px-0.5 py-0.5">
+                          <td key={col.key} className="px-0.5 py-0.5" style={{ width: colWidths[col.key] ?? col.width }}>
                             <select
-                              className="w-full h-7 text-[14px] bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
+                              className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
                               value={value || "Needs TRX ID"}
                               data-gridrow={ri}
                               data-gridcol={ci}
                               onChange={(e) => {
                                 if (empty) updateEmptyCell(row._key, col.key, e.target.value);
-                                else saveField(row.id, col.key, e.target.value);
+                                else saveField(row.id, col.key, e.target.value, value);
                               }}
                             >
                               <option value="Needs TRX ID">Needs TRX ID</option>
@@ -572,15 +796,15 @@ function LiveGrid({
 
                       if (col.type === "account") {
                         return (
-                          <td key={col.key} className="px-0.5 py-0.5">
+                          <td key={col.key} className="px-0.5 py-0.5" style={{ width: colWidths[col.key] ?? col.width }}>
                             <select
-                              className="w-full h-7 text-[14px] font-mono bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
+                              className="w-full h-7 font-mono bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
                               value={value || defaultAccount}
                               data-gridrow={ri}
                               data-gridcol={ci}
                               onChange={(e) => {
                                 if (empty) updateEmptyCell(row._key, col.key, e.target.value);
-                                else saveField(row.id, col.key, e.target.value);
+                                else saveField(row.id, col.key, e.target.value, value);
                               }}
                             >
                               <option value="WF-8022">XXXX-8022</option>
@@ -590,12 +814,11 @@ function LiveGrid({
                         );
                       }
 
-                      // All fields are plain text inputs — no date pickers or number spinners
                       return (
-                          <td key={col.key} className="px-0.5 py-0.5 break-words" style={{ overflowWrap: "break-word" }}>
+                        <td key={col.key} className="px-0.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
                           {empty ? (
                             <input
-                              className="w-full h-7 text-[14px] bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
+                              className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
                               type="text"
                               value={value}
                               data-gridrow={ri}
@@ -612,7 +835,7 @@ function LiveGrid({
                               onSave={(v) => {
                                 let parsed: any = v || null;
                                 if (col.key === "amount") parsed = parseFloat((v || "").replace(/[^0-9.\-]/g, "")) || null;
-                                saveField(row.id, col.key, parsed);
+                                saveField(row.id, col.key, parsed, value);
                               }}
                             />
                           )}
@@ -659,10 +882,10 @@ function LiveGrid({
         </div>
 
         <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-1.5">
-          <span className="text-[13px] text-muted-foreground">
-            Tip: Select a cell and paste from Excel — auto-saves immediately
+          <span className="text-sm text-muted-foreground">
+            Tip: Select a cell and paste from Excel — auto-saves immediately. Ctrl+Z to undo.
           </span>
-          <span className="text-[13px] text-muted-foreground tabular-nums">
+          <span className="text-sm text-muted-foreground tabular-nums">
             {records.length} saved · {emptyRows.length} blank rows
           </span>
         </div>
@@ -674,16 +897,9 @@ function LiveGrid({
 // ---- Inline Edit Cell (for saved records) ----
 
 function InlineEditCell({
-  value,
-  isAmount,
-  gridRow,
-  gridCol,
-  onSave,
+  value, isAmount, gridRow, gridCol, onSave,
 }: {
-  value: string;
-  isAmount: boolean;
-  gridRow: number;
-  gridCol: number;
+  value: string; isAmount: boolean; gridRow: number; gridCol: number;
   onSave: (v: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -697,7 +913,7 @@ function InlineEditCell({
       : value || "—";
     return (
       <button
-        className="w-full min-w-[40px] h-7 rounded px-1 text-left text-[14px] transition-colors hover:bg-muted/60 break-words text-wrap"
+        className="w-full min-w-[40px] h-7 rounded px-1 text-left transition-colors hover:bg-muted/60 break-words text-wrap"
         onClick={() => { setLocal(value); setEditing(true); }}
         data-gridrow={gridRow}
         data-gridcol={gridCol}
@@ -709,7 +925,7 @@ function InlineEditCell({
 
   return (
     <input
-      className="w-full h-7 text-[14px] bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1"
+      className="w-full h-7 bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1"
       type="text"
       value={local}
       data-gridrow={gridRow}
@@ -736,5 +952,5 @@ function LoadingSkeleton() {
 }
 
 function ErrorMsg({ error }: { error: unknown }) {
-  return <p className="p-4 text-center text-[14px] text-destructive">Error: {(error as Error).message}</p>;
+  return <p className="p-4 text-center text-destructive">Error: {(error as Error).message}</p>;
 }
