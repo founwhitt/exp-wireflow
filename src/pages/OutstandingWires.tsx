@@ -447,7 +447,7 @@ function rowHasData(r: EmptyRow): boolean {
 }
 
 function LiveGrid({
-  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows,
+  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows, wrapText,
 }: {
   records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string;
@@ -456,15 +456,25 @@ function LiveGrid({
   onSaving: () => void; onSaved: () => void;
   pushUndo: (e: UndoEntry) => void;
   maxRows?: number;
+  wrapText: boolean;
 }) {
   const create = useCreateOutstandingWires();
   const update = useUpdateOutstandingWire();
   const remove = useDeleteOutstandingWire();
 
+  const storageKey = `ow_colWidths_${category}`;
   const [emptyRows, setEmptyRows] = useState<EmptyRow[]>(() => makeEmptyRows(DEFAULT_EMPTY_ROWS, defaultAccount));
-  const [colWidths, setColWidths] = useState<Record<string, number>>(() =>
-    Object.fromEntries(cols.map((c) => [c.key, c.width]))
-  );
+  const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Merge saved widths with defaults so new columns get their default width
+        return Object.fromEntries(cols.map((c) => [c.key, parsed[c.key] ?? c.width]));
+      }
+    } catch {}
+    return Object.fromEntries(cols.map((c) => [c.key, c.width]));
+  });
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
