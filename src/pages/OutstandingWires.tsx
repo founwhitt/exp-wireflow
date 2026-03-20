@@ -425,7 +425,7 @@ function rowHasData(r: EmptyRow): boolean {
 }
 
 function LiveGrid({
-  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows, wrapText,
+  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows,
 }: {
   records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string;
@@ -434,24 +434,30 @@ function LiveGrid({
   onSaving: () => void; onSaved: () => void;
   pushUndo: (e: UndoEntry) => void;
   maxRows?: number;
-  wrapText: boolean;
 }) {
   const create = useCreateOutstandingWires();
   const update = useUpdateOutstandingWire();
   const remove = useDeleteOutstandingWire();
 
   const storageKey = `ow_colWidths_${category}`;
+  const wrapStorageKey = `ow_colWrap_${category}`;
   const [emptyRows, setEmptyRows] = useState<EmptyRow[]>(() => makeEmptyRows(DEFAULT_EMPTY_ROWS, defaultAccount));
   const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Merge saved widths with defaults so new columns get their default width
         return Object.fromEntries(cols.map((c) => [c.key, parsed[c.key] ?? c.width]));
       }
     } catch {}
     return Object.fromEntries(cols.map((c) => [c.key, c.width]));
+  });
+  const [colWrapText, setColWrapText] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(wrapStorageKey);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {};
   });
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   const [sortCol, setSortCol] = useState<string | null>(null);
@@ -459,6 +465,14 @@ function LiveGrid({
   const [columnFilters, setColumnFilters] = useState<Record<string, Set<string>>>({});
   const gridRef = useRef<HTMLDivElement>(null);
   const resizingRef = useRef<{ key: string; startX: number; startW: number } | null>(null);
+
+  const toggleColWrap = useCallback((colKey: string) => {
+    setColWrapText((prev) => {
+      const next = { ...prev, [colKey]: !prev[colKey] };
+      try { localStorage.setItem(wrapStorageKey, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, [wrapStorageKey]);
 
   const visibleCols = useMemo(() => cols.filter((c) => !hiddenCols.has(c.key)), [cols, hiddenCols]);
 
