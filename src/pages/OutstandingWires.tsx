@@ -987,6 +987,13 @@ function LiveGrid({
                           onClear={clearColumnFilter}
                           hasFilter={hasFilter}
                         />
+                        <button
+                          className={`shrink-0 rounded p-0.5 transition-colors hover:bg-muted ${colWrapText[col.key] ? "text-primary" : "opacity-0 group-hover/head:opacity-40"}`}
+                          title={colWrapText[col.key] ? "Switch to Clip" : "Switch to Wrap"}
+                          onClick={() => toggleColWrap(col.key)}
+                        >
+                          {colWrapText[col.key] ? <AlignLeft className="h-3 w-3" /> : <WrapText className="h-3 w-3" />}
+                        </button>
                       </div>
                       <div
                         className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-accent/40 transition-colors"
