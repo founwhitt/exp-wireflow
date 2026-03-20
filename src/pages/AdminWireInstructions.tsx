@@ -49,7 +49,7 @@ export default function AdminWireInstructions() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-
+  const [manageAccountsOpen, setManageAccountsOpen] = useState(false);
   if (!isAdmin) return <Navigate to="/" replace />;
 
   const openCreate = () => {
