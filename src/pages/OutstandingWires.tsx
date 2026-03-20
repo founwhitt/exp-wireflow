@@ -281,7 +281,9 @@ export default function OutstandingWires() {
         {["payload", "commercial", "international"].map((t) => (
           <TabsContent key={t} value={t} className="mt-4">
             {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
-              <LiveGrid
+              <CollapsibleAccountSection
+                title={t.charAt(0).toUpperCase() + t.slice(1)}
+                dotColor="bg-accent"
                 records={filtered}
                 cols={t === "payload" ? PAYLOAD_COLS : DEFAULT_COLS}
                 category={t}
@@ -292,6 +294,7 @@ export default function OutstandingWires() {
                 onSaving={markSaving}
                 onSaved={markSaved}
                 pushUndo={pushUndo}
+                initialLimit={10}
               />
             )}
           </TabsContent>
