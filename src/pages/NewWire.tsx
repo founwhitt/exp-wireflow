@@ -262,8 +262,8 @@ export default function NewWire() {
         <Card className={`w-full border-0 bg-card rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
           <CardHeader className="pb-4 px-6 pt-6">
             <CardTitle className="flex items-center gap-2 text-lg text-primary">
-              <Building2 className="h-5 w-5 text-accent-foreground" />
-              Department & Deal Entry
+              <Building2 className="h-5 w-5 text-primary" />
+              Department & Transaction Entry
             </CardTitle>
             <CardDescription>Choose department and how you want to enter deal data.</CardDescription>
           </CardHeader>

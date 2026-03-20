@@ -14,7 +14,7 @@ export function AppNav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 sm:px-6">
+      <div className="flex h-14 items-center gap-6 px-4 sm:px-6">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <Send className="h-4 w-4 text-primary-foreground" />
