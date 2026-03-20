@@ -555,7 +555,7 @@ export default function NewWire() {
                     </div>
 
                     {wireDetails && (
-                      <div className="rounded-xl border bg-[#F1F5F9] p-4 text-sm space-y-1">
+                      <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm space-y-1">
                         <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
                         <p className="text-muted-foreground">
                           Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
