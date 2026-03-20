@@ -480,6 +480,18 @@ export default function Dashboard() {
                           ))}
                         </>
                       )}
+                      {filteredPayload.length > 0 && (
+                        <>
+                          <TableRow>
+                            <TableCell colSpan={visibleColCount} className="bg-violet-50 dark:bg-violet-950/30 py-2 font-semibold text-violet-800 dark:text-violet-300 border-b-2 border-violet-200 dark:border-violet-800">
+                              Payload ({filteredPayload.length} records)
+                            </TableCell>
+                          </TableRow>
+                          {filteredPayload.map((record) => (
+                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} hiddenCols={hiddenCols} />
+                          ))}
+                        </>
+                      )}
                     </>
                   )}
                 </TableBody>
