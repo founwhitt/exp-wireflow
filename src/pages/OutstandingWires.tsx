@@ -19,8 +19,6 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useOwAccounts, useOwStatuses, useOwConfig, useCreateOwConfig, useUpdateOwConfig, useDeleteOwConfig } from "@/hooks/useOwConfig";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { ManageOptionsDialog } from "@/components/ManageOptionsDialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
