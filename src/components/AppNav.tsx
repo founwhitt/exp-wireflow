@@ -1,17 +1,19 @@
 import { NavLink } from "@/components/NavLink";
-import { Send, LayoutDashboard, Shield, LogOut, User, FileText } from "lucide-react";
+import { Send, LayoutDashboard, Shield, LogOut, User, FileText, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NotificationBell } from "@/components/NotificationBell";
 
 export function AppNav() {
   const { user, isAdmin, displayName, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   if (!user) return null;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/50 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 sm:px-6">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)' }}>
@@ -63,6 +65,9 @@ export function AppNav() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9">
+            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          </Button>
           <NotificationBell />
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
