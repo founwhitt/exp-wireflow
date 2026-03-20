@@ -392,7 +392,7 @@ export default function NewWire() {
         {/* Manual Entry Form */}
         <div className={`transition-all duration-500 ease-out mt-8 ${entryMode === "manual" && tid.trim() ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
           {entryMode === "manual" && (
-            <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
+             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
                   <PenLine className="h-5 w-5" style={{ color: '#0056D2' }} />
