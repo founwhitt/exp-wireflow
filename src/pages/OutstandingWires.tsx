@@ -699,7 +699,7 @@ function LiveGrid({
         key={rowKey}
         className={`border-b border-border/40 group transition-colors ${highlightClass} ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
       >
-        <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none font-sans text-sm">
+        <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none">
           {ri + 1}
         </td>
 
