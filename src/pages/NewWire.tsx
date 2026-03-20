@@ -502,7 +502,7 @@ export default function NewWire() {
                 <Separator />
                 <div>
                   <Label className="text-xs text-muted-foreground">Notes</Label>
-                  <p className="mt-1 rounded-lg bg-[#F1F5F9] p-3 text-sm text-foreground">{tidData.dealNotes}</p>
+                  <p className="mt-1 rounded-lg bg-muted/30 p-3 text-sm text-foreground">{tidData.dealNotes}</p>
                 </div>
               </CardContent>
             </Card>
