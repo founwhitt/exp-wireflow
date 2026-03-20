@@ -501,16 +501,6 @@ function LiveGrid({
   return (
     <Card className="bg-card shadow-sm overflow-hidden">
       <CardContent className="p-0">
-        {isAccounting && filledCount > 0 && (
-          <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-1.5">
-            <span className="text-[12px] text-muted-foreground tabular-nums">
-              {filledCount} unsaved row{filledCount !== 1 ? "s" : ""} with data
-            </span>
-            <Button size="sm" className="h-7 text-[12px]" onClick={commitAllFilled} disabled={create.isPending}>
-              {create.isPending ? "Saving…" : `Save ${filledCount} row${filledCount !== 1 ? "s" : ""}`}
-            </Button>
-          </div>
-        )}
 
         <div ref={gridRef} className="overflow-auto max-h-[70vh]" onPaste={handlePaste}>
           <table className="w-full text-[13px] border-collapse">
