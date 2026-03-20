@@ -219,15 +219,14 @@ export default function NewWire() {
   const hasDataBelow = isLookingUp || (entryMode === "lookup" && tidData) || (entryMode === "manual" && tid.trim()) || canDispatch;
 
   return (
-    <div className="relative min-h-full p-4 sm:p-8 overflow-hidden" style={{ backgroundColor: '#F8FAFC' }}>
+    <div className="relative min-h-full p-4 sm:p-8 overflow-hidden bg-background">
       {/* eXp watermark */}
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center select-none"
         aria-hidden="true"
       >
         <span
-          className="text-[12rem] sm:text-[18rem] font-black tracking-tighter"
-          style={{ color: 'rgba(0, 36, 93, 0.025)' }}
+          className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.03]"
         >
           eXp
         </span>
