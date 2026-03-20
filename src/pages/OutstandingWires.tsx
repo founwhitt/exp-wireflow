@@ -260,11 +260,11 @@ export default function OutstandingWires() {
 
       {/* Sub-tabs */}
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-fit">
-          <TabsTrigger value="realty">Realty</TabsTrigger>
-          <TabsTrigger value="payload">Payload</TabsTrigger>
-          <TabsTrigger value="commercial">Commercial</TabsTrigger>
-          <TabsTrigger value="international">International</TabsTrigger>
+        <TabsList className="w-full">
+          <TabsTrigger value="realty" className="flex-1">Realty</TabsTrigger>
+          <TabsTrigger value="payload" className="flex-1">Payload</TabsTrigger>
+          <TabsTrigger value="commercial" className="flex-1">Commercial</TabsTrigger>
+          <TabsTrigger value="international" className="flex-1">International</TabsTrigger>
         </TabsList>
 
         <TabsContent value="realty" className="mt-4 space-y-6">
