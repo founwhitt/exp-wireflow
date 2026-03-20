@@ -7,13 +7,16 @@ import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/tab
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X, Columns3, Eye, EyeOff, Plus } from "lucide-react";
+import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X, Columns3, Eye, EyeOff, Plus, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useWireRecords, useCreateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
 import { WireDetailDialog } from "@/components/WireDetailDialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -95,7 +98,8 @@ export default function Dashboard() {
     propertyAddress: "",
     agentName: "",
     balanceDue: "",
-    invoiceNumber: "",
+    wiringDate: undefined as Date | undefined,
+    adjustments: "",
     dealNotes: "",
   });
 
@@ -239,7 +243,8 @@ export default function Dashboard() {
         property_address: addEntryData.propertyAddress || null,
         agent_name: addEntryData.agentName || null,
         balance_due: addEntryData.balanceDue ? parseFloat(addEntryData.balanceDue) : null,
-        invoice_number: addEntryData.invoiceNumber || null,
+        wiring_date: addEntryData.wiringDate ? addEntryData.wiringDate.toISOString().slice(0, 10) : null,
+        adjustments: addEntryData.adjustments ? parseFloat(addEntryData.adjustments) : null,
         deal_notes: addEntryData.dealNotes || null,
         status: "Pending",
         created_by: user?.id ?? null,
@@ -248,7 +253,7 @@ export default function Dashboard() {
       setHighlightId(result.id);
       setTimeout(() => setHighlightId(null), 9000);
       setShowAddEntry(false);
-      setAddEntryData({ tid: "", department: "", customerName: "", propertyAddress: "", agentName: "", balanceDue: "", invoiceNumber: "", dealNotes: "" });
+      setAddEntryData({ tid: "", department: "", customerName: "", propertyAddress: "", agentName: "", balanceDue: "", wiringDate: undefined, adjustments: "", dealNotes: "" });
     } catch (err: any) {
       toast.error("Failed to add record", { description: err.message });
     }
@@ -539,8 +544,24 @@ export default function Dashboard() {
               <Input placeholder="Company LLC" value={addEntryData.customerName} onChange={(e) => setAddEntryData(d => ({ ...d, customerName: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">Invoice #</Label>
-              <Input placeholder="INV-2026-..." value={addEntryData.invoiceNumber} onChange={(e) => setAddEntryData(d => ({ ...d, invoiceNumber: e.target.value }))} />
+              <Label className="text-xs font-semibold text-muted-foreground">Wiring Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !addEntryData.wiringDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {addEntryData.wiringDate ? format(addEntryData.wiringDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={addEntryData.wiringDate}
+                    onSelect={(d) => setAddEntryData(prev => ({ ...prev, wiringDate: d }))}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -553,9 +574,15 @@ export default function Dashboard() {
               <Input placeholder="Agent name" value={addEntryData.agentName} onChange={(e) => setAddEntryData(d => ({ ...d, agentName: e.target.value }))} />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-muted-foreground">Balance Due</Label>
-            <Input type="number" placeholder="0.00" value={addEntryData.balanceDue} onChange={(e) => setAddEntryData(d => ({ ...d, balanceDue: e.target.value }))} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Balance Due</Label>
+              <Input type="number" placeholder="0.00" value={addEntryData.balanceDue} onChange={(e) => setAddEntryData(d => ({ ...d, balanceDue: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Adjustments</Label>
+              <Input type="number" placeholder="0.00" value={addEntryData.adjustments} onChange={(e) => setAddEntryData(d => ({ ...d, adjustments: e.target.value }))} />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-muted-foreground">Notes</Label>

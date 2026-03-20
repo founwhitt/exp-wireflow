@@ -7,9 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical, CheckCircle2, Layers, Hash } from "lucide-react";
+import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical, CheckCircle2, Layers, Hash, Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { lookupTID, type TIDData } from "@/lib/mock-data";
 import { type Department, DEPARTMENTS, getWFAccount } from "@/lib/department-config";
@@ -31,6 +33,7 @@ export default function NewWire() {
   const [showPreview, setShowPreview] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isPayload, setIsPayload] = useState(false);
   const [lastSentData, setLastSentData] = useState<{ email: string; pdf: string; tid: string; address: string; agent: string; wireId: string } | null>(null);
 
   const handleLookup = () => {
@@ -95,10 +98,11 @@ export default function NewWire() {
   };
 
   const buildRecordPayload = () => {
+    const isPayloadRecord = isPayload;
     return {
       tid: tid.toUpperCase().trim(),
-      department: department as string,
-      wf_account: wfAccount as string,
+      department: isPayloadRecord ? "Payload" : (department as string),
+      wf_account: isPayloadRecord ? "N/A" : (wfAccount as string),
       invoice_number: tidData!.invoiceNumber,
       invoice_date: tidData!.invoiceDate || null,
       original_amount: tidData!.originalAmount || null,
@@ -112,12 +116,30 @@ export default function NewWire() {
       agent_name: tidData!.agentName || null,
       assigned_analyst: tidData!.assignedAnalyst || null,
       deal_notes: tidData!.dealNotes || null,
-      email_sent: !testMode,
-      email_sent_at: testMode ? null : new Date().toISOString(),
-      email_recipient: emailRecipient,
-      status: "Sent",
+      email_sent: isPayloadRecord ? false : !testMode,
+      email_sent_at: (isPayloadRecord || testMode) ? null : new Date().toISOString(),
+      email_recipient: isPayloadRecord ? null : emailRecipient,
+      status: isPayloadRecord ? "Pending" : "Sent",
       created_by: user?.id ?? null,
     };
+  };
+
+  const handleSavePayload = async () => {
+    if (!tidData) return;
+    try {
+      const result: any = await createRecord.mutateAsync(buildRecordPayload());
+      setLastSentData({
+        email: "N/A (Payload)",
+        pdf: "None",
+        tid: tid.toUpperCase().trim(),
+        address: tidData.propertyAddress,
+        agent: tidData.agentName,
+        wireId: result.id,
+      });
+      setShowSuccess(true);
+    } catch (err: any) {
+      toast.error("Failed to save payload record", { description: err.message });
+    }
   };
 
   const handleConfirmSend = async () => {
@@ -348,8 +370,54 @@ export default function NewWire() {
           )}
         </div>
 
-        {/* Step 3: Dispatch */}
-        <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${canDispatch ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+        {/* Payload Toggle */}
+        <div className={`transition-all duration-500 ease-out mt-8 ${tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+          {tidData && (
+            <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
+              <CardContent className="flex items-center justify-between px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="payload-toggle"
+                    checked={isPayload}
+                    onCheckedChange={(v) => setIsPayload(!!v)}
+                  />
+                  <Label htmlFor="payload-toggle" className="cursor-pointer text-sm font-medium">
+                    This is a Payload payment
+                  </Label>
+                </div>
+                {isPayload && (
+                  <Badge variant="secondary" className="bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200">
+                    Payload — No wire instructions needed
+                  </Badge>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Save to Expected Wires (Payload only) */}
+        <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${tidData && isPayload ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+          {tidData && isPayload && (
+            <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
+              <CardContent className="space-y-4 px-6 py-6">
+                <div className="rounded-xl border border-violet-200 bg-violet-50 dark:bg-violet-950/30 dark:border-violet-800 p-3 text-sm text-violet-800 dark:text-violet-200">
+                  This record will be saved to the <strong>Payload</strong> section on the Expected Wires dashboard with status <strong>Pending</strong>. No email or wire instructions will be sent.
+                </div>
+                <Button
+                  onClick={handleSavePayload}
+                  disabled={createRecord.isPending}
+                  className="w-full h-12 rounded-[10px] bg-violet-600 hover:bg-violet-700 text-white"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {createRecord.isPending ? "Saving..." : "Save to Expected Wires"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Step 3: Dispatch (hidden when Payload) */}
+        <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${canDispatch && !isPayload ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
           {canDispatch && (
             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
