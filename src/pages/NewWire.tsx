@@ -455,7 +455,7 @@ export default function NewWire() {
         {/* Lookup Result — Deal Data (read-only display) */}
         <div className={`transition-all duration-500 ease-out mt-8 ${entryMode === "lookup" && tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
           {tidData && entryMode === "lookup" && (
-            <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
+             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
                   <FileText className="h-5 w-5" style={{ color: '#0056D2' }} />
