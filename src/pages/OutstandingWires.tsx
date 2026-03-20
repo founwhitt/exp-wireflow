@@ -247,12 +247,17 @@ export default function OutstandingWires() {
         </div>
         <div className="flex items-center gap-3">
           <SaveIndicator status={saveStatus} />
-          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setAllCollapsed(false)}>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCollapseSignal({ value: false, ts: Date.now() })}>
             <ChevronDown className="h-3.5 w-3.5 mr-1" />Expand All
           </Button>
-          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setAllCollapsed(true)}>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCollapseSignal({ value: true, ts: Date.now() })}>
             <ChevronUp className="h-3.5 w-3.5 mr-1" />Collapse All
           </Button>
+          {(isAccounting || isAdmin) && (
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setManageOptionsOpen(true)}>
+              <Settings2 className="h-3.5 w-3.5 mr-1" />Manage Options
+            </Button>
+          )}
         </div>
       </div>
 
