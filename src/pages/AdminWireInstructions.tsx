@@ -5,6 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Pencil, Trash2, Upload, FileText } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +20,7 @@ import {
   useUpdateCustomWireInstruction,
   useDeleteCustomWireInstruction,
   uploadWireInstructionPDF,
+  deleteWireInstructionPDF,
   type CustomWireInstruction,
 } from "@/hooks/useCustomWireInstructions";
 import { WIRE_INSTRUCTIONS } from "@/lib/wire-instructions";
@@ -99,12 +104,22 @@ export default function AdminWireInstructions() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this wire instruction?")) return;
     try {
       await remove.mutateAsync(id);
       toast.success("Deleted");
     } catch (err: any) {
       toast.error("Failed to delete", { description: err.message });
+    }
+  };
+
+  const handleDeletePdf = async (inst: CustomWireInstruction) => {
+    if (!inst.pdf_path) return;
+    try {
+      await deleteWireInstructionPDF(inst.pdf_path);
+      await update.mutateAsync({ id: inst.id, pdf_path: null });
+      toast.success("PDF deleted");
+    } catch (err: any) {
+      toast.error("Failed to delete PDF", { description: err.message });
     }
   };
 
@@ -120,7 +135,7 @@ export default function AdminWireInstructions() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Wire Instructions</h1>
           <p className="text-sm text-muted-foreground">
-            Manage default and custom wire instructions. Custom instructions can be selected via the "Other" department.
+            Manage default and custom wire instructions. All sensitive data is masked for demo purposes.
           </p>
         </div>
         <Button onClick={openCreate}>
@@ -132,8 +147,8 @@ export default function AdminWireInstructions() {
       {/* Built-in instructions */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Default Instructions</CardTitle>
-          <CardDescription>These are the built-in Wells Fargo account instructions used by standard departments.</CardDescription>
+          <CardTitle className="text-base">Default Instructions (Demo)</CardTitle>
+          <CardDescription>Sample banking data — real credentials are masked for security.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -154,9 +169,10 @@ export default function AdminWireInstructions() {
                   <TableCell className="font-mono text-sm">{b.routingNumber}</TableCell>
                   <TableCell className="font-mono text-sm">{b.accountNumber}</TableCell>
                   <TableCell>
-                    <a href={b.pdfPath} target="_blank" rel="noreferrer" className="text-primary hover:underline text-sm">
-                      <FileText className="inline h-4 w-4 mr-1" />View
-                    </a>
+                    <span className="text-sm text-muted-foreground flex items-center gap-1">
+                      <FileText className="h-4 w-4" />
+                      Sample_Wire_Instructions.pdf
+                    </span>
                   </TableCell>
                 </TableRow>
               ))}
@@ -187,7 +203,7 @@ export default function AdminWireInstructions() {
                   <TableHead>Routing #</TableHead>
                   <TableHead>Account #</TableHead>
                   <TableHead>PDF</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -199,9 +215,35 @@ export default function AdminWireInstructions() {
                     <TableCell className="font-mono text-sm">{inst.account_number}</TableCell>
                     <TableCell>
                       {inst.pdf_path ? (
-                        <a href={inst.pdf_path} target="_blank" rel="noreferrer" className="text-primary hover:underline text-sm">
-                          <FileText className="inline h-4 w-4 mr-1" />View
-                        </a>
+                        <div className="flex items-center gap-2">
+                          <a href={inst.pdf_path} target="_blank" rel="noreferrer" className="text-primary hover:underline text-sm">
+                            <FileText className="inline h-4 w-4 mr-1" />View
+                          </a>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive">
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete PDF?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently remove the uploaded PDF for "{inst.name}". The wire instruction record will be kept.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  onClick={() => handleDeletePdf(inst)}
+                                >
+                                  Delete PDF
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       ) : (
                         <span className="text-muted-foreground text-sm">None</span>
                       )}
@@ -211,9 +253,30 @@ export default function AdminWireInstructions() {
                         <Button variant="ghost" size="icon" onClick={() => openEdit(inst)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(inst.id)} className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Wire Instruction?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete "{inst.name}" and its associated PDF. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => handleDelete(inst.id)}
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
