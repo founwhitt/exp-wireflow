@@ -506,7 +506,7 @@ function LiveGrid({
           <table className="w-full text-[14px] border-collapse">
             <thead className="sticky top-0 z-10">
               <tr className="bg-muted/60 border-b">
-                <th className="px-1 py-2 text-center text-[11px] font-medium text-muted-foreground w-8">#</th>
+                <th className="px-1 py-2 text-center text-[12px] font-medium text-muted-foreground w-8">#</th>
                 {GRID_COLS.map((col) => {
                   const locked = ACCOUNTING_COLS.includes(col.key) && !isAccounting;
                   return (
