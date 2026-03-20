@@ -574,9 +574,15 @@ export default function Dashboard() {
               <Input placeholder="Agent name" value={addEntryData.agentName} onChange={(e) => setAddEntryData(d => ({ ...d, agentName: e.target.value }))} />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-muted-foreground">Balance Due</Label>
-            <Input type="number" placeholder="0.00" value={addEntryData.balanceDue} onChange={(e) => setAddEntryData(d => ({ ...d, balanceDue: e.target.value }))} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Balance Due</Label>
+              <Input type="number" placeholder="0.00" value={addEntryData.balanceDue} onChange={(e) => setAddEntryData(d => ({ ...d, balanceDue: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Adjustments</Label>
+              <Input type="number" placeholder="0.00" value={addEntryData.adjustments} onChange={(e) => setAddEntryData(d => ({ ...d, adjustments: e.target.value }))} />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-muted-foreground">Notes</Label>
