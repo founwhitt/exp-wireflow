@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, Download, Trash2, Check, Loader2, ChevronDown, ChevronUp, Eye, EyeOff, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
+import { Search, Filter, Download, Trash2, Check, Loader2, ChevronDown, ChevronUp, Eye, EyeOff, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
@@ -150,6 +150,9 @@ export default function OutstandingWires() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [wrapText, setWrapText] = useState<boolean>(() => {
+    try { return localStorage.getItem("ow_wrapText") !== "false"; } catch { return true; }
+  });
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const undoStackRef = useRef<UndoEntry[]>([]);
   const update = useUpdateOutstandingWire();
@@ -229,7 +232,24 @@ export default function OutstandingWires() {
             Live editable grid — paste from Excel or edit inline. Ctrl+Z to undo.
           </p>
         </div>
-        <SaveIndicator status={saveStatus} />
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => {
+              setWrapText((prev) => {
+                const next = !prev;
+                try { localStorage.setItem("ow_wrapText", String(next)); } catch {}
+                return next;
+              });
+            }}
+          >
+            {wrapText ? <AlignLeft className="h-3.5 w-3.5 mr-1" /> : <WrapText className="h-3.5 w-3.5 mr-1" />}
+            {wrapText ? "Clip Text" : "Wrap Text"}
+          </Button>
+          <SaveIndicator status={saveStatus} />
+        </div>
       </div>
 
       {/* Filters */}
@@ -278,6 +298,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                wrapText={wrapText}
               />
               <CollapsibleAccountSection
                 title="Wells Fargo — XXXX-3694"
@@ -293,6 +314,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                wrapText={wrapText}
               />
             </>
           )}
@@ -315,6 +337,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                wrapText={wrapText}
               />
             )}
           </TabsContent>
@@ -327,12 +350,12 @@ export default function OutstandingWires() {
 // ---- Collapsible Account Section ----
 
 function CollapsibleAccountSection({
-  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit,
+  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, wrapText,
 }: {
   title: string; dotColor: string; records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string; isAccounting: boolean; isAdmin: boolean;
   userId: string | null; onSaving: () => void; onSaved: () => void;
-  pushUndo: (e: UndoEntry) => void; initialLimit: number;
+  pushUndo: (e: UndoEntry) => void; initialLimit: number; wrapText: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const maxRows = expanded ? undefined : initialLimit;
@@ -356,6 +379,7 @@ function CollapsibleAccountSection({
         onSaved={onSaved}
         pushUndo={pushUndo}
         maxRows={maxRows}
+        wrapText={wrapText}
       />
       {!expanded && (
         <Button
@@ -423,7 +447,7 @@ function rowHasData(r: EmptyRow): boolean {
 }
 
 function LiveGrid({
-  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows,
+  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows, wrapText,
 }: {
   records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string;
@@ -432,15 +456,25 @@ function LiveGrid({
   onSaving: () => void; onSaved: () => void;
   pushUndo: (e: UndoEntry) => void;
   maxRows?: number;
+  wrapText: boolean;
 }) {
   const create = useCreateOutstandingWires();
   const update = useUpdateOutstandingWire();
   const remove = useDeleteOutstandingWire();
 
+  const storageKey = `ow_colWidths_${category}`;
   const [emptyRows, setEmptyRows] = useState<EmptyRow[]>(() => makeEmptyRows(DEFAULT_EMPTY_ROWS, defaultAccount));
-  const [colWidths, setColWidths] = useState<Record<string, number>>(() =>
-    Object.fromEntries(cols.map((c) => [c.key, c.width]))
-  );
+  const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Merge saved widths with defaults so new columns get their default width
+        return Object.fromEntries(cols.map((c) => [c.key, parsed[c.key] ?? c.width]));
+      }
+    } catch {}
+    return Object.fromEntries(cols.map((c) => [c.key, c.width]));
+  });
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
@@ -698,10 +732,15 @@ function LiveGrid({
       resizingRef.current = null;
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
+      // Persist widths to localStorage
+      setColWidths((current) => {
+        try { localStorage.setItem(storageKey, JSON.stringify(current)); } catch {}
+        return current;
+      });
     };
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
-  }, [colWidths, cols]);
+  }, [colWidths, cols, storageKey]);
 
   const renderRow = (row: DisplayRow, ri: number) => {
     const empty = isEmptyRow(row);
@@ -722,15 +761,20 @@ function LiveGrid({
           const editable = canEditCol(col.key);
           const value = (row as any)[col.key] ?? "";
 
+          const cellClip = wrapText ? "break-words" : "truncate";
+          const cellStyle = wrapText
+            ? { overflowWrap: "break-word" as const, width: colWidths[col.key] ?? col.width }
+            : { width: colWidths[col.key] ?? col.width, overflow: "hidden" as const, textOverflow: "ellipsis" as const, whiteSpace: "nowrap" as const };
+
           if (!editable) {
             return (
-              <td key={col.key} className="px-1.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
+              <td key={col.key} className={`px-1.5 py-0.5 ${cellClip}`} style={cellStyle}>
                 {col.key === "status" ? (
                   empty || !value ? <span className="text-muted-foreground/40">—</span> : <StatusBadge status={value} />
                 ) : col.key === "amount" && value ? (
                   <span className="font-sans tabular-nums">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 ) : (
-                  <span className="text-muted-foreground break-words">{value || "—"}</span>
+                  <span className={`text-muted-foreground ${cellClip}`}>{value || "—"}</span>
                 )}
               </td>
             );
@@ -778,7 +822,7 @@ function LiveGrid({
           }
 
           return (
-            <td key={col.key} className="px-0.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
+            <td key={col.key} className={`px-0.5 py-0.5 ${cellClip}`} style={cellStyle}>
               {empty ? (
                 <input
                   className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
