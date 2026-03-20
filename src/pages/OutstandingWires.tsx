@@ -538,13 +538,13 @@ function LiveGrid({
 
                       if (!editable) {
                         return (
-                          <td key={col.key} className="px-1.5 py-0.5">
+                          <td key={col.key} className="px-1.5 py-0.5 break-words" style={{ overflowWrap: "break-word" }}>
                             {col.key === "status" ? (
-                              empty ? <span className="text-[13px] text-muted-foreground/40">—</span> : <StatusBadge status={value} />
+                              empty ? <span className="text-[14px] text-muted-foreground/40">—</span> : <StatusBadge status={value} />
                             ) : col.key === "amount" && value ? (
-                              <span className="font-mono text-[13px]">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              <span className="font-mono text-[14px]">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             ) : (
-                              <span className="text-[13px] text-muted-foreground">{value || "—"}</span>
+                              <span className="text-[14px] text-muted-foreground break-words">{value || "—"}</span>
                             )}
                           </td>
                         );
