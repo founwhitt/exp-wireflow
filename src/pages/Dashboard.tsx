@@ -507,6 +507,69 @@ export default function Dashboard() {
       open={!!selectedRecord}
       onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}
     />
+
+    {/* Add Entry Dialog */}
+    <Dialog open={showAddEntry} onOpenChange={setShowAddEntry}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add Wire Record</DialogTitle>
+          <DialogDescription>Manually add an expected wire entry. Status will be set to Pending.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">TID *</Label>
+              <Input placeholder="TID-XXXXX" value={addEntryData.tid} onChange={(e) => setAddEntryData(d => ({ ...d, tid: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Department *</Label>
+              <Select value={addEntryData.department} onValueChange={(v) => setAddEntryData(d => ({ ...d, department: v as Department }))}>
+                <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(DEPARTMENTS).map(([key, cfg]) => (
+                    <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Customer Name</Label>
+              <Input placeholder="Company LLC" value={addEntryData.customerName} onChange={(e) => setAddEntryData(d => ({ ...d, customerName: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Invoice #</Label>
+              <Input placeholder="INV-2026-..." value={addEntryData.invoiceNumber} onChange={(e) => setAddEntryData(d => ({ ...d, invoiceNumber: e.target.value }))} />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Property Address</Label>
+              <Input placeholder="123 Main St" value={addEntryData.propertyAddress} onChange={(e) => setAddEntryData(d => ({ ...d, propertyAddress: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Agent Name</Label>
+              <Input placeholder="Agent name" value={addEntryData.agentName} onChange={(e) => setAddEntryData(d => ({ ...d, agentName: e.target.value }))} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-muted-foreground">Balance Due</Label>
+            <Input type="number" placeholder="0.00" value={addEntryData.balanceDue} onChange={(e) => setAddEntryData(d => ({ ...d, balanceDue: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-muted-foreground">Notes</Label>
+            <Textarea rows={2} placeholder="Deal notes..." value={addEntryData.dealNotes} onChange={(e) => setAddEntryData(d => ({ ...d, dealNotes: e.target.value }))} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowAddEntry(false)}>Cancel</Button>
+          <Button onClick={handleAddEntry} disabled={createRecord.isPending}>
+            {createRecord.isPending ? "Adding..." : "Add Record"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }
