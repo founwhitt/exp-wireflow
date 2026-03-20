@@ -354,18 +354,24 @@ function CollapsibleAccountSection({
         pushUndo={pushUndo}
         maxRows={maxRows}
       />
-      {records.length > initialLimit && (
+      {!expanded && (
         <Button
           variant="ghost"
           size="sm"
           className="mt-1 w-full text-muted-foreground hover:text-foreground"
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => setExpanded(true)}
         >
-          {expanded ? (
-            <><ChevronUp className="h-4 w-4 mr-1" />Show first {initialLimit} rows</>
-          ) : (
-            <><ChevronDown className="h-4 w-4 mr-1" />See all {records.length} rows</>
-          )}
+          <ChevronDown className="h-4 w-4 mr-1" />Expand{records.length > initialLimit ? ` (${records.length} records)` : ""}
+        </Button>
+      )}
+      {expanded && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-1 w-full text-muted-foreground hover:text-foreground"
+          onClick={() => setExpanded(false)}
+        >
+          <ChevronUp className="h-4 w-4 mr-1" />Collapse to {initialLimit} rows
         </Button>
       )}
     </div>
