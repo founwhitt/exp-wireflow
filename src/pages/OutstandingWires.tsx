@@ -197,9 +197,9 @@ export default function OutstandingWires() {
               {/* WF-3694 Section */}
               <div>
                 <div className="flex items-center gap-2 mb-2 px-1">
-                  <div className="h-3 w-3 rounded-full bg-[hsl(152,60%,40%)]" />
-                  <h2 className="text-[15px] font-semibold text-foreground">Wells Fargo — XXXX-3694</h2>
-                  <span className="text-[12px] text-muted-foreground ml-1 tabular-nums">({realty3694.length} records)</span>
+                  <div className="h-3 w-3 rounded-full bg-[hsl(var(--success))]" />
+                  <h2 className="text-[16px] font-semibold text-foreground">Wells Fargo — XXXX-3694</h2>
+                  <span className="text-[13px] text-muted-foreground ml-1 tabular-nums">({realty3694.length} records)</span>
                 </div>
                 <LiveGrid
                   records={realty3694}
