@@ -5,12 +5,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, Download, Trash2, Check, Loader2, ChevronDown, ChevronUp, Eye, EyeOff, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft } from "lucide-react";
+import { Search, Filter, Download, Check, Loader2, ChevronDown, ChevronUp, Eye, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import {
-  ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuLabel,
-} from "@/components/ui/context-menu";
 import {
   useOutstandingWires,
   useCreateOutstandingWires,
@@ -424,6 +421,29 @@ function rowHasData(r: EmptyRow): boolean {
   return !!(r.amount || r.description || r.receipt_number || r.invoice_number || r.wiring_date || r.accounting_notes || r.trx_notes);
 }
 
+// ---- Selection helpers ----
+interface CellRef { row: number; col: number }
+interface SelectionRange { r1: number; c1: number; r2: number; c2: number }
+
+function normalizeRange(a: CellRef, b: CellRef): SelectionRange {
+  return {
+    r1: Math.min(a.row, b.row), c1: Math.min(a.col, b.col),
+    r2: Math.max(a.row, b.row), c2: Math.max(a.col, b.col),
+  };
+}
+
+function inRange(r: number, c: number, sel: SelectionRange | null): boolean {
+  if (!sel) return false;
+  return r >= sel.r1 && r <= sel.r2 && c >= sel.c1 && c <= sel.c2;
+}
+
+// ---- Custom Context Menu ----
+interface CtxMenuState {
+  x: number; y: number;
+  rowIdx: number; colIdx: number;
+  rowData: DisplayRow;
+}
+
 function LiveGrid({
   records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows,
 }: {
@@ -465,6 +485,31 @@ function LiveGrid({
   const [columnFilters, setColumnFilters] = useState<Record<string, Set<string>>>({});
   const gridRef = useRef<HTMLDivElement>(null);
   const resizingRef = useRef<{ key: string; startX: number; startW: number } | null>(null);
+
+  // Selection state
+  const [anchor, setAnchor] = useState<CellRef | null>(null);
+  const [current, setCurrent] = useState<CellRef | null>(null);
+  const [selecting, setSelecting] = useState(false);
+  const selection = useMemo<SelectionRange | null>(() => {
+    if (!anchor || !current) return null;
+    return normalizeRange(anchor, current);
+  }, [anchor, current]);
+
+  // Context menu state
+  const [ctxMenu, setCtxMenu] = useState<CtxMenuState | null>(null);
+  const ctxMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close ctx menu on outside click
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (ctxMenuRef.current && !ctxMenuRef.current.contains(e.target as Node)) {
+        setCtxMenu(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [ctxMenu]);
 
   const toggleColWrap = useCallback((colKey: string) => {
     setColWrapText((prev) => {
@@ -605,6 +650,28 @@ function LiveGrid({
     setEmptyRows((prev) => prev.map((r) => r._key === key ? { ...r, [field]: value } : r));
   }, []);
 
+  // ---- Clipboard: Copy selected cells ----
+  const copySelection = useCallback(() => {
+    if (!selection) return;
+    const lines: string[] = [];
+    for (let r = selection.r1; r <= selection.r2; r++) {
+      const row = displayRows[r];
+      if (!row) continue;
+      const cells: string[] = [];
+      for (let c = selection.c1; c <= selection.c2; c++) {
+        const col = visibleCols[c];
+        if (!col) continue;
+        cells.push(String((row as any)[col.key] ?? ""));
+      }
+      lines.push(cells.join("\t"));
+    }
+    navigator.clipboard.writeText(lines.join("\n")).then(
+      () => toast.success("Copied to clipboard"),
+      () => toast.error("Copy failed")
+    );
+  }, [selection, displayRows, visibleCols]);
+
+  // ---- Clipboard: Paste ----
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     const text = e.clipboardData.getData("text");
     const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
@@ -612,15 +679,24 @@ function LiveGrid({
 
     e.preventDefault();
 
+    // Use selection anchor or focused element as start
+    let startRow = selection?.r1 ?? 0;
+    let startCol = selection?.c1 ?? 0;
     const active = document.activeElement as HTMLElement | null;
-    let startRow = 0;
-    let startCol = 0;
     if (active?.dataset.gridrow) startRow = parseInt(active.dataset.gridrow, 10) || 0;
     if (active?.dataset.gridcol) startCol = parseInt(active.dataset.gridcol, 10) || 0;
 
     const fieldKeys = visibleCols.map((c) => c.key);
     const existingUpdates: { id: string; field: string; value: any; oldValue: any }[] = [];
     const currentEmpty = [...emptyRows];
+
+    // Auto-expand: ensure enough rows
+    const neededTotal = startRow + lines.length;
+    const totalAvailable = filteredRecords.length + currentEmpty.length;
+    if (neededTotal > totalAvailable) {
+      const extra = neededTotal - totalAvailable;
+      for (let n = 0; n < extra; n++) currentEmpty.push(makeEmptyRow(defaultAccount));
+    }
 
     for (let i = 0; i < lines.length; i++) {
       const rowIdx = startRow + i;
@@ -707,6 +783,148 @@ function LiveGrid({
     }
 
     toast.success(`Pasted ${lines.length} row${lines.length > 1 ? "s" : ""}`);
+  }, [filteredRecords, emptyRows, defaultAccount, canEditCol, update, create, category, userId, onSaving, onSaved, pushUndo, visibleCols, selection]);
+
+  // ---- Keyboard: Ctrl+C ----
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!gridRef.current?.contains(document.activeElement) && !gridRef.current?.contains(e.target as Node)) return;
+      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        e.preventDefault();
+        copySelection();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [copySelection]);
+
+  // ---- Context menu: clear cell ----
+  const clearCell = useCallback((rowIdx: number, colIdx: number) => {
+    const row = displayRows[rowIdx];
+    const col = visibleCols[colIdx];
+    if (!row || !col) return;
+    if (!canEditCol(col.key)) return;
+    if (isEmptyRow(row)) {
+      updateEmptyCell(row._key, col.key, "");
+    } else {
+      const oldValue = (row as any)[col.key];
+      const newVal = col.key === "amount" ? null : null;
+      saveField(row.id, col.key, newVal, oldValue);
+    }
+  }, [displayRows, visibleCols, canEditCol, updateEmptyCell, saveField]);
+
+  // ---- Context menu: delete row ----
+  const deleteRow = useCallback((rowIdx: number) => {
+    const row = displayRows[rowIdx];
+    if (!row) return;
+    if (isEmptyRow(row)) {
+      setEmptyRows((prev) => prev.filter((r) => r._key !== row._key));
+    } else {
+      remove.mutate(row.id, {
+        onSuccess: () => toast.success("Deleted"),
+        onError: (err: any) => toast.error("Failed", { description: err.message }),
+      });
+    }
+  }, [displayRows, remove]);
+
+  // ---- Context menu: paste from clipboard ----
+  const pasteFromClipboard = useCallback(async (startRow: number, startCol: number) => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (!text) return;
+      // Create a synthetic paste
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      if (lines.length === 0) return;
+
+      const fieldKeys = visibleCols.map(c => c.key);
+      const existingUpdates: { id: string; field: string; value: any; oldValue: any }[] = [];
+      const currentEmpty = [...emptyRows];
+
+      const neededTotal = startRow + lines.length;
+      const totalAvailable = filteredRecords.length + currentEmpty.length;
+      if (neededTotal > totalAvailable) {
+        const extra = neededTotal - totalAvailable;
+        for (let n = 0; n < extra; n++) currentEmpty.push(makeEmptyRow(defaultAccount));
+      }
+
+      for (let i = 0; i < lines.length; i++) {
+        const rowIdx = startRow + i;
+        const colValues = lines[i].split("\t");
+        if (rowIdx < filteredRecords.length) {
+          const rec = filteredRecords[rowIdx];
+          colValues.forEach((val, ci) => {
+            const colIdx = startCol + ci;
+            if (colIdx >= fieldKeys.length) return;
+            const field = fieldKeys[colIdx];
+            if (!canEditCol(field)) return;
+            let normalized: any = val.trim();
+            const oldValue = (rec as any)[field];
+            if (field === "wf_account") normalized = normalizeAccount(normalized);
+            else if (field === "status") normalized = normalizeStatus(normalized);
+            else if (field === "amount") normalized = parseFloat(normalized.replace(/[^0-9.\-]/g, "")) || null;
+            else normalized = normalized || null;
+            existingUpdates.push({ id: rec.id, field, value: normalized, oldValue });
+          });
+        } else {
+          const emptyIdx = rowIdx - filteredRecords.length;
+          if (emptyIdx >= currentEmpty.length) {
+            for (let n = 0; n <= emptyIdx - currentEmpty.length; n++) currentEmpty.push(makeEmptyRow(defaultAccount));
+          }
+          const emptyRow = currentEmpty[emptyIdx];
+          colValues.forEach((val, ci) => {
+            const colIdx = startCol + ci;
+            if (colIdx >= fieldKeys.length) return;
+            const field = fieldKeys[colIdx];
+            if (!canEditCol(field)) return;
+            let normalized = val.trim();
+            if (field === "wf_account") normalized = normalizeAccount(normalized);
+            else if (field === "status") normalized = normalizeStatus(normalized);
+            emptyRow[field] = normalized;
+          });
+        }
+      }
+
+      existingUpdates.forEach(u => {
+        pushUndo({ type: "edit", id: u.id, field: u.field, oldValue: u.oldValue });
+        onSaving();
+        update.mutate({ id: u.id, [u.field]: u.value }, {
+          onSuccess: () => onSaved(), onError: () => onSaved(),
+        });
+      });
+
+      const filledFromPaste = currentEmpty.filter(rowHasData);
+      if (filledFromPaste.length > 0) {
+        onSaving();
+        const inserts: OutstandingWireInsert[] = filledFromPaste.map(r => ({
+          status: r.status || "", wf_account: r.wf_account,
+          wiring_date: r.wiring_date || null,
+          amount: r.amount ? parseFloat(r.amount.replace(/[^0-9.\-]/g, "")) : null,
+          receipt_number: r.receipt_number || null, invoice_number: r.invoice_number || null,
+          description: r.description || null, accounting_notes: r.accounting_notes || null,
+          trx_notes: r.trx_notes || null, agent_name: r.agent_name || null,
+          property_address: r.property_address || null, office_location: r.office_location || null,
+          category, created_by: userId,
+        }));
+        const filledKeys = new Set(filledFromPaste.map(r => r._key));
+        create.mutate(inserts, {
+          onSuccess: () => {
+            setEmptyRows(prev => {
+              const remaining = prev.filter(r => !filledKeys.has(r._key));
+              return [...remaining, ...makeEmptyRows(Math.max(0, DEFAULT_EMPTY_ROWS - remaining.length), defaultAccount)];
+            });
+            onSaved();
+          },
+          onError: (err: any) => { onSaved(); toast.error("Failed", { description: err.message }); },
+        });
+      } else {
+        setEmptyRows([...currentEmpty]);
+      }
+      toast.success(`Pasted ${lines.length} row${lines.length > 1 ? "s" : ""}`);
+    } catch {
+      toast.error("Unable to read clipboard");
+    }
   }, [filteredRecords, emptyRows, defaultAccount, canEditCol, update, create, category, userId, onSaving, onSaved, pushUndo, visibleCols]);
 
   // Column resize handlers
@@ -724,7 +942,6 @@ function LiveGrid({
       resizingRef.current = null;
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
-      // Persist widths to localStorage
       setColWidths((current) => {
         try { localStorage.setItem(storageKey, JSON.stringify(current)); } catch {}
         return current;
@@ -734,13 +951,45 @@ function LiveGrid({
     document.addEventListener("mouseup", onUp);
   }, [colWidths, cols, storageKey]);
 
+  // ---- Mouse selection handlers ----
+  const onCellMouseDown = useCallback((ri: number, ci: number, e: React.MouseEvent) => {
+    if (e.button === 2) return; // right-click handled by context menu
+    setAnchor({ row: ri, col: ci });
+    setCurrent({ row: ri, col: ci });
+    setSelecting(true);
+  }, []);
+
+  const onCellMouseEnter = useCallback((ri: number, ci: number) => {
+    if (!selecting) return;
+    setCurrent({ row: ri, col: ci });
+  }, [selecting]);
+
+  useEffect(() => {
+    if (!selecting) return;
+    const handler = () => setSelecting(false);
+    window.addEventListener("mouseup", handler);
+    return () => window.removeEventListener("mouseup", handler);
+  }, [selecting]);
+
+  // ---- Right-click handler ----
+  const onCellContextMenu = useCallback((e: React.MouseEvent, ri: number, ci: number, row: DisplayRow) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // If right-clicking outside current selection, move selection to this cell
+    if (!inRange(ri, ci, selection)) {
+      setAnchor({ row: ri, col: ci });
+      setCurrent({ row: ri, col: ci });
+    }
+    setCtxMenu({ x: e.clientX, y: e.clientY, rowIdx: ri, colIdx: ci, rowData: row });
+  }, [selection]);
+
   const renderRow = (row: DisplayRow, ri: number) => {
     const empty = isEmptyRow(row);
     const rowKey = empty ? row._key : row.id;
     const highlightColor = empty ? null : (row as OutstandingWire).highlight_color;
     const highlightClass = getHighlightClass(highlightColor);
 
-    const rowContent = (
+    return (
       <tr
         key={rowKey}
         className={`border-b border-border/40 group transition-colors ${highlightClass} ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
@@ -752,6 +1001,7 @@ function LiveGrid({
         {visibleCols.map((col, ci) => {
           const editable = canEditCol(col.key);
           const value = (row as any)[col.key] ?? "";
+          const selected = inRange(ri, ci, selection);
 
           const isWrapped = !!colWrapText[col.key];
           const cellClip = isWrapped ? "break-words" : "truncate";
@@ -759,9 +1009,18 @@ function LiveGrid({
             ? { overflowWrap: "break-word" as const, width: colWidths[col.key] ?? col.width }
             : { width: colWidths[col.key] ?? col.width, overflow: "hidden" as const, textOverflow: "ellipsis" as const, whiteSpace: "nowrap" as const };
 
+          const selClass = selected ? "ring-2 ring-primary/40 bg-primary/5" : "";
+
           if (!editable) {
             return (
-              <td key={col.key} className={`px-1.5 py-0.5 ${cellClip}`} style={cellStyle}>
+              <td
+                key={col.key}
+                className={`px-1.5 py-0.5 ${cellClip} ${selClass}`}
+                style={cellStyle}
+                onMouseDown={(e) => onCellMouseDown(ri, ci, e)}
+                onMouseEnter={() => onCellMouseEnter(ri, ci)}
+                onContextMenu={(e) => onCellContextMenu(e, ri, ci, row)}
+              >
                 {col.key === "status" ? (
                   empty || !value ? <span className="text-muted-foreground/40">—</span> : <StatusBadge status={value} />
                 ) : col.key === "amount" && value ? (
@@ -775,7 +1034,14 @@ function LiveGrid({
 
           if (col.type === "status") {
             return (
-              <td key={col.key} className="px-0.5 py-0.5" style={{ width: colWidths[col.key] ?? col.width }}>
+              <td
+                key={col.key}
+                className={`px-0.5 py-0.5 ${selClass}`}
+                style={{ width: colWidths[col.key] ?? col.width }}
+                onMouseDown={(e) => onCellMouseDown(ri, ci, e)}
+                onMouseEnter={() => onCellMouseEnter(ri, ci)}
+                onContextMenu={(e) => onCellContextMenu(e, ri, ci, row)}
+              >
                 <select
                   className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
                   value={value}
@@ -796,7 +1062,14 @@ function LiveGrid({
 
           if (col.type === "account") {
             return (
-              <td key={col.key} className="px-0.5 py-0.5" style={{ width: colWidths[col.key] ?? col.width }}>
+              <td
+                key={col.key}
+                className={`px-0.5 py-0.5 ${selClass}`}
+                style={{ width: colWidths[col.key] ?? col.width }}
+                onMouseDown={(e) => onCellMouseDown(ri, ci, e)}
+                onMouseEnter={() => onCellMouseEnter(ri, ci)}
+                onContextMenu={(e) => onCellContextMenu(e, ri, ci, row)}
+              >
                 <select
                   className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
                   value={value || defaultAccount}
@@ -815,7 +1088,14 @@ function LiveGrid({
           }
 
           return (
-            <td key={col.key} className={`px-0.5 py-0.5 ${cellClip}`} style={cellStyle}>
+            <td
+              key={col.key}
+              className={`px-0.5 py-0.5 ${cellClip} ${selClass}`}
+              style={cellStyle}
+              onMouseDown={(e) => onCellMouseDown(ri, ci, e)}
+              onMouseEnter={() => onCellMouseEnter(ri, ci)}
+              onContextMenu={(e) => onCellContextMenu(e, ri, ci, row)}
+            >
               {empty ? (
                 <input
                   className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
@@ -844,74 +1124,9 @@ function LiveGrid({
           );
         })}
 
-        {isAccounting && (
-          <td className="px-0.5 py-0.5 w-8">
-            {!empty && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center text-destructive/50 hover:text-destructive rounded transition-opacity">
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete this wire?</AlertDialogTitle>
-                    <AlertDialogDescription>This will permanently remove this entry.</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      onClick={() => remove.mutate(row.id, {
-                        onSuccess: () => toast.success("Deleted"),
-                        onError: (err: any) => toast.error("Failed", { description: err.message }),
-                      })}
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-          </td>
-        )}
+        {isAccounting && <td className="px-0.5 py-0.5 w-8" />}
       </tr>
     );
-
-    // Wrap non-empty rows with context menu for accounting highlight
-    if (!empty && isAccounting) {
-      return (
-        <ContextMenu key={rowKey}>
-          <ContextMenuTrigger asChild>
-            {rowContent}
-          </ContextMenuTrigger>
-          <ContextMenuContent className="w-48">
-            <ContextMenuLabel>Highlight Row</ContextMenuLabel>
-            <ContextMenuSeparator />
-            {HIGHLIGHT_COLORS.map((c) => (
-              <ContextMenuItem
-                key={c.value}
-                onClick={() => setHighlightColor(row.id, c.value)}
-                className="flex items-center gap-2"
-              >
-                <div className={`h-3 w-3 rounded-sm border border-border ${c.bg}`} />
-                <span>{c.label}</span>
-                {highlightColor === c.value && <Check className="h-3 w-3 ml-auto text-primary" />}
-              </ContextMenuItem>
-            ))}
-            <ContextMenuSeparator />
-            <ContextMenuItem
-              onClick={() => setHighlightColor(row.id, null)}
-              disabled={!highlightColor}
-            >
-              Remove Highlight
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
-      );
-    }
-
-    return rowContent;
   };
 
   return (
@@ -954,8 +1169,18 @@ function LiveGrid({
           </div>
         </div>
 
-        <div ref={gridRef} className="overflow-auto max-h-[70vh]" onPaste={handlePaste}>
-          <table className="w-full border-collapse text-sm" style={{ tableLayout: "fixed" }}>
+        <div
+          ref={gridRef}
+          className="overflow-auto max-h-[70vh] relative"
+          onPaste={handlePaste}
+          onContextMenu={(e) => {
+            // Prevent browser context menu on grid background
+            if (!(e.target as HTMLElement).closest("td")) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <table className="w-full border-collapse text-sm select-none" style={{ tableLayout: "fixed" }}>
             <thead className="sticky top-0 z-10">
               <tr className="bg-muted/60 border-b">
                 <th className="px-1 py-2 text-center font-medium text-muted-foreground w-8">#</th>
@@ -987,13 +1212,6 @@ function LiveGrid({
                           onClear={clearColumnFilter}
                           hasFilter={hasFilter}
                         />
-                        <button
-                          className={`shrink-0 rounded p-0.5 transition-colors hover:bg-muted ${colWrapText[col.key] ? "text-primary" : "opacity-0 group-hover/head:opacity-40"}`}
-                          title={colWrapText[col.key] ? "Switch to Clip" : "Switch to Wrap"}
-                          onClick={() => toggleColWrap(col.key)}
-                        >
-                          {colWrapText[col.key] ? <AlignLeft className="h-3 w-3" /> : <WrapText className="h-3 w-3" />}
-                        </button>
                       </div>
                       <div
                         className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-accent/40 transition-colors"
@@ -1009,11 +1227,93 @@ function LiveGrid({
               {displayRows.map((row, ri) => renderRow(row, ri))}
             </tbody>
           </table>
+
+          {/* Custom Context Menu */}
+          {ctxMenu && (
+            <div
+              ref={ctxMenuRef}
+              className="fixed z-50 min-w-[200px] rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95"
+              style={{ left: ctxMenu.x, top: ctxMenu.y }}
+            >
+              <button
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                onClick={() => { copySelection(); setCtxMenu(null); }}
+              >
+                Copy
+                <span className="ml-auto text-xs text-muted-foreground">Ctrl+C</span>
+              </button>
+              <button
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                onClick={() => { pasteFromClipboard(ctxMenu.rowIdx, ctxMenu.colIdx); setCtxMenu(null); }}
+              >
+                Paste
+                <span className="ml-auto text-xs text-muted-foreground">Ctrl+V</span>
+              </button>
+              <div className="-mx-1 my-1 h-px bg-border" />
+              <button
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                onClick={() => { clearCell(ctxMenu.rowIdx, ctxMenu.colIdx); setCtxMenu(null); }}
+              >
+                Clear Cell
+              </button>
+              <button
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                onClick={() => { deleteRow(ctxMenu.rowIdx); setCtxMenu(null); }}
+              >
+                Delete Row
+              </button>
+
+              {/* Text Display toggle for column */}
+              <div className="-mx-1 my-1 h-px bg-border" />
+              <button
+                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                onClick={() => {
+                  const colKey = visibleCols[ctxMenu.colIdx]?.key;
+                  if (colKey) toggleColWrap(colKey);
+                  setCtxMenu(null);
+                }}
+              >
+                {visibleCols[ctxMenu.colIdx] && colWrapText[visibleCols[ctxMenu.colIdx].key]
+                  ? <><AlignLeft className="h-3.5 w-3.5" />Clip Text</>
+                  : <><WrapText className="h-3.5 w-3.5" />Wrap Text</>
+                }
+              </button>
+
+              {/* Accounting: Highlight Row */}
+              {isAccounting && !isEmptyRow(ctxMenu.rowData) && (
+                <>
+                  <div className="-mx-1 my-1 h-px bg-border" />
+                  <div className="px-2 py-1 text-xs font-medium text-muted-foreground">Highlight Row</div>
+                  {HIGHLIGHT_COLORS.map((c) => {
+                    const rowData = ctxMenu.rowData as OutstandingWire;
+                    return (
+                      <button
+                        key={c.value}
+                        className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                        onClick={() => { setHighlightColor(rowData.id, c.value); setCtxMenu(null); }}
+                      >
+                        <div className={`h-3 w-3 rounded-sm border border-border ${c.bg}`} />
+                        {c.label}
+                        {rowData.highlight_color === c.value && <Check className="h-3 w-3 ml-auto text-primary" />}
+                      </button>
+                    );
+                  })}
+                  <button
+                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-40"
+                    disabled={!(ctxMenu.rowData as OutstandingWire).highlight_color}
+                    onClick={() => { setHighlightColor((ctxMenu.rowData as OutstandingWire).id, null); setCtxMenu(null); }}
+                  >
+                    Remove Highlight
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-1.5">
           <span className="text-sm text-muted-foreground">
-            Tip: Select a cell and paste from Excel — auto-saves immediately. Ctrl+Z to undo.
+            Right-click for options. Drag to select. Ctrl+C / Ctrl+V for bulk data.
           </span>
           <span className="text-sm text-muted-foreground tabular-nums">
             {records.length} saved · {emptyRows.length} blank rows
