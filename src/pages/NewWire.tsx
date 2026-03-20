@@ -394,7 +394,7 @@ export default function NewWire() {
              <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg text-primary">
-                  <PenLine className="h-5 w-5 text-accent-foreground" />
+                  <PenLine className="h-5 w-5 text-primary" />
                   Manual Deal Entry
                 </CardTitle>
                 <CardDescription>Enter the deal data manually. Fields marked with * are required.</CardDescription>
