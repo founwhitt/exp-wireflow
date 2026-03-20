@@ -229,6 +229,12 @@ export default function OutstandingWires() {
         </div>
         <div className="flex items-center gap-3">
           <SaveIndicator status={saveStatus} />
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setAllCollapsed(false)}>
+            <ChevronDown className="h-3.5 w-3.5 mr-1" />Expand All
+          </Button>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setAllCollapsed(true)}>
+            <ChevronUp className="h-3.5 w-3.5 mr-1" />Collapse All
+          </Button>
         </div>
       </div>
 
