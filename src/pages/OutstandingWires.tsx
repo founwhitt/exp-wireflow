@@ -232,7 +232,24 @@ export default function OutstandingWires() {
             Live editable grid — paste from Excel or edit inline. Ctrl+Z to undo.
           </p>
         </div>
-        <SaveIndicator status={saveStatus} />
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => {
+              setWrapText((prev) => {
+                const next = !prev;
+                try { localStorage.setItem("ow_wrapText", String(next)); } catch {}
+                return next;
+              });
+            }}
+          >
+            {wrapText ? <AlignLeft className="h-3.5 w-3.5 mr-1" /> : <WrapText className="h-3.5 w-3.5 mr-1" />}
+            {wrapText ? "Clip Text" : "Wrap Text"}
+          </Button>
+          <SaveIndicator status={saveStatus} />
+        </div>
       </div>
 
       {/* Filters */}
