@@ -374,7 +374,7 @@ function CollapsibleAccountSection({
 
 // ---- Live Editable Grid ----
 
-const EMPTY_ROWS_COUNT = 50;
+const DEFAULT_EMPTY_ROWS = 50;
 
 interface EmptyRow {
   _empty: true;
