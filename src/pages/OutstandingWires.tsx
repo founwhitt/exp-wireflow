@@ -595,7 +595,7 @@ function LiveGrid({
                           <td key={col.key} className="px-0.5 py-0.5 break-words" style={{ overflowWrap: "break-word" }}>
                           {empty ? (
                             <input
-                              className="w-full h-7 text-[13px] bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
+                              className="w-full h-7 text-[14px] bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
                               type="text"
                               value={value}
                               data-gridrow={ri}
