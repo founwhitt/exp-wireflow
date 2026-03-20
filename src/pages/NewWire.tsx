@@ -471,7 +471,7 @@ export default function NewWire() {
                     <Field icon={<FileText className="h-3.5 w-3.5 text-muted-foreground" />} label="Invoice #" value={tidData.invoiceNumber} />
                     <Field label="Invoice Date" value={tidData.invoiceDate} />
                     <Field icon={<DollarSign className="h-3.5 w-3.5 text-muted-foreground" />} label="Original Amount" value={`$${tidData.originalAmount.toLocaleString()}`} />
-                    <Field icon={<DollarSign className="h-3.5 w-3.5 text-accent-foreground" />} label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
+                    <Field icon={<DollarSign className="h-3.5 w-3.5 text-primary" />} label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
                   </div>
                 </div>
                 <Separator />
