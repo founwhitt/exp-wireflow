@@ -99,7 +99,8 @@ export default function Dashboard() {
     propertyAddress: "",
     agentName: "",
     balanceDue: "",
-    invoiceNumber: "",
+    wiringDate: undefined as Date | undefined,
+    adjustments: "",
     dealNotes: "",
   });
 
