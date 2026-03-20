@@ -705,7 +705,7 @@ function Field({ label, value, highlight, icon }: { label: string; value: string
         {icon}
         {label}
       </Label>
-      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-foreground font-bold" : "text-foreground"}`} style={highlight ? { color: '#0056D2' } : undefined}>
+      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-accent-foreground font-bold" : "text-foreground"}`}>
         {value}
       </p>
     </div>
