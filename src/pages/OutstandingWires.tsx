@@ -150,9 +150,6 @@ export default function OutstandingWires() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-  const [wrapText, setWrapText] = useState<boolean>(() => {
-    try { return localStorage.getItem("ow_wrapText") !== "false"; } catch { return true; }
-  });
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const undoStackRef = useRef<UndoEntry[]>([]);
   const update = useUpdateOutstandingWire();
@@ -233,21 +230,6 @@ export default function OutstandingWires() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs"
-            onClick={() => {
-              setWrapText((prev) => {
-                const next = !prev;
-                try { localStorage.setItem("ow_wrapText", String(next)); } catch {}
-                return next;
-              });
-            }}
-          >
-            {wrapText ? <AlignLeft className="h-3.5 w-3.5 mr-1" /> : <WrapText className="h-3.5 w-3.5 mr-1" />}
-            {wrapText ? "Clip Text" : "Wrap Text"}
-          </Button>
           <SaveIndicator status={saveStatus} />
         </div>
       </div>
@@ -298,7 +280,6 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
-                wrapText={wrapText}
               />
               <CollapsibleAccountSection
                 title="Wells Fargo — XXXX-3694"
@@ -314,7 +295,6 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
-                wrapText={wrapText}
               />
             </>
           )}
@@ -337,7 +317,6 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
-                wrapText={wrapText}
               />
             )}
           </TabsContent>
@@ -350,12 +329,12 @@ export default function OutstandingWires() {
 // ---- Collapsible Account Section ----
 
 function CollapsibleAccountSection({
-  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, wrapText,
+  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit,
 }: {
   title: string; dotColor: string; records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string; isAccounting: boolean; isAdmin: boolean;
   userId: string | null; onSaving: () => void; onSaved: () => void;
-  pushUndo: (e: UndoEntry) => void; initialLimit: number; wrapText: boolean;
+  pushUndo: (e: UndoEntry) => void; initialLimit: number;
 }) {
   const [expanded, setExpanded] = useState(false);
   const maxRows = expanded ? undefined : initialLimit;
@@ -379,7 +358,6 @@ function CollapsibleAccountSection({
         onSaved={onSaved}
         pushUndo={pushUndo}
         maxRows={maxRows}
-        wrapText={wrapText}
       />
       {!expanded && (
         <Button
@@ -447,7 +425,7 @@ function rowHasData(r: EmptyRow): boolean {
 }
 
 function LiveGrid({
-  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows, wrapText,
+  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows,
 }: {
   records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string;
@@ -456,24 +434,30 @@ function LiveGrid({
   onSaving: () => void; onSaved: () => void;
   pushUndo: (e: UndoEntry) => void;
   maxRows?: number;
-  wrapText: boolean;
 }) {
   const create = useCreateOutstandingWires();
   const update = useUpdateOutstandingWire();
   const remove = useDeleteOutstandingWire();
 
   const storageKey = `ow_colWidths_${category}`;
+  const wrapStorageKey = `ow_colWrap_${category}`;
   const [emptyRows, setEmptyRows] = useState<EmptyRow[]>(() => makeEmptyRows(DEFAULT_EMPTY_ROWS, defaultAccount));
   const [colWidths, setColWidths] = useState<Record<string, number>>(() => {
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Merge saved widths with defaults so new columns get their default width
         return Object.fromEntries(cols.map((c) => [c.key, parsed[c.key] ?? c.width]));
       }
     } catch {}
     return Object.fromEntries(cols.map((c) => [c.key, c.width]));
+  });
+  const [colWrapText, setColWrapText] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(wrapStorageKey);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {};
   });
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   const [sortCol, setSortCol] = useState<string | null>(null);
@@ -481,6 +465,14 @@ function LiveGrid({
   const [columnFilters, setColumnFilters] = useState<Record<string, Set<string>>>({});
   const gridRef = useRef<HTMLDivElement>(null);
   const resizingRef = useRef<{ key: string; startX: number; startW: number } | null>(null);
+
+  const toggleColWrap = useCallback((colKey: string) => {
+    setColWrapText((prev) => {
+      const next = { ...prev, [colKey]: !prev[colKey] };
+      try { localStorage.setItem(wrapStorageKey, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, [wrapStorageKey]);
 
   const visibleCols = useMemo(() => cols.filter((c) => !hiddenCols.has(c.key)), [cols, hiddenCols]);
 
@@ -761,8 +753,9 @@ function LiveGrid({
           const editable = canEditCol(col.key);
           const value = (row as any)[col.key] ?? "";
 
-          const cellClip = wrapText ? "break-words" : "truncate";
-          const cellStyle = wrapText
+          const isWrapped = !!colWrapText[col.key];
+          const cellClip = isWrapped ? "break-words" : "truncate";
+          const cellStyle = isWrapped
             ? { overflowWrap: "break-word" as const, width: colWidths[col.key] ?? col.width }
             : { width: colWidths[col.key] ?? col.width, overflow: "hidden" as const, textOverflow: "ellipsis" as const, whiteSpace: "nowrap" as const };
 
@@ -994,6 +987,13 @@ function LiveGrid({
                           onClear={clearColumnFilter}
                           hasFilter={hasFilter}
                         />
+                        <button
+                          className={`shrink-0 rounded p-0.5 transition-colors hover:bg-muted ${colWrapText[col.key] ? "text-primary" : "opacity-0 group-hover/head:opacity-40"}`}
+                          title={colWrapText[col.key] ? "Switch to Clip" : "Switch to Wrap"}
+                          onClick={() => toggleColWrap(col.key)}
+                        >
+                          {colWrapText[col.key] ? <AlignLeft className="h-3 w-3" /> : <WrapText className="h-3 w-3" />}
+                        </button>
                       </div>
                       <div
                         className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-accent/40 transition-colors"
