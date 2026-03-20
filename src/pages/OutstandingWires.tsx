@@ -219,7 +219,19 @@ export default function OutstandingWires() {
   const realty8022 = useMemo(() => filtered.filter((r) => r.wf_account === "WF-8022"), [filtered]);
   const realty3694 = useMemo(() => filtered.filter((r) => r.wf_account === "WF-3694"), [filtered]);
 
-  const activeCols = tab === "payload" ? PAYLOAD_COLS : DEFAULT_COLS;
+  // Dynamic grouping for commercial/international by wf_account
+  const owAccounts = useOwAccounts();
+  const groupedByAccount = useMemo(() => {
+    const map = new Map<string, OutstandingWire[]>();
+    filtered.forEach((r) => {
+      const acct = r.wf_account || "WF-8022";
+      if (!map.has(acct)) map.set(acct, []);
+      map.get(acct)!.push(r);
+    });
+    return map;
+  }, [filtered]);
+
+  const [manageOptionsOpen, setManageOptionsOpen] = useState(false);
 
   return (
     <div className="flex h-full w-full flex-col gap-4 p-3 sm:p-4">
