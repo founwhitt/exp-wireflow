@@ -231,7 +231,7 @@ export default function NewWire() {
         </span>
       </div>
 
-      <div className={`relative z-10 mx-auto max-w-3xl transition-all duration-500 ${!hasDataBelow ? "flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center" : "space-y-8"}`}>
+      <div className={`relative z-10 mx-auto max-w-4xl transition-all duration-500 ${!hasDataBelow ? "flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center" : "space-y-8"}`}>
         {/* Header — always visible */}
         <div className={`w-full ${!hasDataBelow ? "mb-6" : "mb-0"}`}>
           <div className="flex items-start justify-between mb-6">
@@ -262,8 +262,8 @@ export default function NewWire() {
         <Card className={`w-full border-0 bg-card rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
           <CardHeader className="pb-4 px-6 pt-6">
             <CardTitle className="flex items-center gap-2 text-lg text-primary">
-              <Building2 className="h-5 w-5 text-accent-foreground" />
-              Department & Deal Entry
+              <Building2 className="h-5 w-5 text-primary" />
+              Department & Transaction Entry
             </CardTitle>
             <CardDescription>Choose department and how you want to enter deal data.</CardDescription>
           </CardHeader>
@@ -394,7 +394,7 @@ export default function NewWire() {
              <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg text-primary">
-                  <PenLine className="h-5 w-5 text-accent-foreground" />
+                  <PenLine className="h-5 w-5 text-primary" />
                   Manual Deal Entry
                 </CardTitle>
                 <CardDescription>Enter the deal data manually. Fields marked with * are required.</CardDescription>
@@ -414,7 +414,7 @@ export default function NewWire() {
                 <Separator />
                 <div>
                   <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                    <User className="h-4 w-4 text-accent-foreground" /> Identity
+                    <User className="h-4 w-4 text-primary" /> Identity
                   </h4>
                   <div className="grid gap-3 sm:grid-cols-4">
                     <ManualField label="Customer Name *" value={manualData.customerName} onChange={(v) => updateManual("customerName", v)} placeholder="Company LLC" />
@@ -457,7 +457,7 @@ export default function NewWire() {
              <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg text-primary">
-                  <FileText className="h-5 w-5 text-accent-foreground" />
+                  <FileText className="h-5 w-5 text-primary" />
                   Deal Data
                 </CardTitle>
                 <CardDescription>Auto-populated from Task Center. Review before sending.</CardDescription>
@@ -471,13 +471,13 @@ export default function NewWire() {
                     <Field icon={<FileText className="h-3.5 w-3.5 text-muted-foreground" />} label="Invoice #" value={tidData.invoiceNumber} />
                     <Field label="Invoice Date" value={tidData.invoiceDate} />
                     <Field icon={<DollarSign className="h-3.5 w-3.5 text-muted-foreground" />} label="Original Amount" value={`$${tidData.originalAmount.toLocaleString()}`} />
-                    <Field icon={<DollarSign className="h-3.5 w-3.5 text-accent-foreground" />} label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
+                    <Field icon={<DollarSign className="h-3.5 w-3.5 text-primary" />} label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
                   </div>
                 </div>
                 <Separator />
                 <div>
                   <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                    <User className="h-4 w-4 text-accent-foreground" /> Identity
+                    <User className="h-4 w-4 text-primary" /> Identity
                   </h4>
                   <div className="grid gap-3 sm:grid-cols-4">
                     <Field icon={<User className="h-3.5 w-3.5 text-muted-foreground" />} label="Customer Name" value={tidData.customerName} />
@@ -514,7 +514,7 @@ export default function NewWire() {
             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg text-primary">
-                  <Send className="h-5 w-5 text-accent-foreground" />
+                  <Send className="h-5 w-5 text-primary" />
                   Dispatch Wire Instructions
                 </CardTitle>
                 <CardDescription>
@@ -690,7 +690,7 @@ function Field({ label, value, highlight, icon }: { label: string; value: string
         {icon}
         {label}
       </Label>
-      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-accent-foreground font-bold" : "text-foreground"}`}>
+      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-primary font-bold" : "text-foreground"}`}>
         {value}
       </p>
     </div>
