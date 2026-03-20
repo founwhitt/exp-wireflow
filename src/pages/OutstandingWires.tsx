@@ -307,7 +307,8 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
-                forceCollapsed={allCollapsed}
+                forceCollapseSignal={collapseSignal}
+                owAccounts={owAccounts}
               />
               <CollapsibleAccountSection
                 title="Wells Fargo — XXXX-3694"
@@ -316,6 +317,16 @@ export default function OutstandingWires() {
                 cols={DEFAULT_COLS}
                 category="realty"
                 defaultAccount="WF-3694"
+                isAccounting={isAccounting}
+                isAdmin={isAdmin}
+                userId={user?.id ?? null}
+                onSaving={markSaving}
+                onSaved={markSaved}
+                pushUndo={pushUndo}
+                initialLimit={10}
+                forceCollapseSignal={collapseSignal}
+                owAccounts={owAccounts}
+              />
                 isAccounting={isAccounting}
                 isAdmin={isAdmin}
                 userId={user?.id ?? null}
