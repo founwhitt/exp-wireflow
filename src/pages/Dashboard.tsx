@@ -324,7 +324,7 @@ export default function Dashboard() {
       </div>
 
       {/* Data table */}
-      <Card className="min-h-0 flex-1 overflow-hidden bg-white shadow-sm">
+      <Card className="min-h-0 flex-1 overflow-hidden bg-card shadow-sm">
         <CardContent className="h-full p-0">
           {isLoading ? (
             <div className="space-y-2 p-4">
