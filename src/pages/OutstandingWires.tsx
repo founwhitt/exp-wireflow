@@ -332,18 +332,17 @@ function CollapsibleAccountSection({
   pushUndo: (e: UndoEntry) => void; initialLimit: number;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const visibleRecords = expanded ? records : records.slice(0, initialLimit);
-  const hasMore = records.length > initialLimit;
+  const maxRows = expanded ? undefined : initialLimit;
 
   return (
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
         <div className={`h-3 w-3 rounded-full ${dotColor}`} />
-        <h2 className="text-base font-semibold text-foreground font-sans">{title}</h2>
-        <span className="text-sm text-muted-foreground ml-1 tabular-nums font-sans">({records.length} records)</span>
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <span className="text-sm text-muted-foreground ml-1 tabular-nums">({records.length} records)</span>
       </div>
       <LiveGrid
-        records={visibleRecords}
+        records={records}
         cols={cols}
         category={category}
         defaultAccount={defaultAccount}
@@ -353,12 +352,13 @@ function CollapsibleAccountSection({
         onSaving={onSaving}
         onSaved={onSaved}
         pushUndo={pushUndo}
+        maxRows={maxRows}
       />
-      {hasMore && (
+      {records.length > initialLimit && (
         <Button
           variant="ghost"
           size="sm"
-          className="mt-1 w-full text-muted-foreground hover:text-foreground font-sans"
+          className="mt-1 w-full text-muted-foreground hover:text-foreground"
           onClick={() => setExpanded(!expanded)}
         >
           {expanded ? (
