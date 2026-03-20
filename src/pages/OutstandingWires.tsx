@@ -560,6 +560,9 @@ function LiveGrid({
       description: row.description || null,
       accounting_notes: row.accounting_notes || null,
       trx_notes: row.trx_notes || null,
+      agent_name: row.agent_name || null,
+      property_address: row.property_address || null,
+      office_location: row.office_location || null,
       category,
       created_by: userId,
     };
