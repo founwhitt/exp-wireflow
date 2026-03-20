@@ -410,20 +410,37 @@ export default function OutstandingWires() {
 // ---- Collapsible Account Section ----
 
 function CollapsibleAccountSection({
-  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapsed,
+  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapseSignal, owAccounts,
 }: {
   title: string; dotColor: string; records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string; isAccounting: boolean; isAdmin: boolean;
   userId: string | null; onSaving: () => void; onSaved: () => void;
-  pushUndo: (e: UndoEntry) => void; initialLimit: number; forceCollapsed?: boolean;
+  pushUndo: (e: UndoEntry) => void; initialLimit: number;
+  forceCollapseSignal?: { value: boolean; ts: number } | null;
+  owAccounts: { value: string; label: string }[];
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const lsKey = `ow-expanded-${title}`;
+  const [expanded, setExpanded] = useState(() => {
+    try {
+      const saved = localStorage.getItem(lsKey);
+      if (saved !== null) return saved === "true";
+    } catch {}
+    return false;
+  });
 
-  // Respond to global collapse/expand
+  // Persist to localStorage
+  const toggleExpanded = useCallback((val: boolean) => {
+    setExpanded(val);
+    try { localStorage.setItem(lsKey, String(val)); } catch {}
+  }, [lsKey]);
+
+  // Respond to global collapse/expand signal
   useEffect(() => {
-    if (forceCollapsed === true) setExpanded(false);
-    if (forceCollapsed === false) setExpanded(true);
-  }, [forceCollapsed]);
+    if (!forceCollapseSignal) return;
+    const val = !forceCollapseSignal.value;
+    setExpanded(val);
+    try { localStorage.setItem(lsKey, String(val)); } catch {}
+  }, [forceCollapseSignal, lsKey]);
 
   const maxRows = expanded ? undefined : initialLimit;
 
@@ -446,13 +463,14 @@ function CollapsibleAccountSection({
         onSaved={onSaved}
         pushUndo={pushUndo}
         maxRows={maxRows}
+        owAccounts={owAccounts}
       />
       {!expanded && (
         <Button
           variant="ghost"
           size="sm"
           className="mt-1 w-full text-muted-foreground hover:text-foreground"
-          onClick={() => setExpanded(true)}
+          onClick={() => toggleExpanded(true)}
         >
           <ChevronDown className="h-4 w-4 mr-1" />Expand{records.length > initialLimit ? ` (${records.length} records)` : ""}
         </Button>
@@ -462,7 +480,7 @@ function CollapsibleAccountSection({
           variant="ghost"
           size="sm"
           className="mt-1 w-full text-muted-foreground hover:text-foreground"
-          onClick={() => setExpanded(false)}
+          onClick={() => toggleExpanded(false)}
         >
           <ChevronUp className="h-4 w-4 mr-1" />Collapse to {initialLimit} rows
         </Button>
