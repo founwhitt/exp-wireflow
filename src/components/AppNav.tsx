@@ -19,7 +19,7 @@ export function AppNav() {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)' }}>
             <Send className="h-4 w-4 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight" style={{ color: '#00245D' }}>
+          <span className="text-xl font-bold tracking-tight text-primary">
             eXp WireFlow
           </span>
         </div>
@@ -29,7 +29,7 @@ export function AppNav() {
             to="/"
             end
             className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            activeClassName="bg-[#F1F5F9] text-[#00245D] border-b-2 border-[#0056D2]"
+            activeClassName="bg-accent/10 text-primary border-b-2 border-accent"
           >
             <Send className="h-4 w-4" />
             Send Wire Instructions
@@ -37,7 +37,7 @@ export function AppNav() {
           <NavLink
             to="/dashboard"
             className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            activeClassName="bg-[#F1F5F9] text-[#00245D] border-b-2 border-[#0056D2]"
+            activeClassName="bg-accent/10 text-primary border-b-2 border-accent"
           >
             <LayoutDashboard className="h-4 w-4" />
             Dashboard
@@ -47,7 +47,7 @@ export function AppNav() {
               <NavLink
                 to="/admin/users"
                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                activeClassName="bg-[#F1F5F9] text-[#00245D] border-b-2 border-[#0056D2]"
+                activeClassName="bg-accent/10 text-primary border-b-2 border-accent"
               >
                 <Shield className="h-4 w-4" />
                 Users
@@ -55,7 +55,7 @@ export function AppNav() {
               <NavLink
                 to="/admin/wire-instructions"
                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                activeClassName="bg-[#F1F5F9] text-[#00245D] border-b-2 border-[#0056D2]"
+                activeClassName="bg-accent/10 text-primary border-b-2 border-accent"
               >
                 <FileText className="h-4 w-4" />
                 Wire Inst.

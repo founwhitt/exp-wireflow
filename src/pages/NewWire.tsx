@@ -237,7 +237,7 @@ export default function NewWire() {
         <div className={`w-full ${!hasDataBelow ? "mb-6" : "mb-0"}`}>
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#00245D' }}>Send Wire Instructions</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-primary">Send Wire Instructions</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Select department, {entryMode === "lookup" ? "look up the TID" : "enter deal data manually"}, and dispatch wire instructions.
               </p>
@@ -262,8 +262,8 @@ export default function NewWire() {
         {/* Step 1: Department + Entry Mode + TID */}
         <Card className={`w-full border-0 bg-card rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
           <CardHeader className="pb-4 px-6 pt-6">
-            <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
-              <Building2 className="h-5 w-5" style={{ color: '#0056D2' }} />
+            <CardTitle className="flex items-center gap-2 text-lg text-primary">
+              <Building2 className="h-5 w-5 text-accent-foreground" />
               Department & Deal Entry
             </CardTitle>
             <CardDescription>Choose department and how you want to enter deal data.</CardDescription>
@@ -394,8 +394,8 @@ export default function NewWire() {
           {entryMode === "manual" && (
              <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
-                <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
-                  <PenLine className="h-5 w-5" style={{ color: '#0056D2' }} />
+                <CardTitle className="flex items-center gap-2 text-lg text-primary">
+                  <PenLine className="h-5 w-5 text-accent-foreground" />
                   Manual Deal Entry
                 </CardTitle>
                 <CardDescription>Enter the deal data manually. Fields marked with * are required.</CardDescription>
@@ -415,7 +415,7 @@ export default function NewWire() {
                 <Separator />
                 <div>
                   <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                    <User className="h-4 w-4" style={{ color: '#0056D2' }} /> Identity
+                    <User className="h-4 w-4 text-accent-foreground" /> Identity
                   </h4>
                   <div className="grid gap-3 sm:grid-cols-4">
                     <ManualField label="Customer Name *" value={manualData.customerName} onChange={(v) => updateManual("customerName", v)} placeholder="Company LLC" />
@@ -457,8 +457,8 @@ export default function NewWire() {
           {tidData && entryMode === "lookup" && (
              <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
-                <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
-                  <FileText className="h-5 w-5" style={{ color: '#0056D2' }} />
+                <CardTitle className="flex items-center gap-2 text-lg text-primary">
+                  <FileText className="h-5 w-5 text-accent-foreground" />
                   Deal Data
                 </CardTitle>
                 <CardDescription>Auto-populated from Task Center. Review before sending.</CardDescription>
@@ -472,13 +472,13 @@ export default function NewWire() {
                     <Field icon={<FileText className="h-3.5 w-3.5 text-muted-foreground" />} label="Invoice #" value={tidData.invoiceNumber} />
                     <Field label="Invoice Date" value={tidData.invoiceDate} />
                     <Field icon={<DollarSign className="h-3.5 w-3.5 text-muted-foreground" />} label="Original Amount" value={`$${tidData.originalAmount.toLocaleString()}`} />
-                    <Field icon={<DollarSign className="h-3.5 w-3.5" style={{ color: '#0056D2' }} />} label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
+                    <Field icon={<DollarSign className="h-3.5 w-3.5 text-accent-foreground" />} label="Balance Due" value={`$${tidData.balanceDue.toLocaleString()}`} highlight />
                   </div>
                 </div>
                 <Separator />
                 <div>
                   <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                    <User className="h-4 w-4" style={{ color: '#0056D2' }} /> Identity
+                    <User className="h-4 w-4 text-accent-foreground" /> Identity
                   </h4>
                   <div className="grid gap-3 sm:grid-cols-4">
                     <Field icon={<User className="h-3.5 w-3.5 text-muted-foreground" />} label="Customer Name" value={tidData.customerName} />
@@ -514,8 +514,8 @@ export default function NewWire() {
           {canDispatch && (
             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
-                <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
-                  <Send className="h-5 w-5" style={{ color: '#0056D2' }} />
+                <CardTitle className="flex items-center gap-2 text-lg text-primary">
+                  <Send className="h-5 w-5 text-accent-foreground" />
                   Dispatch Wire Instructions
                 </CardTitle>
                 <CardDescription>
@@ -577,11 +577,7 @@ export default function NewWire() {
                   <button
                     onClick={handleSaveOnly}
                     disabled={createRecord.isPending}
-                    className="w-full h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
-                    style={{
-                      background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
-                      boxShadow: '0 2px 8px rgba(0, 86, 210, 0.25)',
-                    }}
+                    className="w-full h-12 rounded-[10px] text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all disabled:opacity-60 shadow-md"
                   >
                     <span className="flex items-center justify-center gap-2">
                       <FileText className="h-4 w-4" />
@@ -593,12 +589,7 @@ export default function NewWire() {
                     <button
                       onClick={handleSaveOnly}
                       disabled={createRecord.isPending}
-                      className="flex-1 h-12 rounded-[10px] text-sm font-semibold transition-all disabled:opacity-60 border-2"
-                      style={{
-                        borderColor: '#0056D2',
-                        color: '#0056D2',
-                        backgroundColor: 'transparent',
-                      }}
+                      className="flex-1 h-12 rounded-[10px] text-sm font-semibold transition-all disabled:opacity-60 border-2 border-accent text-accent bg-transparent hover:bg-accent/10"
                     >
                       <span className="flex items-center justify-center gap-2">
                         <FileText className="h-4 w-4" />
@@ -608,11 +599,7 @@ export default function NewWire() {
                     <button
                       onClick={handlePreviewOrSend}
                       disabled={createRecord.isPending}
-                      className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
-                      style={{
-                        background: testMode ? '#475569' : 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
-                        boxShadow: testMode ? 'none' : '0 2px 8px rgba(0, 86, 210, 0.25)',
-                      }}
+                      className={`flex-1 h-12 rounded-[10px] text-sm font-semibold text-primary-foreground transition-all disabled:opacity-60 shadow-md ${testMode ? 'bg-secondary' : 'bg-primary hover:bg-primary/90'}`}
                     >
                       {testMode ? (
                         <span className="flex items-center justify-center gap-2">
@@ -671,7 +658,7 @@ export default function NewWire() {
                   <Separator />
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">TID</span>
-                    <span className="font-bold font-mono" style={{ color: '#00245D' }}>{lastSentData.tid}</span>
+                    <span className="font-bold font-mono text-primary">{lastSentData.tid}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> Address</span>
@@ -683,8 +670,7 @@ export default function NewWire() {
                   </div>
                 </div>
                 <button
-                  className="w-full h-11 rounded-[10px] text-sm font-semibold text-white transition-all"
-                  style={{ background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)' }}
+                  className="w-full h-11 rounded-[10px] text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all shadow-md"
                   onClick={handleSuccessClose}
                 >
                   Go to Dashboard
@@ -705,7 +691,7 @@ function Field({ label, value, highlight, icon }: { label: string; value: string
         {icon}
         {label}
       </Label>
-      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-foreground font-bold" : "text-foreground"}`} style={highlight ? { color: '#0056D2' } : undefined}>
+      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-accent-foreground font-bold" : "text-foreground"}`}>
         {value}
       </p>
     </div>
