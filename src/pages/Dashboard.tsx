@@ -253,7 +253,7 @@ export default function Dashboard() {
       setHighlightId(result.id);
       setTimeout(() => setHighlightId(null), 9000);
       setShowAddEntry(false);
-      setAddEntryData({ tid: "", department: "", customerName: "", propertyAddress: "", agentName: "", balanceDue: "", invoiceNumber: "", dealNotes: "" });
+      setAddEntryData({ tid: "", department: "", customerName: "", propertyAddress: "", agentName: "", balanceDue: "", wiringDate: undefined, adjustments: "", dealNotes: "" });
     } catch (err: any) {
       toast.error("Failed to add record", { description: err.message });
     }
