@@ -728,7 +728,7 @@ function ManualField({ label, value, onChange, placeholder = "", type = "text", 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`h-9 rounded-[10px] border-0 bg-[#F1F5F9] text-sm focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all ${highlight ? "ring-1 ring-[#0056D2]/30" : ""}`}
+        className={`h-9 rounded-[10px] border-0 bg-muted/30 text-sm focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all ${highlight ? "ring-1 ring-primary/30" : ""}`}
       />
     </div>
   );
