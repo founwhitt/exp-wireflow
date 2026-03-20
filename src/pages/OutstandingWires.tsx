@@ -327,38 +327,78 @@ export default function OutstandingWires() {
                 forceCollapseSignal={collapseSignal}
                 owAccounts={owAccounts}
               />
-                isAccounting={isAccounting}
-                isAdmin={isAdmin}
-                userId={user?.id ?? null}
-                onSaving={markSaving}
-                onSaved={markSaved}
-                pushUndo={pushUndo}
-                initialLimit={10}
-                forceCollapsed={allCollapsed}
-              />
             </>
           )}
         </TabsContent>
 
-        {["payload", "commercial", "international"].map((t) => (
-          <TabsContent key={t} value={t} className="mt-4">
+        {/* Payload: single section, no account column */}
+        <TabsContent value="payload" className="mt-4">
+          {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
+            <CollapsibleAccountSection
+              title="Payload"
+              dotColor="bg-accent"
+              records={filtered}
+              cols={PAYLOAD_COLS}
+              category="payload"
+              defaultAccount="WF-8022"
+              isAccounting={isAccounting}
+              isAdmin={isAdmin}
+              userId={user?.id ?? null}
+              onSaving={markSaving}
+              onSaved={markSaved}
+              pushUndo={pushUndo}
+              initialLimit={10}
+              forceCollapseSignal={collapseSignal}
+              owAccounts={owAccounts}
+            />
+          )}
+        </TabsContent>
+
+        {/* Commercial & International: dynamic grouping by account */}
+        {["commercial", "international"].map((t) => (
+          <TabsContent key={t} value={t} className="mt-4 space-y-6">
             {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
-              <CollapsibleAccountSection
-                title={t.charAt(0).toUpperCase() + t.slice(1)}
-                dotColor="bg-accent"
-                records={filtered}
-                cols={t === "payload" ? PAYLOAD_COLS : DEFAULT_COLS}
-                category={t}
-                defaultAccount="WF-8022"
-                isAccounting={isAccounting}
-                isAdmin={isAdmin}
-                userId={user?.id ?? null}
-                onSaving={markSaving}
-                onSaved={markSaved}
-                pushUndo={pushUndo}
-                initialLimit={10}
-                forceCollapsed={allCollapsed}
-              />
+              <>
+                {[...groupedByAccount.entries()].map(([acct, recs]) => (
+                  <CollapsibleAccountSection
+                    key={acct}
+                    title={`${t.charAt(0).toUpperCase() + t.slice(1)} — ${acct}`}
+                    dotColor="bg-accent"
+                    records={recs}
+                    cols={DEFAULT_COLS}
+                    category={t}
+                    defaultAccount={acct}
+                    isAccounting={isAccounting}
+                    isAdmin={isAdmin}
+                    userId={user?.id ?? null}
+                    onSaving={markSaving}
+                    onSaved={markSaved}
+                    pushUndo={pushUndo}
+                    initialLimit={10}
+                    forceCollapseSignal={collapseSignal}
+                    owAccounts={owAccounts}
+                  />
+                ))}
+                {groupedByAccount.size === 0 && (
+                  <CollapsibleAccountSection
+                    title={`${t.charAt(0).toUpperCase() + t.slice(1)}`}
+                    dotColor="bg-accent"
+                    records={[]}
+                    cols={DEFAULT_COLS}
+                    category={t}
+                    defaultAccount={owAccounts[0]?.value || "WF-8022"}
+                    isAccounting={isAccounting}
+                    isAdmin={isAdmin}
+                    userId={user?.id ?? null}
+                    onSaving={markSaving}
+                    onSaved={markSaved}
+                    pushUndo={pushUndo}
+                    initialLimit={10}
+                    forceCollapseSignal={collapseSignal}
+                    owAccounts={owAccounts}
+                  />
+                )}
+              </>
             )}
           </TabsContent>
         ))}
