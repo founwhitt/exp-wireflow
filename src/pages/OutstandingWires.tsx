@@ -909,7 +909,7 @@ function LiveGrid({
         </div>
 
         <div ref={gridRef} className="overflow-auto max-h-[70vh]" onPaste={handlePaste}>
-          <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
+          <table className="w-full border-collapse text-sm" style={{ tableLayout: "fixed" }}>
             <thead className="sticky top-0 z-10">
               <tr className="bg-muted/60 border-b">
                 <th className="px-1 py-2 text-center font-medium text-muted-foreground w-8">#</th>
