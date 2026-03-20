@@ -1,4 +1,4 @@
-// Wire instruction details extracted from the official PDFs
+// Wire instruction details — DEMO MODE: all sensitive data masked
 
 export interface WireInstructionDetails {
   accountNumber: string;
@@ -14,26 +14,26 @@ export interface WireInstructionDetails {
 
 export const WIRE_INSTRUCTIONS: Record<"8022" | "3694", WireInstructionDetails> = {
   "8022": {
-    accountNumber: "4571488022",
-    accountLabel: "Wells Fargo Account 8022",
-    bankName: "Wells Fargo Bank",
-    bankAddress: "420 Montgomery Street, San Francisco, CA 94104",
-    accountName: "EXP REALTY, LLC",
-    accountHolderAddress: "2219 Rimland Dr Ste 301, Bellingham, WA 98226-8759",
-    routingNumber: "121000248",
-    confirmationPhone: "855-966-1397",
-    pdfPath: "/wire-instructions/8022_wire_instructions.pdf",
+    accountNumber: "XXX-XXXX-8022",
+    accountLabel: "Demo Account 8022",
+    bankName: "Sample National Bank",
+    bankAddress: "123 Banking Plaza, Anytown, US 00000",
+    accountName: "DEMO REALTY, LLC",
+    accountHolderAddress: "456 Corporate Dr, Suite 100, Anytown, US 00000",
+    routingNumber: "XXX-XXXX-0248",
+    confirmationPhone: "555-000-1234",
+    pdfPath: "/wire-instructions/Sample_Wire_Instructions.pdf",
   },
   "3694": {
-    accountNumber: "4944123694",
-    accountLabel: "Wells Fargo Account 3694",
-    bankName: "Wells Fargo Bank",
-    bankAddress: "420 Montgomery Street, San Francisco, CA 94104",
-    accountName: "EXP REALTY, LLC",
-    accountHolderAddress: "2219 Rimland Dr Ste 301, Bellingham, WA 98226-8759",
-    routingNumber: "121000248",
-    confirmationPhone: "855-966-1397",
-    pdfPath: "/wire-instructions/3694_wire_instructions.pdf",
+    accountNumber: "XXX-XXXX-3694",
+    accountLabel: "Demo Account 3694",
+    bankName: "Sample National Bank",
+    bankAddress: "123 Banking Plaza, Anytown, US 00000",
+    accountName: "DEMO REALTY, LLC",
+    accountHolderAddress: "456 Corporate Dr, Suite 100, Anytown, US 00000",
+    routingNumber: "XXX-XXXX-0248",
+    confirmationPhone: "555-000-1234",
+    pdfPath: "/wire-instructions/Sample_Wire_Instructions.pdf",
   },
 };
 

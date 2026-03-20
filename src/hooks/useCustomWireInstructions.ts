@@ -90,3 +90,14 @@ export async function uploadWireInstructionPDF(file: File): Promise<string> {
     .getPublicUrl(fileName);
   return urlData.publicUrl;
 }
+
+export async function deleteWireInstructionPDF(publicUrl: string): Promise<void> {
+  // Extract the file name from the public URL
+  const parts = publicUrl.split("/wire-instructions/");
+  const fileName = parts[parts.length - 1];
+  if (!fileName) throw new Error("Could not determine file path from URL");
+  const { error } = await supabase.storage
+    .from("wire-instructions")
+    .remove([fileName]);
+  if (error) throw error;
+}
