@@ -118,12 +118,12 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
       {status === "saving" ? (
         <>
           <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-          <span className="text-muted-foreground text-sm font-sans">Saving…</span>
+          <span className="text-muted-foreground">Saving…</span>
         </>
       ) : (
         <>
           <Check className="h-3.5 w-3.5 text-emerald-500" />
-          <span className="text-emerald-600 dark:text-emerald-400 text-sm font-sans">All changes saved</span>
+          <span className="text-emerald-600 dark:text-emerald-400">All changes saved</span>
         </>
       )}
     </div>
@@ -217,12 +217,12 @@ export default function OutstandingWires() {
   const activeCols = tab === "payload" ? PAYLOAD_COLS : DEFAULT_COLS;
 
   return (
-    <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4 font-sans">
+    <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground font-sans">Outstanding Wires</h1>
-          <p className="text-sm text-muted-foreground font-sans">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Outstanding Wires</h1>
+          <p className="text-sm text-muted-foreground">
             Live editable grid — paste from Excel or edit inline. Ctrl+Z to undo.
           </p>
         </div>
@@ -233,18 +233,18 @@ export default function OutstandingWires() {
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search description, invoice, receipt..." className="h-8 pl-9 text-sm font-sans" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Search description, invoice, receipt..." className="h-8 pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex items-center gap-1">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-8 w-[180px] text-sm font-sans"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" size="sm" className="h-8 font-sans" onClick={() => exportCSV(filtered, activeCols, tab)} disabled={filtered.length === 0}>
+        <Button variant="outline" size="sm" className="h-8" onClick={() => exportCSV(filtered, activeCols, tab)} disabled={filtered.length === 0}>
           <Download className="h-4 w-4 mr-1" />Export
         </Button>
       </div>
@@ -709,13 +709,13 @@ function LiveGrid({
 
           if (!editable) {
             return (
-              <td key={col.key} className="px-1.5 py-0.5 break-words font-sans text-sm" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
+              <td key={col.key} className="px-1.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
                 {col.key === "status" ? (
                   empty || !value ? <span className="text-muted-foreground/40">—</span> : <StatusBadge status={value} />
                 ) : col.key === "amount" && value ? (
                   <span className="font-sans tabular-nums">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 ) : (
-                  <span className="text-muted-foreground break-words font-sans">{value || "—"}</span>
+                  <span className="text-muted-foreground break-words">{value || "—"}</span>
                 )}
               </td>
             );
@@ -723,9 +723,9 @@ function LiveGrid({
 
           if (col.type === "status") {
             return (
-              <td key={col.key} className="px-0.5 py-0.5 font-sans" style={{ width: colWidths[col.key] ?? col.width }}>
+              <td key={col.key} className="px-0.5 py-0.5" style={{ width: colWidths[col.key] ?? col.width }}>
                 <select
-                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer font-sans text-sm"
+                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
                   value={value}
                   data-gridrow={ri}
                   data-gridcol={ci}
@@ -744,9 +744,9 @@ function LiveGrid({
 
           if (col.type === "account") {
             return (
-              <td key={col.key} className="px-0.5 py-0.5 font-sans" style={{ width: colWidths[col.key] ?? col.width }}>
+              <td key={col.key} className="px-0.5 py-0.5" style={{ width: colWidths[col.key] ?? col.width }}>
                 <select
-                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer font-sans text-sm"
+                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
                   value={value || defaultAccount}
                   data-gridrow={ri}
                   data-gridcol={ci}
@@ -763,10 +763,10 @@ function LiveGrid({
           }
 
           return (
-            <td key={col.key} className="px-0.5 py-0.5 break-words font-sans" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
+            <td key={col.key} className="px-0.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
               {empty ? (
                 <input
-                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30 font-sans text-sm"
+                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
                   type="text"
                   value={value}
                   data-gridrow={ri}
@@ -863,14 +863,14 @@ function LiveGrid({
   };
 
   return (
-    <Card className="bg-card shadow-sm overflow-hidden font-sans">
+    <Card className="bg-card shadow-sm overflow-hidden">
       <CardContent className="p-0">
         {/* Toolbar */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/20">
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 text-xs font-sans">
+                <Button variant="ghost" size="sm" className="h-7 text-xs">
                   <Eye className="h-3.5 w-3.5 mr-1" />Columns
                 </Button>
               </DropdownMenuTrigger>
@@ -894,7 +894,7 @@ function LiveGrid({
               </DropdownMenuContent>
             </DropdownMenu>
             {activeFilterCount > 0 && (
-              <Button variant="ghost" size="sm" className="h-7 text-xs font-sans" onClick={() => setColumnFilters({})}>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setColumnFilters({})}>
                 <X className="mr-1 h-3 w-3" />
                 Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
               </Button>
@@ -903,10 +903,10 @@ function LiveGrid({
         </div>
 
         <div ref={gridRef} className="overflow-auto max-h-[70vh]" onPaste={handlePaste}>
-          <table className="w-full border-collapse font-sans" style={{ tableLayout: "fixed" }}>
+          <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
             <thead className="sticky top-0 z-10">
               <tr className="bg-muted/60 border-b">
-                <th className="px-1 py-2 text-center font-medium text-muted-foreground w-8 font-sans text-sm">#</th>
+                <th className="px-1 py-2 text-center font-medium text-muted-foreground w-8">#</th>
                 {visibleCols.map((col) => {
                   const locked = ACCOUNTING_COLS.includes(col.key) && !isAccounting;
                   const isActive = sortCol === col.key;
@@ -914,7 +914,7 @@ function LiveGrid({
                   return (
                     <th
                       key={col.key}
-                      className="group/head px-1.5 py-2 text-left font-medium text-muted-foreground uppercase tracking-wider relative select-none font-sans text-xs"
+                      className="group/head px-1.5 py-2 text-left font-medium text-muted-foreground uppercase tracking-wider relative select-none text-xs"
                       style={{ width: colWidths[col.key] ?? col.width }}
                     >
                       <div className="flex items-center gap-1">
@@ -922,7 +922,7 @@ function LiveGrid({
                           className="flex items-center gap-1 hover:text-foreground transition-colors"
                           onClick={() => handleSort(col.key)}
                         >
-                          <span className="truncate font-sans">{col.label}{locked ? " 🔒" : ""}</span>
+                          <span className="truncate">{col.label}{locked ? " 🔒" : ""}</span>
                           {isActive && sortDir === "asc" && <ArrowUp className="h-3 w-3 text-primary shrink-0" />}
                           {isActive && sortDir === "desc" && <ArrowDown className="h-3 w-3 text-primary shrink-0" />}
                           {!isActive && <ArrowUpDown className="h-3 w-3 opacity-0 group-hover/head:opacity-40 shrink-0" />}
@@ -953,10 +953,10 @@ function LiveGrid({
         </div>
 
         <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-1.5">
-          <span className="text-sm text-muted-foreground font-sans">
+          <span className="text-sm text-muted-foreground">
             Tip: Select a cell and paste from Excel — auto-saves immediately. Ctrl+Z to undo.
           </span>
-          <span className="text-sm text-muted-foreground tabular-nums font-sans">
+          <span className="text-sm text-muted-foreground tabular-nums">
             {records.length} saved · {emptyRows.length} blank rows
           </span>
         </div>
@@ -984,7 +984,7 @@ function InlineEditCell({
       : value || "—";
     return (
       <button
-        className="w-full min-w-[40px] h-7 rounded px-1 text-left transition-colors hover:bg-muted/60 break-words text-wrap font-sans text-sm"
+        className="w-full min-w-[40px] h-7 rounded px-1 text-left transition-colors hover:bg-muted/60 break-words text-wrap"
         onClick={() => { setLocal(value); setEditing(true); }}
         data-gridrow={gridRow}
         data-gridcol={gridCol}
@@ -996,7 +996,7 @@ function InlineEditCell({
 
   return (
     <input
-      className="w-full h-7 bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1 font-sans text-sm"
+      className="w-full h-7 bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1"
       type="text"
       value={local}
       data-gridrow={gridRow}
@@ -1039,7 +1039,7 @@ function OutstandingColumnFilterPopover({
         </div>
         <div className="max-h-48 space-y-1 overflow-auto">
           {values.map((v) => (
-            <label key={v} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted">
+            <label key={v} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-muted">
               <Checkbox
                 checked={selected?.has(v) ?? false}
                 onCheckedChange={() => onToggle(colKey, v)}
