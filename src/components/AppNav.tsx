@@ -19,7 +19,7 @@ export function AppNav() {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)' }}>
             <Send className="h-4 w-4 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight" className="text-primary">
+          <span className="text-xl font-bold tracking-tight text-primary">
             eXp WireFlow
           </span>
         </div>
