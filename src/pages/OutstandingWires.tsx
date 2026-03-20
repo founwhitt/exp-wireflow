@@ -761,15 +761,20 @@ function LiveGrid({
           const editable = canEditCol(col.key);
           const value = (row as any)[col.key] ?? "";
 
+          const cellClip = wrapText ? "break-words" : "truncate";
+          const cellStyle = wrapText
+            ? { overflowWrap: "break-word" as const, width: colWidths[col.key] ?? col.width }
+            : { width: colWidths[col.key] ?? col.width, overflow: "hidden" as const, textOverflow: "ellipsis" as const, whiteSpace: "nowrap" as const };
+
           if (!editable) {
             return (
-              <td key={col.key} className="px-1.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
+              <td key={col.key} className={`px-1.5 py-0.5 ${cellClip}`} style={cellStyle}>
                 {col.key === "status" ? (
                   empty || !value ? <span className="text-muted-foreground/40">—</span> : <StatusBadge status={value} />
                 ) : col.key === "amount" && value ? (
                   <span className="font-sans tabular-nums">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 ) : (
-                  <span className="text-muted-foreground break-words">{value || "—"}</span>
+                  <span className={`text-muted-foreground ${cellClip}`}>{value || "—"}</span>
                 )}
               </td>
             );
