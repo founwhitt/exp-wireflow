@@ -358,7 +358,6 @@ function CollapsibleAccountSection({
         onSaved={onSaved}
         pushUndo={pushUndo}
         maxRows={maxRows}
-        wrapText={wrapText}
       />
       {!expanded && (
         <Button
