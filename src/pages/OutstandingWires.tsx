@@ -150,6 +150,9 @@ export default function OutstandingWires() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [wrapText, setWrapText] = useState<boolean>(() => {
+    try { return localStorage.getItem("ow_wrapText") !== "false"; } catch { return true; }
+  });
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const undoStackRef = useRef<UndoEntry[]>([]);
   const update = useUpdateOutstandingWire();
