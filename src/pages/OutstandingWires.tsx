@@ -233,6 +233,8 @@ export default function OutstandingWires() {
 
   const [manageOptionsOpen, setManageOptionsOpen] = useState(false);
 
+  const activeCols = tab === "payload" ? PAYLOAD_COLS : DEFAULT_COLS;
+
   return (
     <div className="flex h-full w-full flex-col gap-4 p-3 sm:p-4">
       {/* Header */}
