@@ -574,7 +574,7 @@ function LiveGrid({
                         return (
                           <td key={col.key} className="px-0.5 py-0.5">
                             <select
-                              className="w-full h-7 text-[13px] font-mono bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
+                              className="w-full h-7 text-[14px] font-mono bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
                               value={value || defaultAccount}
                               data-gridrow={ri}
                               data-gridcol={ci}
