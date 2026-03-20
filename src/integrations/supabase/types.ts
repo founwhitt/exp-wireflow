@@ -100,6 +100,57 @@ export type Database = {
           },
         ]
       }
+      outstanding_wires: {
+        Row: {
+          accounting_notes: string | null
+          amount: number | null
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          invoice_number: string | null
+          receipt_number: string | null
+          status: string
+          trx_notes: string | null
+          updated_at: string
+          wf_account: string
+          wiring_date: string | null
+        }
+        Insert: {
+          accounting_notes?: string | null
+          amount?: number | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          invoice_number?: string | null
+          receipt_number?: string | null
+          status?: string
+          trx_notes?: string | null
+          updated_at?: string
+          wf_account?: string
+          wiring_date?: string | null
+        }
+        Update: {
+          accounting_notes?: string | null
+          amount?: number | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          invoice_number?: string | null
+          receipt_number?: string | null
+          status?: string
+          trx_notes?: string | null
+          updated_at?: string
+          wf_account?: string
+          wiring_date?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
