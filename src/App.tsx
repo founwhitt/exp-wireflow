@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppNav } from "@/components/AppNav";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/hooks/useTheme";
 import NewWire from "./pages/NewWire";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
