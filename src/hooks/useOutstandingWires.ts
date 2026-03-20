@@ -12,6 +12,9 @@ export interface OutstandingWire {
   description: string | null;
   accounting_notes: string | null;
   trx_notes: string | null;
+  agent_name: string | null;
+  property_address: string | null;
+  office_location: string | null;
   category: string;
   created_by: string | null;
   created_at: string;

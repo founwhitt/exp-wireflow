@@ -67,12 +67,15 @@ const DEFAULT_COLS: ColDef[] = [
 
 const PAYLOAD_COLS: ColDef[] = [
   { key: "status", label: "Status", width: 140, minWidth: 80, type: "status" },
-  { key: "wiring_date", label: "Date", width: 130, minWidth: 80, type: "text" },
+  { key: "wiring_date", label: "Date Rec", width: 130, minWidth: 80, type: "text" },
   { key: "amount", label: "Amount", width: 120, minWidth: 80, type: "text" },
-  { key: "receipt_number", label: "Receipt #", width: 120, minWidth: 80, type: "text" },
-  { key: "invoice_number", label: "TID/Invoice", width: 140, minWidth: 80, type: "text" },
-  { key: "description", label: "Customer", width: 160, minWidth: 100, type: "text" },
-  { key: "accounting_notes", label: "Agent", width: 140, minWidth: 100, type: "text" },
+  { key: "receipt_number", label: "Receipt Number", width: 130, minWidth: 80, type: "text" },
+  { key: "invoice_number", label: "TID/ Invoice", width: 140, minWidth: 80, type: "text" },
+  { key: "description", label: "Customer Name", width: 160, minWidth: 100, type: "text" },
+  { key: "agent_name", label: "Agent Name", width: 140, minWidth: 100, type: "text" },
+  { key: "property_address", label: "Property Address", width: 180, minWidth: 100, type: "text" },
+  { key: "office_location", label: "Office Location", width: 150, minWidth: 100, type: "text" },
+  { key: "accounting_notes", label: "Accounting Notes", width: 180, minWidth: 100, type: "text" },
   { key: "trx_notes", label: "Please add TID Here If known", width: 220, minWidth: 100, type: "text" },
 ];
 
