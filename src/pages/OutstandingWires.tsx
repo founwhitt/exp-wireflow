@@ -428,7 +428,7 @@ function LiveGrid({
   const update = useUpdateOutstandingWire();
   const remove = useDeleteOutstandingWire();
 
-  const [emptyRows, setEmptyRows] = useState<EmptyRow[]>(() => makeEmptyRows(EMPTY_ROWS_COUNT, defaultAccount));
+  const [emptyRows, setEmptyRows] = useState<EmptyRow[]>(() => makeEmptyRows(DEFAULT_EMPTY_ROWS, defaultAccount));
   const [colWidths, setColWidths] = useState<Record<string, number>>(() =>
     Object.fromEntries(cols.map((c) => [c.key, c.width]))
   );
