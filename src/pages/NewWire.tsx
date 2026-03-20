@@ -260,7 +260,7 @@ export default function NewWire() {
         </div>
 
         {/* Step 1: Department + Entry Mode + TID */}
-        <Card className={`w-full border-0 bg-white rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
+        <Card className={`w-full border-0 bg-card rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
           <CardHeader className="pb-4 px-6 pt-6">
             <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
               <Building2 className="h-5 w-5" style={{ color: '#0056D2' }} />
