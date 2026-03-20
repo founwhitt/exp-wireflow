@@ -150,4 +150,12 @@
   code, pre, .font-mono {
     font-family: 'JetBrains Mono', monospace;
   }
+
+  ::placeholder {
+    @apply text-muted-foreground/70;
+  }
+
+  .dark ::placeholder {
+    color: hsl(215 15% 55%);
+  }
 }

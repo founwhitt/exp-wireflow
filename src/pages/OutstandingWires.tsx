@@ -217,7 +217,7 @@ export default function OutstandingWires() {
   const activeCols = tab === "payload" ? PAYLOAD_COLS : DEFAULT_COLS;
 
   return (
-    <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
+    <div className="flex h-full w-full flex-col gap-4 p-3 sm:p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

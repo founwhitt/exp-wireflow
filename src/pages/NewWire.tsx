@@ -690,7 +690,7 @@ function Field({ label, value, highlight, icon }: { label: string; value: string
         {icon}
         {label}
       </Label>
-      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-accent-foreground font-bold" : "text-foreground"}`}>
+      <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-primary font-bold" : "text-foreground"}`}>
         {value}
       </p>
     </div>
