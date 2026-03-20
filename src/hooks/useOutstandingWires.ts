@@ -19,7 +19,7 @@ export interface OutstandingWire {
   highlight_color: string | null;
 }
 
-export type OutstandingWireInsert = Omit<OutstandingWire, "id" | "created_at" | "updated_at">;
+export type OutstandingWireInsert = Omit<OutstandingWire, "id" | "created_at" | "updated_at" | "highlight_color">;
 
 export function useOutstandingWires() {
   return useQuery({
