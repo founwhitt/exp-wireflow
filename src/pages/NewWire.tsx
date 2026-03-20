@@ -658,7 +658,7 @@ export default function NewWire() {
             </DialogHeader>
             {lastSentData && (
               <div className="space-y-3 mt-2">
-                <div className="rounded-lg border bg-[#F1F5F9] p-4 space-y-2 text-sm">
+                <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Recipient</span>
                     <span className="font-medium">{lastSentData.email}</span>
