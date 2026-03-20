@@ -159,7 +159,7 @@ export default function OutstandingWires() {
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" size="sm" className="h-9 text-[13px]" onClick={() => exportCSV(filtered, tab)} disabled={filtered.length === 0}>
+        <Button variant="outline" size="sm" className="h-9 text-[14px]" onClick={() => exportCSV(filtered, tab)} disabled={filtered.length === 0}>
           <Download className="h-4 w-4 mr-1" />Export
         </Button>
       </div>
