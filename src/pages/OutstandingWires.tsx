@@ -503,7 +503,7 @@ function LiveGrid({
       <CardContent className="p-0">
 
         <div ref={gridRef} className="overflow-auto max-h-[70vh]" onPaste={handlePaste}>
-          <table className="w-full text-[13px] border-collapse">
+          <table className="w-full text-[14px] border-collapse">
             <thead className="sticky top-0 z-10">
               <tr className="bg-muted/60 border-b">
                 <th className="px-1 py-2 text-center text-[11px] font-medium text-muted-foreground w-8">#</th>
