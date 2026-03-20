@@ -9,6 +9,9 @@ import { Search, Filter, Download, Trash2, Check, Loader2, ChevronDown, ChevronU
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
+  ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator, ContextMenuLabel,
+} from "@/components/ui/context-menu";
+import {
   useOutstandingWires,
   useCreateOutstandingWires,
   useUpdateOutstandingWire,
@@ -29,11 +32,23 @@ import { toast } from "sonner";
 
 const STATUS_OPTIONS = ["All", "Needs TRX ID", "Waiting on Settlement"];
 
+const HIGHLIGHT_COLORS: { label: string; value: string; bg: string; darkBg: string }[] = [
+  { label: "Yellow", value: "yellow", bg: "bg-yellow-100", darkBg: "dark:bg-yellow-900/30" },
+  { label: "Light Red", value: "red", bg: "bg-red-100", darkBg: "dark:bg-red-900/30" },
+  { label: "Light Green", value: "green", bg: "bg-emerald-100", darkBg: "dark:bg-emerald-900/30" },
+];
+
+function getHighlightClass(color: string | null | undefined): string {
+  if (!color) return "";
+  const found = HIGHLIGHT_COLORS.find((c) => c.value === color);
+  return found ? `${found.bg} ${found.darkBg}` : "";
+}
+
 // Column definitions
 interface ColDef {
   key: string;
   label: string;
-  width: number; // default px width
+  width: number;
   minWidth: number;
   type: "status" | "account" | "text";
 }
@@ -71,8 +86,10 @@ function normalizeAccount(raw: string): string {
 }
 
 function normalizeStatus(raw: string): string {
-  if (raw.trim().toLowerCase().includes("settlement")) return "Waiting on Settlement";
-  return "Needs TRX ID";
+  const t = raw.trim().toLowerCase();
+  if (t.includes("settlement")) return "Waiting on Settlement";
+  if (t.includes("trx") || t.includes("tid")) return "Needs TRX ID";
+  return raw.trim();
 }
 
 function exportCSV(rows: OutstandingWire[], cols: ColDef[], tab: string) {
@@ -101,12 +118,12 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
       {status === "saving" ? (
         <>
           <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
-          <span className="text-muted-foreground">Saving…</span>
+          <span className="text-muted-foreground text-sm font-sans">Saving…</span>
         </>
       ) : (
         <>
           <Check className="h-3.5 w-3.5 text-emerald-500" />
-          <span className="text-emerald-600 dark:text-emerald-400">All changes saved</span>
+          <span className="text-emerald-600 dark:text-emerald-400 text-sm font-sans">All changes saved</span>
         </>
       )}
     </div>
@@ -168,7 +185,7 @@ export default function OutstandingWires() {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
         const tag = (e.target as HTMLElement)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA") return; // let native undo work in inputs
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
         e.preventDefault();
         handleUndo();
       }
@@ -200,12 +217,12 @@ export default function OutstandingWires() {
   const activeCols = tab === "payload" ? PAYLOAD_COLS : DEFAULT_COLS;
 
   return (
-    <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
+    <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4 font-sans">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[1.75rem] font-bold tracking-tight text-foreground">Outstanding Wires</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground font-sans">Outstanding Wires</h1>
+          <p className="text-sm text-muted-foreground font-sans">
             Live editable grid — paste from Excel or edit inline. Ctrl+Z to undo.
           </p>
         </div>
@@ -216,18 +233,18 @@ export default function OutstandingWires() {
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search description, invoice, receipt..." className="h-9 pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Search description, invoice, receipt..." className="h-8 pl-9 text-sm font-sans" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex items-center gap-1">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[180px] text-sm font-sans"><SelectValue /></SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" size="sm" className="h-9" onClick={() => exportCSV(filtered, activeCols, tab)} disabled={filtered.length === 0}>
+        <Button variant="outline" size="sm" className="h-8 font-sans" onClick={() => exportCSV(filtered, activeCols, tab)} disabled={filtered.length === 0}>
           <Download className="h-4 w-4 mr-1" />Export
         </Button>
       </div>
@@ -304,7 +321,7 @@ export default function OutstandingWires() {
   );
 }
 
-// ---- Collapsible Account Section for Realty ----
+// ---- Collapsible Account Section ----
 
 function CollapsibleAccountSection({
   title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit,
@@ -322,8 +339,8 @@ function CollapsibleAccountSection({
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
         <div className={`h-3 w-3 rounded-full ${dotColor}`} />
-        <h2 className="text-base font-semibold text-foreground">{title}</h2>
-        <span className="text-sm text-muted-foreground ml-1 tabular-nums">({records.length} records)</span>
+        <h2 className="text-base font-semibold text-foreground font-sans">{title}</h2>
+        <span className="text-sm text-muted-foreground ml-1 tabular-nums font-sans">({records.length} records)</span>
       </div>
       <LiveGrid
         records={visibleRecords}
@@ -341,7 +358,7 @@ function CollapsibleAccountSection({
         <Button
           variant="ghost"
           size="sm"
-          className="mt-1 w-full text-muted-foreground hover:text-foreground"
+          className="mt-1 w-full text-muted-foreground hover:text-foreground font-sans"
           onClick={() => setExpanded(!expanded)}
         >
           {expanded ? (
@@ -370,7 +387,7 @@ function makeEmptyRow(defaultAccount: string): EmptyRow {
   return {
     _empty: true,
     _key: `empty-${++emptyKeyCounter}`,
-    status: "Needs TRX ID",
+    status: "",
     wf_account: defaultAccount,
     wiring_date: "",
     amount: "",
@@ -468,11 +485,9 @@ function LiveGrid({
 
   const filteredRecords = useMemo(() => {
     let result = [...records];
-    // Apply column value filters
     for (const [colKey, values] of Object.entries(columnFilters)) {
       result = result.filter(r => values.has(String((r as any)[colKey] ?? "")));
     }
-    // Apply sort
     if (sortCol && sortDir) {
       result.sort((a, b) => {
         const av = String((a as any)[sortCol] ?? "").toLowerCase();
@@ -509,11 +524,22 @@ function LiveGrid({
     );
   }, [update, onSaving, onSaved, pushUndo]);
 
+  const setHighlightColor = useCallback((id: string, color: string | null) => {
+    onSaving();
+    update.mutate(
+      { id, highlight_color: color },
+      {
+        onSuccess: () => { onSaved(); toast.success(color ? "Highlight applied" : "Highlight removed"); },
+        onError: (err: any) => { onSaved(); toast.error("Failed", { description: err.message }); },
+      }
+    );
+  }, [update, onSaving, onSaved]);
+
   const commitEmptyRow = useCallback((row: EmptyRow) => {
     if (!rowHasData(row)) return;
     onSaving();
     const insert: OutstandingWireInsert = {
-      status: row.status,
+      status: row.status || "",
       wf_account: row.wf_account,
       wiring_date: row.wiring_date || null,
       amount: row.amount ? parseFloat(row.amount.replace(/[^0-9.\-]/g, "")) : null,
@@ -607,7 +633,7 @@ function LiveGrid({
     if (filledFromPaste.length > 0) {
       onSaving();
       const inserts: OutstandingWireInsert[] = filledFromPaste.map((r) => ({
-        status: r.status,
+        status: r.status || "",
         wf_account: r.wf_account,
         wiring_date: r.wiring_date || null,
         amount: r.amount ? parseFloat(r.amount.replace(/[^0-9.\-]/g, "")) : null,
@@ -659,15 +685,189 @@ function LiveGrid({
     document.addEventListener("mouseup", onUp);
   }, [colWidths, cols]);
 
+  const renderRow = (row: DisplayRow, ri: number) => {
+    const empty = isEmptyRow(row);
+    const rowKey = empty ? row._key : row.id;
+    const highlightColor = empty ? null : (row as OutstandingWire).highlight_color;
+    const highlightClass = getHighlightClass(highlightColor);
+
+    const rowContent = (
+      <tr
+        key={rowKey}
+        className={`border-b border-border/40 group transition-colors font-sans ${highlightClass} ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
+      >
+        <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none font-sans text-sm">
+          {ri + 1}
+        </td>
+
+        {visibleCols.map((col, ci) => {
+          const editable = canEditCol(col.key);
+          const value = (row as any)[col.key] ?? "";
+
+          if (!editable) {
+            return (
+              <td key={col.key} className="px-1.5 py-0.5 break-words font-sans text-sm" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
+                {col.key === "status" ? (
+                  empty || !value ? <span className="text-muted-foreground/40">—</span> : <StatusBadge status={value} />
+                ) : col.key === "amount" && value ? (
+                  <span className="font-sans tabular-nums">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                ) : (
+                  <span className="text-muted-foreground break-words font-sans">{value || "—"}</span>
+                )}
+              </td>
+            );
+          }
+
+          if (col.type === "status") {
+            return (
+              <td key={col.key} className="px-0.5 py-0.5 font-sans" style={{ width: colWidths[col.key] ?? col.width }}>
+                <select
+                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer font-sans text-sm"
+                  value={value}
+                  data-gridrow={ri}
+                  data-gridcol={ci}
+                  onChange={(e) => {
+                    if (empty) updateEmptyCell(row._key, col.key, e.target.value);
+                    else saveField(row.id, col.key, e.target.value, value);
+                  }}
+                >
+                  <option value="">— Select —</option>
+                  <option value="Needs TRX ID">Needs TRX ID</option>
+                  <option value="Waiting on Settlement">Waiting on Settlement</option>
+                </select>
+              </td>
+            );
+          }
+
+          if (col.type === "account") {
+            return (
+              <td key={col.key} className="px-0.5 py-0.5 font-sans" style={{ width: colWidths[col.key] ?? col.width }}>
+                <select
+                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer font-sans text-sm"
+                  value={value || defaultAccount}
+                  data-gridrow={ri}
+                  data-gridcol={ci}
+                  onChange={(e) => {
+                    if (empty) updateEmptyCell(row._key, col.key, e.target.value);
+                    else saveField(row.id, col.key, e.target.value, value);
+                  }}
+                >
+                  <option value="WF-8022">XXXX-8022</option>
+                  <option value="WF-3694">XXXX-3694</option>
+                </select>
+              </td>
+            );
+          }
+
+          return (
+            <td key={col.key} className="px-0.5 py-0.5 break-words font-sans" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
+              {empty ? (
+                <input
+                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30 font-sans text-sm"
+                  type="text"
+                  value={value}
+                  data-gridrow={ri}
+                  data-gridcol={ci}
+                  placeholder={col.key === "amount" ? "0.00" : col.key === "wiring_date" ? "MM/DD/YYYY" : ""}
+                  onChange={(e) => updateEmptyCell(row._key, col.key, e.target.value)}
+                  onBlur={() => commitEmptyRow(row)}
+                />
+              ) : (
+                <InlineEditCell
+                  value={String(value ?? "")}
+                  isAmount={col.key === "amount"}
+                  gridRow={ri}
+                  gridCol={ci}
+                  onSave={(v) => {
+                    let parsed: any = v || null;
+                    if (col.key === "amount") parsed = parseFloat((v || "").replace(/[^0-9.\-]/g, "")) || null;
+                    saveField(row.id, col.key, parsed, value);
+                  }}
+                />
+              )}
+            </td>
+          );
+        })}
+
+        {isAccounting && (
+          <td className="px-0.5 py-0.5 w-8">
+            {!empty && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center text-destructive/50 hover:text-destructive rounded transition-opacity">
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete this wire?</AlertDialogTitle>
+                    <AlertDialogDescription>This will permanently remove this entry.</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => remove.mutate(row.id, {
+                        onSuccess: () => toast.success("Deleted"),
+                        onError: (err: any) => toast.error("Failed", { description: err.message }),
+                      })}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </td>
+        )}
+      </tr>
+    );
+
+    // Wrap non-empty rows with context menu for accounting highlight
+    if (!empty && isAccounting) {
+      return (
+        <ContextMenu key={rowKey}>
+          <ContextMenuTrigger asChild>
+            {rowContent}
+          </ContextMenuTrigger>
+          <ContextMenuContent className="w-48">
+            <ContextMenuLabel>Highlight Row</ContextMenuLabel>
+            <ContextMenuSeparator />
+            {HIGHLIGHT_COLORS.map((c) => (
+              <ContextMenuItem
+                key={c.value}
+                onClick={() => setHighlightColor(row.id, c.value)}
+                className="flex items-center gap-2"
+              >
+                <div className={`h-3 w-3 rounded-sm border border-border ${c.bg}`} />
+                <span>{c.label}</span>
+                {highlightColor === c.value && <Check className="h-3 w-3 ml-auto text-primary" />}
+              </ContextMenuItem>
+            ))}
+            <ContextMenuSeparator />
+            <ContextMenuItem
+              onClick={() => setHighlightColor(row.id, null)}
+              disabled={!highlightColor}
+            >
+              Remove Highlight
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+      );
+    }
+
+    return rowContent;
+  };
+
   return (
-    <Card className="bg-card shadow-sm overflow-hidden">
+    <Card className="bg-card shadow-sm overflow-hidden font-sans">
       <CardContent className="p-0">
-        {/* Toolbar: column visibility + active filter clear */}
+        {/* Toolbar */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/20">
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 text-xs">
+                <Button variant="ghost" size="sm" className="h-7 text-xs font-sans">
                   <Eye className="h-3.5 w-3.5 mr-1" />Columns
                 </Button>
               </DropdownMenuTrigger>
@@ -691,7 +891,7 @@ function LiveGrid({
               </DropdownMenuContent>
             </DropdownMenu>
             {activeFilterCount > 0 && (
-              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setColumnFilters({})}>
+              <Button variant="ghost" size="sm" className="h-7 text-xs font-sans" onClick={() => setColumnFilters({})}>
                 <X className="mr-1 h-3 w-3" />
                 Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
               </Button>
@@ -700,11 +900,10 @@ function LiveGrid({
         </div>
 
         <div ref={gridRef} className="overflow-auto max-h-[70vh]" onPaste={handlePaste}>
-          <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
+          <table className="w-full border-collapse font-sans" style={{ tableLayout: "fixed" }}>
             <thead className="sticky top-0 z-10">
-              {/* Single header row with sort + filter */}
               <tr className="bg-muted/60 border-b">
-                <th className="px-1 py-2 text-center font-medium text-muted-foreground w-8">#</th>
+                <th className="px-1 py-2 text-center font-medium text-muted-foreground w-8 font-sans text-sm">#</th>
                 {visibleCols.map((col) => {
                   const locked = ACCOUNTING_COLS.includes(col.key) && !isAccounting;
                   const isActive = sortCol === col.key;
@@ -712,7 +911,7 @@ function LiveGrid({
                   return (
                     <th
                       key={col.key}
-                      className="group/head px-1.5 py-2 text-left font-semibold text-muted-foreground uppercase tracking-wider relative select-none"
+                      className="group/head px-1.5 py-2 text-left font-medium text-muted-foreground uppercase tracking-wider relative select-none font-sans text-xs"
                       style={{ width: colWidths[col.key] ?? col.width }}
                     >
                       <div className="flex items-center gap-1">
@@ -720,7 +919,7 @@ function LiveGrid({
                           className="flex items-center gap-1 hover:text-foreground transition-colors"
                           onClick={() => handleSort(col.key)}
                         >
-                          <span className="truncate">{col.label}{locked ? " 🔒" : ""}</span>
+                          <span className="truncate font-sans">{col.label}{locked ? " 🔒" : ""}</span>
                           {isActive && sortDir === "asc" && <ArrowUp className="h-3 w-3 text-primary shrink-0" />}
                           {isActive && sortDir === "desc" && <ArrowDown className="h-3 w-3 text-primary shrink-0" />}
                           {!isActive && <ArrowUpDown className="h-3 w-3 opacity-0 group-hover/head:opacity-40 shrink-0" />}
@@ -734,7 +933,6 @@ function LiveGrid({
                           hasFilter={hasFilter}
                         />
                       </div>
-                      {/* Resize handle */}
                       <div
                         className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-accent/40 transition-colors"
                         onMouseDown={(e) => onResizeStart(col.key, e)}
@@ -746,149 +944,16 @@ function LiveGrid({
               </tr>
             </thead>
             <tbody>
-              {displayRows.map((row, ri) => {
-                const empty = isEmptyRow(row);
-                const rowKey = empty ? row._key : row.id;
-
-                return (
-                  <tr
-                    key={rowKey}
-                    className={`border-b border-border/40 group transition-colors ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
-                  >
-                    <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none">
-                      {ri + 1}
-                    </td>
-
-                    {visibleCols.map((col, ci) => {
-                      const editable = canEditCol(col.key);
-                      const value = (row as any)[col.key] ?? "";
-
-                      if (!editable) {
-                        return (
-                          <td key={col.key} className="px-1.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
-                            {col.key === "status" ? (
-                              empty ? <span className="text-muted-foreground/40">—</span> : <StatusBadge status={value} />
-                            ) : col.key === "amount" && value ? (
-                              <span className="font-mono">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                            ) : (
-                              <span className="text-muted-foreground break-words">{value || "—"}</span>
-                            )}
-                          </td>
-                        );
-                      }
-
-                      if (col.type === "status") {
-                        return (
-                          <td key={col.key} className="px-0.5 py-0.5" style={{ width: colWidths[col.key] ?? col.width }}>
-                            <select
-                              className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
-                              value={value || "Needs TRX ID"}
-                              data-gridrow={ri}
-                              data-gridcol={ci}
-                              onChange={(e) => {
-                                if (empty) updateEmptyCell(row._key, col.key, e.target.value);
-                                else saveField(row.id, col.key, e.target.value, value);
-                              }}
-                            >
-                              <option value="Needs TRX ID">Needs TRX ID</option>
-                              <option value="Waiting on Settlement">Waiting on Settlement</option>
-                            </select>
-                          </td>
-                        );
-                      }
-
-                      if (col.type === "account") {
-                        return (
-                          <td key={col.key} className="px-0.5 py-0.5" style={{ width: colWidths[col.key] ?? col.width }}>
-                            <select
-                              className="w-full h-7 font-mono bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
-                              value={value || defaultAccount}
-                              data-gridrow={ri}
-                              data-gridcol={ci}
-                              onChange={(e) => {
-                                if (empty) updateEmptyCell(row._key, col.key, e.target.value);
-                                else saveField(row.id, col.key, e.target.value, value);
-                              }}
-                            >
-                              <option value="WF-8022">XXXX-8022</option>
-                              <option value="WF-3694">XXXX-3694</option>
-                            </select>
-                          </td>
-                        );
-                      }
-
-                      return (
-                        <td key={col.key} className="px-0.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
-                          {empty ? (
-                            <input
-                              className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
-                              type="text"
-                              value={value}
-                              data-gridrow={ri}
-                              data-gridcol={ci}
-                              placeholder={col.key === "amount" ? "0.00" : col.key === "wiring_date" ? "MM/DD/YYYY" : ""}
-                              onChange={(e) => updateEmptyCell(row._key, col.key, e.target.value)}
-                            />
-                          ) : (
-                            <InlineEditCell
-                              value={String(value ?? "")}
-                              isAmount={col.key === "amount"}
-                              gridRow={ri}
-                              gridCol={ci}
-                              onSave={(v) => {
-                                let parsed: any = v || null;
-                                if (col.key === "amount") parsed = parseFloat((v || "").replace(/[^0-9.\-]/g, "")) || null;
-                                saveField(row.id, col.key, parsed, value);
-                              }}
-                            />
-                          )}
-                        </td>
-                      );
-                    })}
-
-                    {isAccounting && (
-                      <td className="px-0.5 py-0.5 w-8">
-                        {!empty && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center text-destructive/50 hover:text-destructive rounded transition-opacity">
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete this wire?</AlertDialogTitle>
-                                <AlertDialogDescription>This will permanently remove this entry.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  onClick={() => remove.mutate(row.id, {
-                                    onSuccess: () => toast.success("Deleted"),
-                                    onError: (err: any) => toast.error("Failed", { description: err.message }),
-                                  })}
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
+              {displayRows.map((row, ri) => renderRow(row, ri))}
             </tbody>
           </table>
         </div>
 
         <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-1.5">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground font-sans">
             Tip: Select a cell and paste from Excel — auto-saves immediately. Ctrl+Z to undo.
           </span>
-          <span className="text-sm text-muted-foreground tabular-nums">
+          <span className="text-sm text-muted-foreground tabular-nums font-sans">
             {records.length} saved · {emptyRows.length} blank rows
           </span>
         </div>
@@ -916,7 +981,7 @@ function InlineEditCell({
       : value || "—";
     return (
       <button
-        className="w-full min-w-[40px] h-7 rounded px-1 text-left transition-colors hover:bg-muted/60 break-words text-wrap"
+        className="w-full min-w-[40px] h-7 rounded px-1 text-left transition-colors hover:bg-muted/60 break-words text-wrap font-sans text-sm"
         onClick={() => { setLocal(value); setEditing(true); }}
         data-gridrow={gridRow}
         data-gridcol={gridCol}
@@ -928,7 +993,7 @@ function InlineEditCell({
 
   return (
     <input
-      className="w-full h-7 bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1"
+      className="w-full h-7 bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1 font-sans text-sm"
       type="text"
       value={local}
       data-gridrow={gridRow}
@@ -944,7 +1009,7 @@ function InlineEditCell({
   );
 }
 
-// ---- Column Filter Popover (matches Expected Wires style) ----
+// ---- Column Filter Popover ----
 
 function OutstandingColumnFilterPopover({
   colKey, values, selected, onToggle, onClear, hasFilter,

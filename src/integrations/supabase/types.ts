@@ -108,6 +108,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          highlight_color: string | null
           id: string
           invoice_number: string | null
           receipt_number: string | null
@@ -124,6 +125,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          highlight_color?: string | null
           id?: string
           invoice_number?: string | null
           receipt_number?: string | null
@@ -140,6 +142,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          highlight_color?: string | null
           id?: string
           invoice_number?: string | null
           receipt_number?: string | null
