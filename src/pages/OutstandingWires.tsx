@@ -941,6 +941,47 @@ function InlineEditCell({
   );
 }
 
+// ---- Column Filter Popover (matches Expected Wires style) ----
+
+function OutstandingColumnFilterPopover({
+  colKey, values, selected, onToggle, onClear, hasFilter,
+}: {
+  colKey: string; values: string[]; selected?: Set<string>;
+  onToggle: (colKey: string, value: string) => void;
+  onClear: (colKey: string) => void; hasFilter: boolean;
+}) {
+  if (values.length === 0 || values.length > 50) return null;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className={`shrink-0 rounded p-0.5 transition-colors hover:bg-muted ${hasFilter ? "text-primary" : "opacity-0 group-hover/head:opacity-40"}`}>
+          <Filter className="h-3 w-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-2" align="start">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-xs font-medium text-muted-foreground">Filter values</span>
+          {hasFilter && (
+            <button className="text-xs text-primary hover:underline" onClick={() => onClear(colKey)}>Clear</button>
+          )}
+        </div>
+        <div className="max-h-48 space-y-1 overflow-auto">
+          {values.map((v) => (
+            <label key={v} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted">
+              <Checkbox
+                checked={selected?.has(v) ?? false}
+                onCheckedChange={() => onToggle(colKey, v)}
+              />
+              <span className="truncate">{v}</span>
+            </label>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ---- Utility Components ----
 
 function LoadingSkeleton() {
