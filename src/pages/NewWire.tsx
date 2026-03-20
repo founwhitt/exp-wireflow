@@ -525,20 +525,20 @@ export default function NewWire() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 px-6 pb-6">
-                {/* Skip Email Checkbox */}
+                {/* Skip Email Toggle */}
                 <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3">
-                  <Checkbox
+                  <Switch
                     id="skip-email"
                     checked={skipEmail}
-                    onCheckedChange={(v) => setSkipEmail(v === true)}
+                    onCheckedChange={setSkipEmail}
                   />
                   <div className="flex items-center gap-2">
                     <MailX className="h-4 w-4 text-muted-foreground" />
                     <Label htmlFor="skip-email" className="text-sm font-medium cursor-pointer">
-                      Skip Email Dispatch
+                      Save to Dashboard Only
                     </Label>
                   </div>
-                  <span className="ml-auto text-xs text-muted-foreground">Save record only, no email sent</span>
+                  <span className="ml-auto text-xs text-muted-foreground">Log record without sending email</span>
                 </div>
 
                 {!skipEmail && (
