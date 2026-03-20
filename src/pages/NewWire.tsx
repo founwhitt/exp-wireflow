@@ -33,6 +33,7 @@ export default function NewWire() {
   const [showPreview, setShowPreview] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isPayload, setIsPayload] = useState(false);
   const [lastSentData, setLastSentData] = useState<{ email: string; pdf: string; tid: string; address: string; agent: string; wireId: string } | null>(null);
 
   const handleLookup = () => {
