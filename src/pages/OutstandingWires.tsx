@@ -659,10 +659,10 @@ function LiveGrid({
         </div>
 
         <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-1.5">
-          <span className="text-[12px] text-muted-foreground">
-            Tip: Select a cell and paste from Excel — rows & columns auto-map
+          <span className="text-[13px] text-muted-foreground">
+            Tip: Select a cell and paste from Excel — auto-saves immediately
           </span>
-          <span className="text-[12px] text-muted-foreground tabular-nums">
+          <span className="text-[13px] text-muted-foreground tabular-nums">
             {records.length} saved · {emptyRows.length} blank rows
           </span>
         </div>
