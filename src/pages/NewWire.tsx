@@ -370,8 +370,54 @@ export default function NewWire() {
           )}
         </div>
 
-        {/* Step 3: Dispatch */}
-        <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${canDispatch ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+        {/* Payload Toggle */}
+        <div className={`transition-all duration-500 ease-out mt-8 ${tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+          {tidData && (
+            <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
+              <CardContent className="flex items-center justify-between px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="payload-toggle"
+                    checked={isPayload}
+                    onCheckedChange={(v) => setIsPayload(!!v)}
+                  />
+                  <Label htmlFor="payload-toggle" className="cursor-pointer text-sm font-medium">
+                    This is a Payload payment
+                  </Label>
+                </div>
+                {isPayload && (
+                  <Badge variant="secondary" className="bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200">
+                    Payload — No wire instructions needed
+                  </Badge>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Save to Expected Wires (Payload only) */}
+        <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${tidData && isPayload ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+          {tidData && isPayload && (
+            <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
+              <CardContent className="space-y-4 px-6 py-6">
+                <div className="rounded-xl border border-violet-200 bg-violet-50 dark:bg-violet-950/30 dark:border-violet-800 p-3 text-sm text-violet-800 dark:text-violet-200">
+                  This record will be saved to the <strong>Payload</strong> section on the Expected Wires dashboard with status <strong>Pending</strong>. No email or wire instructions will be sent.
+                </div>
+                <Button
+                  onClick={handleSavePayload}
+                  disabled={createRecord.isPending}
+                  className="w-full h-12 rounded-[10px] bg-violet-600 hover:bg-violet-700 text-white"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {createRecord.isPending ? "Saving..." : "Save to Expected Wires"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Step 3: Dispatch (hidden when Payload) */}
+        <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${canDispatch && !isPayload ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
           {canDispatch && (
             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
