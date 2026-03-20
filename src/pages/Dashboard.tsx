@@ -217,9 +217,42 @@ export default function Dashboard() {
     return [arr[idx], ...arr.slice(0, idx), ...arr.slice(idx + 1)];
   };
 
-  const filtered3694 = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.wf_account === "3694"));
-  const filtered8022 = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.wf_account === "8022"));
-  const filteredOther = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.wf_account !== "3694" && r.wf_account !== "8022"));
+  const filteredNonPayload = filtered.filter((r) => r.department !== "Payload");
+  const filteredPayload = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.department === "Payload"));
+  const filtered3694 = isSorted ? [] : sortWithHighlightFirst(filteredNonPayload.filter((r) => r.wf_account === "3694"));
+  const filtered8022 = isSorted ? [] : sortWithHighlightFirst(filteredNonPayload.filter((r) => r.wf_account === "8022"));
+  const filteredOther = isSorted ? [] : sortWithHighlightFirst(filteredNonPayload.filter((r) => r.wf_account !== "3694" && r.wf_account !== "8022"));
+
+  const handleAddEntry = async () => {
+    if (!addEntryData.tid.trim() || !addEntryData.department) {
+      toast.error("TID and Department are required");
+      return;
+    }
+    const dept = addEntryData.department as Department;
+    const wfAccount = DEPARTMENTS[dept].wfAccount;
+    try {
+      const result: any = await createRecord.mutateAsync({
+        tid: addEntryData.tid.toUpperCase().trim(),
+        department: dept,
+        wf_account: wfAccount ?? "N/A",
+        customer_name: addEntryData.customerName || null,
+        property_address: addEntryData.propertyAddress || null,
+        agent_name: addEntryData.agentName || null,
+        balance_due: addEntryData.balanceDue ? parseFloat(addEntryData.balanceDue) : null,
+        invoice_number: addEntryData.invoiceNumber || null,
+        deal_notes: addEntryData.dealNotes || null,
+        status: "Pending",
+        created_by: user?.id ?? null,
+      });
+      toast.success(`Record ${addEntryData.tid.toUpperCase().trim()} added`);
+      setHighlightId(result.id);
+      setTimeout(() => setHighlightId(null), 9000);
+      setShowAddEntry(false);
+      setAddEntryData({ tid: "", department: "", customerName: "", propertyAddress: "", agentName: "", balanceDue: "", invoiceNumber: "", dealNotes: "" });
+    } catch (err: any) {
+      toast.error("Failed to add record", { description: err.message });
+    }
+  };
 
   const counts = {
     total: records?.length ?? 0,
