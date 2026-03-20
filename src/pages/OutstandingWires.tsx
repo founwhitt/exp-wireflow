@@ -753,8 +753,9 @@ function LiveGrid({
           const editable = canEditCol(col.key);
           const value = (row as any)[col.key] ?? "";
 
-          const cellClip = wrapText ? "break-words" : "truncate";
-          const cellStyle = wrapText
+          const isWrapped = !!colWrapText[col.key];
+          const cellClip = isWrapped ? "break-words" : "truncate";
+          const cellStyle = isWrapped
             ? { overflowWrap: "break-word" as const, width: colWidths[col.key] ?? col.width }
             : { width: colWidths[col.key] ?? col.width, overflow: "hidden" as const, textOverflow: "ellipsis" as const, whiteSpace: "nowrap" as const };
 
