@@ -709,7 +709,7 @@ function InlineEditCell({
 
   return (
     <input
-      className="w-full h-7 text-[13px] bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1"
+      className="w-full h-7 text-[14px] bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1"
       type="text"
       value={local}
       data-gridrow={gridRow}
