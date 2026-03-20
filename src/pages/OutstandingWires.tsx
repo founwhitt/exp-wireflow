@@ -510,7 +510,7 @@ function LiveGrid({
                 {GRID_COLS.map((col) => {
                   const locked = ACCOUNTING_COLS.includes(col.key) && !isAccounting;
                   return (
-                    <th key={col.key} className={`px-1.5 py-2 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider ${col.width}`}>
+                    <th key={col.key} className={`px-1.5 py-2 text-left text-[12px] font-semibold text-muted-foreground uppercase tracking-wider ${col.width}`}>
                       {col.label}{locked ? " 🔒" : ""}
                     </th>
                   );
