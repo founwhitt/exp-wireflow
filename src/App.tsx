@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import NewWire from "./pages/NewWire";
 import Dashboard from "./pages/Dashboard";
+import OutstandingWires from "./pages/OutstandingWires";
 import Auth from "./pages/Auth";
 import AdminUsers from "./pages/AdminUsers";
 import AdminWireInstructions from "./pages/AdminWireInstructions";
@@ -36,7 +37,8 @@ function ProtectedRoutes() {
       <main className="h-[calc(100vh-3.5rem)] overflow-auto">
         <Routes>
           <Route path="/" element={<NewWire />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/expected-wires" element={<Dashboard />} />
+          <Route path="/outstanding-wires" element={<OutstandingWires />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/wire-instructions" element={<AdminWireInstructions />} />
           <Route path="*" element={<NotFound />} />

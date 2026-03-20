@@ -1,5 +1,5 @@
 import { NavLink } from "@/components/NavLink";
-import { Send, LayoutDashboard, Shield, LogOut, User, FileText, Sun, Moon } from "lucide-react";
+import { Send, LayoutDashboard, Shield, LogOut, User, FileText, Sun, Moon, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,8 @@ export function AppNav() {
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 sm:px-6">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)' }}>
-            <Send className="h-4 w-4 text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+            <Send className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="text-xl font-bold tracking-tight text-primary">
             eXp WireFlow
@@ -35,12 +35,20 @@ export function AppNav() {
             Send Wire Instructions
           </NavLink>
           <NavLink
-            to="/dashboard"
+            to="/expected-wires"
             className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             activeClassName="bg-accent/10 text-primary border-b-2 border-accent"
           >
             <LayoutDashboard className="h-4 w-4" />
-            Dashboard
+            Expected Wires
+          </NavLink>
+          <NavLink
+            to="/outstanding-wires"
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            activeClassName="bg-accent/10 text-primary border-b-2 border-accent"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            Outstanding Wires
           </NavLink>
           {isAdmin && (
             <>
