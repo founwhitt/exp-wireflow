@@ -103,6 +103,7 @@ export type Database = {
       outstanding_wires: {
         Row: {
           accounting_notes: string | null
+          agent_name: string | null
           amount: number | null
           category: string
           created_at: string
@@ -111,6 +112,8 @@ export type Database = {
           highlight_color: string | null
           id: string
           invoice_number: string | null
+          office_location: string | null
+          property_address: string | null
           receipt_number: string | null
           status: string
           trx_notes: string | null
@@ -120,6 +123,7 @@ export type Database = {
         }
         Insert: {
           accounting_notes?: string | null
+          agent_name?: string | null
           amount?: number | null
           category?: string
           created_at?: string
@@ -128,6 +132,8 @@ export type Database = {
           highlight_color?: string | null
           id?: string
           invoice_number?: string | null
+          office_location?: string | null
+          property_address?: string | null
           receipt_number?: string | null
           status?: string
           trx_notes?: string | null
@@ -137,6 +143,7 @@ export type Database = {
         }
         Update: {
           accounting_notes?: string | null
+          agent_name?: string | null
           amount?: number | null
           category?: string
           created_at?: string
@@ -145,6 +152,8 @@ export type Database = {
           highlight_color?: string | null
           id?: string
           invoice_number?: string | null
+          office_location?: string | null
+          property_address?: string | null
           receipt_number?: string | null
           status?: string
           trx_notes?: string | null

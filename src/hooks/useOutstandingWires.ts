@@ -12,6 +12,9 @@ export interface OutstandingWire {
   description: string | null;
   accounting_notes: string | null;
   trx_notes: string | null;
+  agent_name: string | null;
+  property_address: string | null;
+  office_location: string | null;
   category: string;
   created_by: string | null;
   created_at: string;
@@ -19,7 +22,7 @@ export interface OutstandingWire {
   highlight_color: string | null;
 }
 
-export type OutstandingWireInsert = Omit<OutstandingWire, "id" | "created_at" | "updated_at" | "highlight_color">;
+export type OutstandingWireInsert = Omit<OutstandingWire, "id" | "created_at" | "updated_at" | "highlight_color" | "agent_name" | "property_address" | "office_location"> & { agent_name?: string | null; property_address?: string | null; office_location?: string | null };
 
 export function useOutstandingWires() {
   return useQuery({
