@@ -6,15 +6,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X, Columns3, Eye, EyeOff } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X, Columns3, Eye, EyeOff, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { useWireRecords, type WireRecord } from "@/hooks/useWireRecords";
+import { useWireRecords, useCreateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
 import { WireDetailDialog } from "@/components/WireDetailDialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { type Department, DEPARTMENTS } from "@/lib/department-config";
+import { toast } from "sonner";
 
 const DEFAULT_COL_WIDTHS: Record<string, number> = {
   tid: 100, department: 130, sent_by: 120, customer: 130, address: 180, balance: 110,
