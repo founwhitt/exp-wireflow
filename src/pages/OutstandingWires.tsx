@@ -1190,8 +1190,14 @@ function LiveGrid({
                     else saveField(row.id, col.key, e.target.value, value);
                   }}
                 >
-                  <option value="WF-8022">XXXX-8022</option>
-                  <option value="WF-3694">XXXX-3694</option>
+                  {owAccounts.length > 0 ? owAccounts.map((a) => (
+                    <option key={a.value} value={a.value}>{a.label}</option>
+                  )) : (
+                    <>
+                      <option value="WF-8022">XXXX-8022</option>
+                      <option value="WF-3694">XXXX-3694</option>
+                    </>
+                  )}
                 </select>
               </td>
             );
