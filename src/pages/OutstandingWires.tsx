@@ -920,7 +920,7 @@ function LiveGrid({
                   return (
                     <th
                       key={col.key}
-                      className="group/head px-1.5 py-2 text-left font-medium text-muted-foreground uppercase tracking-wider relative select-none text-xs"
+                      className="group/head px-1.5 py-2 text-left font-medium text-muted-foreground uppercase tracking-wider relative select-none text-[0.7rem]"
                       style={{ width: colWidths[col.key] ?? col.width }}
                     >
                       <div className="flex items-center gap-1">
