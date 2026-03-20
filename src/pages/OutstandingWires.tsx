@@ -153,7 +153,7 @@ export default function OutstandingWires() {
         <div className="flex items-center gap-1">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-9 w-[180px] text-[13px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[180px] text-[14px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
             </SelectContent>
