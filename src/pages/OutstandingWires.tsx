@@ -403,6 +403,9 @@ export default function OutstandingWires() {
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Manage Options Dialog */}
+      <ManageOptionsDialog open={manageOptionsOpen} onOpenChange={setManageOptionsOpen} />
     </div>
   );
 }
