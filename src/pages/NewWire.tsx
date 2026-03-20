@@ -550,7 +550,7 @@ export default function NewWire() {
                         placeholder="recipient@example.com"
                         value={emailRecipient}
                         onChange={(e) => setEmailRecipient(e.target.value)}
-                        className="h-11 rounded-[10px] border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                        className="h-11 rounded-[10px] border-0 bg-muted/30 focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all"
                       />
                     </div>
 
