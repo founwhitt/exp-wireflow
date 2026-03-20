@@ -219,15 +219,14 @@ export default function NewWire() {
   const hasDataBelow = isLookingUp || (entryMode === "lookup" && tidData) || (entryMode === "manual" && tid.trim()) || canDispatch;
 
   return (
-    <div className="relative min-h-full p-4 sm:p-8 overflow-hidden" style={{ backgroundColor: '#F8FAFC' }}>
+    <div className="relative min-h-full p-4 sm:p-8 overflow-hidden bg-background">
       {/* eXp watermark */}
       <div
         className="pointer-events-none absolute inset-0 flex items-center justify-center select-none"
         aria-hidden="true"
       >
         <span
-          className="text-[12rem] sm:text-[18rem] font-black tracking-tighter"
-          style={{ color: 'rgba(0, 36, 93, 0.025)' }}
+          className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.03]"
         >
           eXp
         </span>
@@ -261,7 +260,7 @@ export default function NewWire() {
         </div>
 
         {/* Step 1: Department + Entry Mode + TID */}
-        <Card className={`w-full border-0 bg-white rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
+        <Card className={`w-full border-0 bg-card rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
           <CardHeader className="pb-4 px-6 pt-6">
             <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
               <Building2 className="h-5 w-5" style={{ color: '#0056D2' }} />
@@ -271,12 +270,12 @@ export default function NewWire() {
           </CardHeader>
           <CardContent className="space-y-5 px-6 pb-6">
             {/* Entry Mode Toggle */}
-            <div className="flex items-center gap-1 rounded-lg bg-[#F1F5F9] p-1">
+            <div className="flex items-center gap-1 rounded-lg bg-muted/30 p-1">
               <button
                 onClick={() => { setEntryMode("lookup"); setTidData(null); setLookupError(""); }}
                 className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
                   entryMode === "lookup"
-                    ? "bg-white text-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -287,7 +286,7 @@ export default function NewWire() {
                 onClick={() => { setEntryMode("manual"); setTidData(null); setLookupError(""); }}
                 className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
                   entryMode === "manual"
-                    ? "bg-white text-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -302,7 +301,7 @@ export default function NewWire() {
                 <div className="relative">
                   <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 z-10 pointer-events-none" />
                   <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
-                    <SelectTrigger className="h-11 rounded-[10px] pl-10 text-sm border-0 bg-[#F1F5F9] focus:bg-white focus:ring-2 focus:ring-[#0056D2] transition-all">
+                    <SelectTrigger className="h-11 rounded-[10px] pl-10 text-sm border-0 bg-muted/30 focus:bg-card focus:ring-2 focus:ring-primary transition-all">
                       <SelectValue placeholder="Select department..." />
                     </SelectTrigger>
                     <SelectContent>
@@ -329,7 +328,7 @@ export default function NewWire() {
                       value={tid}
                       onChange={(e) => setTid(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && entryMode === "lookup" && handleLookup()}
-                      className="h-11 rounded-[10px] pl-10 pr-20 text-sm border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                      className="h-11 rounded-[10px] pl-10 pr-20 text-sm border-0 bg-muted/30 focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all"
                     />
                     {department && wfAccount && (
                       <span className={`absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold font-mono ${
@@ -372,7 +371,7 @@ export default function NewWire() {
 
         {/* Skeleton Loading State */}
         {isLookingUp && (
-          <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in mt-8">
+          <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in mt-8">
             <CardHeader className="pb-4 px-6 pt-6">
               <Skeleton className="h-6 w-32" />
               <Skeleton className="h-4 w-56 mt-1" />
@@ -393,7 +392,7 @@ export default function NewWire() {
         {/* Manual Entry Form */}
         <div className={`transition-all duration-500 ease-out mt-8 ${entryMode === "manual" && tid.trim() ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
           {entryMode === "manual" && (
-            <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
+             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
                   <PenLine className="h-5 w-5" style={{ color: '#0056D2' }} />
@@ -444,7 +443,7 @@ export default function NewWire() {
                     value={manualData.dealNotes}
                     onChange={(e) => updateManual("dealNotes", e.target.value)}
                     placeholder="Any additional deal notes..."
-                    className="rounded-[10px] border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                    className="rounded-[10px] border-0 bg-muted/30 focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all"
                     rows={3}
                   />
                 </div>
@@ -456,7 +455,7 @@ export default function NewWire() {
         {/* Lookup Result — Deal Data (read-only display) */}
         <div className={`transition-all duration-500 ease-out mt-8 ${entryMode === "lookup" && tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
           {tidData && entryMode === "lookup" && (
-            <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
+             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
                   <FileText className="h-5 w-5" style={{ color: '#0056D2' }} />
@@ -503,7 +502,7 @@ export default function NewWire() {
                 <Separator />
                 <div>
                   <Label className="text-xs text-muted-foreground">Notes</Label>
-                  <p className="mt-1 rounded-lg bg-[#F1F5F9] p-3 text-sm text-foreground">{tidData.dealNotes}</p>
+                  <p className="mt-1 rounded-lg bg-muted/30 p-3 text-sm text-foreground">{tidData.dealNotes}</p>
                 </div>
               </CardContent>
             </Card>
@@ -513,7 +512,7 @@ export default function NewWire() {
         {/* Step 3: Dispatch — Animated reveal */}
         <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${canDispatch ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
           {canDispatch && (
-            <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in">
+            <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg" style={{ color: '#00245D' }}>
                   <Send className="h-5 w-5" style={{ color: '#0056D2' }} />
@@ -527,7 +526,7 @@ export default function NewWire() {
               </CardHeader>
               <CardContent className="space-y-4 px-6 pb-6">
                 {/* Skip Email Checkbox */}
-                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-[#F1F5F9] p-3">
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3">
                   <Checkbox
                     id="skip-email"
                     checked={skipEmail}
@@ -551,12 +550,12 @@ export default function NewWire() {
                         placeholder="recipient@example.com"
                         value={emailRecipient}
                         onChange={(e) => setEmailRecipient(e.target.value)}
-                        className="h-11 rounded-[10px] border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                        className="h-11 rounded-[10px] border-0 bg-muted/30 focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all"
                       />
                     </div>
 
                     {wireDetails && (
-                      <div className="rounded-xl border bg-[#F1F5F9] p-4 text-sm space-y-1">
+                      <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm space-y-1">
                         <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
                         <p className="text-muted-foreground">
                           Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
@@ -659,7 +658,7 @@ export default function NewWire() {
             </DialogHeader>
             {lastSentData && (
               <div className="space-y-3 mt-2">
-                <div className="rounded-lg border bg-[#F1F5F9] p-4 space-y-2 text-sm">
+                <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Recipient</span>
                     <span className="font-medium">{lastSentData.email}</span>
@@ -729,7 +728,7 @@ function ManualField({ label, value, onChange, placeholder = "", type = "text", 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`h-9 rounded-[10px] border-0 bg-[#F1F5F9] text-sm focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all ${highlight ? "ring-1 ring-[#0056D2]/30" : ""}`}
+        className={`h-9 rounded-[10px] border-0 bg-muted/30 text-sm focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all ${highlight ? "ring-1 ring-primary/30" : ""}`}
       />
     </div>
   );
