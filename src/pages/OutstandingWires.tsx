@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, Download, Check, Loader2, ChevronDown, ChevronUp, Eye, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft } from "lucide-react";
+import { Search, Filter, Download, Check, Loader2, ChevronDown, ChevronUp, Eye, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft, Settings2, Plus, Pencil, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,9 @@ import {
 } from "@/hooks/useOutstandingWires";
 import { useAuth } from "@/hooks/useAuth";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useOwAccounts, useOwStatuses, useOwConfig, useCreateOwConfig, useUpdateOwConfig, useDeleteOwConfig } from "@/hooks/useOwConfig";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
