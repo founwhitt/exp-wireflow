@@ -220,9 +220,9 @@ export default function Dashboard() {
     <>
     <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Wire Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Expected Wires</h1>
         <p className="text-sm text-muted-foreground">
-          Track all wire records. Analysts edit deal data; Accounting finalizes reconciliation.
+          Track all expected wire records. Analysts edit deal data; Accounting finalizes reconciliation.
         </p>
       </div>
 
