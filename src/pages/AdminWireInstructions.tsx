@@ -148,7 +148,7 @@ export default function AdminWireInstructions() {
             Add Custom
           </Button>
         </div>
-
+      </div>
       {/* Built-in instructions */}
       <Card>
         <CardHeader className="pb-3">
