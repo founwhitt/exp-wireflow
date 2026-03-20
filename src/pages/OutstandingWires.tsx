@@ -412,27 +412,82 @@ function LiveGrid({
     Object.fromEntries(cols.map((c) => [c.key, c.width]))
   );
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
-  const [colFilters, setColFilters] = useState<Record<string, string>>({});
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [selectAll, setSelectAll] = useState(false);
+  const [sortCol, setSortCol] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc" | null>(null);
+  const [columnFilters, setColumnFilters] = useState<Record<string, Set<string>>>({});
   const gridRef = useRef<HTMLDivElement>(null);
   const resizingRef = useRef<{ key: string; startX: number; startW: number } | null>(null);
 
   const visibleCols = useMemo(() => cols.filter((c) => !hiddenCols.has(c.key)), [cols, hiddenCols]);
 
-  const displayRows: DisplayRow[] = useMemo(() => {
-    let rows: DisplayRow[] = [...records, ...emptyRows];
-    // Apply column filters to saved records
-    Object.entries(colFilters).forEach(([key, val]) => {
-      if (!val) return;
-      const q = val.toLowerCase();
-      rows = rows.filter((r) => {
-        if (isEmptyRow(r)) return true;
-        return String((r as any)[key] ?? "").toLowerCase().includes(q);
-      });
+  const handleSort = useCallback((colKey: string) => {
+    if (sortCol === colKey) {
+      if (sortDir === "asc") setSortDir("desc");
+      else if (sortDir === "desc") { setSortCol(null); setSortDir(null); }
+    } else {
+      setSortCol(colKey);
+      setSortDir("asc");
+    }
+  }, [sortCol, sortDir]);
+
+  const toggleColumnFilter = useCallback((colKey: string, value: string) => {
+    setColumnFilters(prev => {
+      const next = { ...prev };
+      const set = new Set(next[colKey] ?? []);
+      if (set.has(value)) set.delete(value);
+      else set.add(value);
+      if (set.size === 0) delete next[colKey];
+      else next[colKey] = set;
+      return next;
     });
-    return rows;
-  }, [records, emptyRows, colFilters]);
+  }, []);
+
+  const clearColumnFilter = useCallback((colKey: string) => {
+    setColumnFilters(prev => {
+      const next = { ...prev };
+      delete next[colKey];
+      return next;
+    });
+  }, []);
+
+  const uniqueValues = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    cols.forEach(col => {
+      const vals = new Set<string>();
+      records.forEach(r => {
+        const v = String((r as any)[col.key] ?? "");
+        if (v) vals.add(v);
+      });
+      map[col.key] = [...vals].sort();
+    });
+    return map;
+  }, [records, cols]);
+
+  const filteredRecords = useMemo(() => {
+    let result = [...records];
+    // Apply column value filters
+    for (const [colKey, values] of Object.entries(columnFilters)) {
+      result = result.filter(r => values.has(String((r as any)[colKey] ?? "")));
+    }
+    // Apply sort
+    if (sortCol && sortDir) {
+      result.sort((a, b) => {
+        const av = String((a as any)[sortCol] ?? "").toLowerCase();
+        const bv = String((b as any)[sortCol] ?? "").toLowerCase();
+        const numA = Number(av), numB = Number(bv);
+        const isNum = !isNaN(numA) && !isNaN(numB) && av !== "" && bv !== "";
+        if (isNum) return sortDir === "asc" ? numA - numB : numB - numA;
+        return sortDir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+      });
+    }
+    return result;
+  }, [records, columnFilters, sortCol, sortDir]);
+
+  const displayRows: DisplayRow[] = useMemo(() => {
+    return [...filteredRecords, ...emptyRows];
+  }, [filteredRecords, emptyRows]);
+
+  const activeFilterCount = Object.keys(columnFilters).length;
 
   const canEditCol = useCallback((col: string) => {
     if (col === "trx_notes") return true;
@@ -501,8 +556,8 @@ function LiveGrid({
       const rowIdx = startRow + i;
       const colValues = lines[i].split("\t");
 
-      if (rowIdx < records.length) {
-        const rec = records[rowIdx];
+      if (rowIdx < filteredRecords.length) {
+        const rec = filteredRecords[rowIdx];
         colValues.forEach((val, ci) => {
           const colIdx = startCol + ci;
           if (colIdx >= fieldKeys.length) return;
@@ -517,7 +572,7 @@ function LiveGrid({
           existingUpdates.push({ id: rec.id, field, value: normalized, oldValue });
         });
       } else {
-        const emptyIdx = rowIdx - records.length;
+        const emptyIdx = rowIdx - filteredRecords.length;
         if (emptyIdx >= currentEmpty.length) {
           const needed = emptyIdx - currentEmpty.length + 1;
           for (let n = 0; n < needed; n++) currentEmpty.push(makeEmptyRow(defaultAccount));
@@ -536,7 +591,6 @@ function LiveGrid({
       }
     }
 
-    // Save existing row updates
     existingUpdates.forEach((u) => {
       pushUndo({ type: "edit", id: u.id, field: u.field, oldValue: u.oldValue });
       onSaving();
@@ -546,7 +600,6 @@ function LiveGrid({
       });
     });
 
-    // Auto-save filled empty rows
     const filledFromPaste = currentEmpty.filter(rowHasData);
     if (filledFromPaste.length > 0) {
       onSaving();
@@ -581,40 +634,7 @@ function LiveGrid({
     }
 
     toast.success(`Pasted ${lines.length} row${lines.length > 1 ? "s" : ""}`);
-  }, [records, emptyRows, defaultAccount, canEditCol, update, create, category, userId, onSaving, onSaved, pushUndo, visibleCols]);
-
-  // Bulk delete
-  const handleBulkDelete = useCallback(() => {
-    if (selected.size === 0) return;
-    selected.forEach((id) => {
-      remove.mutate(id, {
-        onSuccess: () => toast.success("Deleted"),
-        onError: (err: any) => toast.error("Failed", { description: err.message }),
-      });
-    });
-    setSelected(new Set());
-    setSelectAll(false);
-  }, [selected, remove]);
-
-  const toggleSelect = useCallback((id: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const toggleSelectAll = useCallback(() => {
-    if (selectAll) {
-      setSelected(new Set());
-      setSelectAll(false);
-    } else {
-      const allIds = new Set(records.map((r) => r.id));
-      setSelected(allIds);
-      setSelectAll(true);
-    }
-  }, [selectAll, records]);
+  }, [filteredRecords, emptyRows, defaultAccount, canEditCol, update, create, category, userId, onSaving, onSaved, pushUndo, visibleCols]);
 
   // Column resize handlers
   const onResizeStart = useCallback((key: string, e: React.MouseEvent) => {
@@ -639,7 +659,7 @@ function LiveGrid({
   return (
     <Card className="bg-card shadow-sm overflow-hidden">
       <CardContent className="p-0">
-        {/* Toolbar: column visibility + bulk delete */}
+        {/* Toolbar: column visibility + active filter clear */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-border/40 bg-muted/20">
           <div className="flex items-center gap-2">
             <DropdownMenu>
@@ -667,66 +687,50 @@ function LiveGrid({
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            {activeFilterCount > 0 && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setColumnFilters({})}>
+                <X className="mr-1 h-3 w-3" />
+                Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
+              </Button>
+            )}
           </div>
-          {isAdmin && selected.size > 0 && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm" className="h-7 text-xs">
-                  <Trash2 className="h-3.5 w-3.5 mr-1" />Delete {selected.size} selected
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete {selected.size} wires?</AlertDialogTitle>
-                  <AlertDialogDescription>This will permanently remove the selected entries.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={handleBulkDelete}>
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
         </div>
 
         <div ref={gridRef} className="overflow-auto max-h-[70vh]" onPaste={handlePaste}>
           <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
             <thead className="sticky top-0 z-10">
-              {/* Filter row */}
-              <tr className="bg-muted/40 border-b border-border/40">
-                {isAdmin && <th className="w-8" />}
-                <th className="w-8" />
-                {visibleCols.map((col) => (
-                  <th key={col.key} style={{ width: colWidths[col.key] ?? col.width }}>
-                    <input
-                      className="w-full h-6 text-xs bg-transparent border-0 outline-none px-1.5 placeholder:text-muted-foreground/40"
-                      placeholder={`Filter ${col.label}…`}
-                      value={colFilters[col.key] || ""}
-                      onChange={(e) => setColFilters((prev) => ({ ...prev, [col.key]: e.target.value }))}
-                    />
-                  </th>
-                ))}
-                {isAccounting && <th className="w-8" />}
-              </tr>
-              {/* Header row */}
+              {/* Single header row with sort + filter */}
               <tr className="bg-muted/60 border-b">
-                {isAdmin && (
-                  <th className="px-1 py-2 w-8">
-                    <Checkbox checked={selectAll} onCheckedChange={toggleSelectAll} />
-                  </th>
-                )}
                 <th className="px-1 py-2 text-center font-medium text-muted-foreground w-8">#</th>
                 {visibleCols.map((col) => {
                   const locked = ACCOUNTING_COLS.includes(col.key) && !isAccounting;
+                  const isActive = sortCol === col.key;
+                  const hasFilter = !!columnFilters[col.key];
                   return (
                     <th
                       key={col.key}
-                      className="px-1.5 py-2 text-left font-semibold text-muted-foreground uppercase tracking-wider relative select-none"
+                      className="group/head px-1.5 py-2 text-left font-semibold text-muted-foreground uppercase tracking-wider relative select-none"
                       style={{ width: colWidths[col.key] ?? col.width }}
                     >
-                      <span>{col.label}{locked ? " 🔒" : ""}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          className="flex items-center gap-1 hover:text-foreground transition-colors"
+                          onClick={() => handleSort(col.key)}
+                        >
+                          <span className="truncate">{col.label}{locked ? " 🔒" : ""}</span>
+                          {isActive && sortDir === "asc" && <ArrowUp className="h-3 w-3 text-primary shrink-0" />}
+                          {isActive && sortDir === "desc" && <ArrowDown className="h-3 w-3 text-primary shrink-0" />}
+                          {!isActive && <ArrowUpDown className="h-3 w-3 opacity-0 group-hover/head:opacity-40 shrink-0" />}
+                        </button>
+                        <OutstandingColumnFilterPopover
+                          colKey={col.key}
+                          values={uniqueValues[col.key] ?? []}
+                          selected={columnFilters[col.key]}
+                          onToggle={toggleColumnFilter}
+                          onClear={clearColumnFilter}
+                          hasFilter={hasFilter}
+                        />
+                      </div>
                       {/* Resize handle */}
                       <div
                         className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-accent/40 transition-colors"
@@ -746,13 +750,8 @@ function LiveGrid({
                 return (
                   <tr
                     key={rowKey}
-                    className={`border-b border-border/40 group transition-colors ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"} ${!empty && selected.has(row.id) ? "bg-accent/10" : ""}`}
+                    className={`border-b border-border/40 group transition-colors ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
                   >
-                    {isAdmin && (
-                      <td className="px-1 py-0.5 w-8">
-                        {!empty && <Checkbox checked={selected.has(row.id)} onCheckedChange={() => toggleSelect(row.id)} />}
-                      </td>
-                    )}
                     <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none">
                       {ri + 1}
                     </td>
