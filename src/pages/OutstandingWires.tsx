@@ -175,28 +175,107 @@ export default function OutstandingWires() {
   );
 }
 
-/* ---- Bulk Add Dialog ---- */
+/* ---- Bulk Spreadsheet Paste Dialog ---- */
+
+const GRID_COLUMNS = [
+  { key: "status", label: "Status", width: "w-[140px]" },
+  { key: "wf_account", label: "Account", width: "w-[150px]" },
+  { key: "wiring_date", label: "Date", width: "w-[120px]" },
+  { key: "amount", label: "Amount", width: "w-[110px]" },
+  { key: "receipt_number", label: "Receipt #", width: "w-[110px]" },
+  { key: "invoice_number", label: "Invoice #", width: "w-[110px]" },
+  { key: "description", label: "Description", width: "w-[180px]" },
+  { key: "accounting_notes", label: "Acct. Notes", width: "w-[180px]" },
+] as const;
+
+type GridField = typeof GRID_COLUMNS[number]["key"];
+
+const ACCOUNT_REVERSE: Record<string, string> = {
+  "WF-8022": "WF-8022 (XXXX-8022)",
+  "WF-3694": "WF-3694 (XXXX-3694)",
+  "8022": "WF-8022",
+  "3694": "WF-3694",
+  "XXXX-8022": "WF-8022",
+  "XXXX-3694": "WF-3694",
+  "WF-8022 (XXXX-8022)": "WF-8022",
+  "WF-3694 (XXXX-3694)": "WF-3694",
+};
+
+function normalizeAccount(raw: string): string {
+  const trimmed = raw.trim();
+  return ACCOUNT_REVERSE[trimmed] ?? (trimmed.includes("3694") ? "WF-3694" : "WF-8022");
+}
+
+function normalizeStatus(raw: string): string {
+  const lower = raw.trim().toLowerCase();
+  if (lower.includes("settlement")) return "Waiting on Settlement";
+  return "Needs TRX ID";
+}
+
+function makeEmptyRows(count: number): BulkRow[] {
+  return Array.from({ length: count }, () => ({ ...EMPTY_ROW }));
+}
 
 function BulkAddDialog({ open, onOpenChange, category, userId }: { open: boolean; onOpenChange: (v: boolean) => void; category: string; userId: string | null }) {
   const create = useCreateOutstandingWires();
-  const [rows, setRows] = useState<BulkRow[]>([{ ...EMPTY_ROW }]);
+  const [rows, setRows] = useState<BulkRow[]>(makeEmptyRows(5));
+  const [batchAccount, setBatchAccount] = useState<string>(""); // empty = per-row
 
-  const addRow = () => setRows((prev) => [...prev, { ...EMPTY_ROW }]);
-  const removeRow = (idx: number) => setRows((prev) => prev.filter((_, i) => i !== idx));
-  const updateRow = (idx: number, field: string, value: string) => {
-    setRows((prev) => prev.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
+  const updateCell = (rowIdx: number, field: GridField, value: string) => {
+    setRows((prev) => prev.map((r, i) => (i === rowIdx ? { ...r, [field]: value } : r)));
+  };
+
+  // Global paste handler on the grid container
+  const handleGridPaste = (e: React.ClipboardEvent) => {
+    const text = e.clipboardData.getData("text");
+    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length <= 1 && !text.includes("\t")) return; // single value — let default handle
+
+    e.preventDefault();
+    const fieldKeys = GRID_COLUMNS.map((c) => c.key);
+    const newRows = [...rows];
+
+    // Find which row/col the active element is in
+    const active = document.activeElement as HTMLElement | null;
+    let startRow = newRows.findIndex((_, i) => {
+      const el = active?.closest(`[data-row="${i}"]`);
+      return !!el;
+    });
+    let startCol = 0;
+    if (active?.dataset.col) startCol = parseInt(active.dataset.col, 10) || 0;
+    if (startRow === -1) startRow = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+      const rowIdx = startRow + i;
+      if (rowIdx >= newRows.length) newRows.push({ ...EMPTY_ROW });
+      const cols = lines[i].split("\t");
+      cols.forEach((val, ci) => {
+        const colIdx = startCol + ci;
+        if (colIdx >= fieldKeys.length) return;
+        const field = fieldKeys[colIdx];
+        if (field === "wf_account") {
+          newRows[rowIdx] = { ...newRows[rowIdx], wf_account: normalizeAccount(val) };
+        } else if (field === "status") {
+          newRows[rowIdx] = { ...newRows[rowIdx], status: normalizeStatus(val) };
+        } else {
+          newRows[rowIdx] = { ...newRows[rowIdx], [field]: val.trim() };
+        }
+      });
+    }
+    setRows(newRows);
+    toast.success(`Pasted ${lines.length} rows`);
   };
 
   const handleSave = async () => {
-    const validRows = rows.filter((r) => r.amount || r.description || r.receipt_number);
+    const validRows = rows.filter((r) => r.amount || r.description || r.receipt_number || r.invoice_number);
     if (validRows.length === 0) {
-      toast.error("Please fill in at least one row");
+      toast.error("Please fill in at least one row with data");
       return;
     }
 
     const inserts: OutstandingWireInsert[] = validRows.map((r) => ({
       status: r.status,
-      wf_account: r.wf_account,
+      wf_account: batchAccount || r.wf_account,
       wiring_date: r.wiring_date || null,
       amount: r.amount ? parseFloat(r.amount) : null,
       receipt_number: r.receipt_number || null,
@@ -211,126 +290,133 @@ function BulkAddDialog({ open, onOpenChange, category, userId }: { open: boolean
     try {
       await create.mutateAsync(inserts);
       toast.success(`${inserts.length} wire${inserts.length > 1 ? "s" : ""} added`);
-      setRows([{ ...EMPTY_ROW }]);
+      setRows(makeEmptyRows(5));
+      setBatchAccount("");
       onOpenChange(false);
     } catch (err: any) {
       toast.error("Failed to save", { description: err.message });
     }
   };
 
-  const handlePaste = (e: React.ClipboardEvent, idx: number, field: string) => {
-    const text = e.clipboardData.getData("text");
-    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-    if (lines.length <= 1) return; // Let normal paste handle single-line
-
-    e.preventDefault();
-    const fields = ["wiring_date", "amount", "receipt_number", "invoice_number", "description", "accounting_notes"];
-    const fieldIdx = fields.indexOf(field);
-    if (fieldIdx === -1) return;
-
-    // Expand rows to fit pasted data
-    const newRows = [...rows];
-    for (let i = 0; i < lines.length; i++) {
-      const rowIdx = idx + i;
-      if (rowIdx >= newRows.length) newRows.push({ ...EMPTY_ROW });
-      const cols = lines[i].split("\t");
-      cols.forEach((val, ci) => {
-        const targetField = fields[fieldIdx + ci];
-        if (targetField) (newRows[rowIdx] as any)[targetField] = val;
-      });
-    }
-    setRows(newRows);
-    toast.success(`Pasted ${lines.length} rows`);
+  const clearGrid = () => {
+    setRows(makeEmptyRows(5));
+    setBatchAccount("");
   };
+
+  const filledCount = rows.filter((r) => r.amount || r.description || r.receipt_number || r.invoice_number).length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[85vh] overflow-auto">
+      <DialogContent className="max-w-[95vw] max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Add Unidentified Wires</DialogTitle>
+          <DialogTitle>Bulk Add Unidentified Wires</DialogTitle>
           <DialogDescription>
-            Enter one or more unidentified wires. You can paste multiple rows from a spreadsheet (tab-separated).
-            Bank details are masked for demo security.
+            Paste rows directly from Excel or Google Sheets. Data auto-maps to columns. Bank details masked (XXXX) for demo security.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
-          {rows.map((row, idx) => (
-            <div key={idx} className="rounded-lg border border-border bg-muted/20 p-3 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Entry #{idx + 1}</span>
-                {rows.length > 1 && (
-                  <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeRow(idx)}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-              <div className="grid gap-3 sm:grid-cols-4">
-                <div className="space-y-1">
-                  <Label className="text-xs">Status</Label>
-                  <Select value={row.status} onValueChange={(v) => updateRow(idx, "status", v)}>
-                    <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Needs TRX ID">Needs TRX ID</SelectItem>
-                      <SelectItem value="Waiting on Settlement">Waiting on Settlement</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Account</Label>
-                  <Select value={ACCOUNT_OPTIONS.find((a) => ACCOUNT_MAP[a] === row.wf_account) ?? ACCOUNT_OPTIONS[0]} onValueChange={(v) => updateRow(idx, "wf_account", ACCOUNT_MAP[v] ?? "WF-8022")}>
-                    <SelectTrigger className="h-8 text-sm font-mono"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {ACCOUNT_OPTIONS.map((a) => (<SelectItem key={a} value={a}>{a}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Date</Label>
-                  <Input type="date" value={row.wiring_date} onChange={(e) => updateRow(idx, "wiring_date", e.target.value)} className="h-8 text-sm" onPaste={(e) => handlePaste(e, idx, "wiring_date")} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Amount</Label>
-                  <Input type="number" step="0.01" value={row.amount} onChange={(e) => updateRow(idx, "amount", e.target.value)} placeholder="0.00" className="h-8 text-sm font-mono" onPaste={(e) => handlePaste(e, idx, "amount")} />
-                </div>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-4">
-                <div className="space-y-1">
-                  <Label className="text-xs">Receipt #</Label>
-                  <Input value={row.receipt_number} onChange={(e) => updateRow(idx, "receipt_number", e.target.value)} placeholder="REC-001" className="h-8 text-sm" onPaste={(e) => handlePaste(e, idx, "receipt_number")} />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Invoice #</Label>
-                  <Input value={row.invoice_number} onChange={(e) => updateRow(idx, "invoice_number", e.target.value)} placeholder="INV-001" className="h-8 text-sm" onPaste={(e) => handlePaste(e, idx, "invoice_number")} />
-                </div>
-                <div className="space-y-1 sm:col-span-2">
-                  <Label className="text-xs">Description</Label>
-                  <Input value={row.description} onChange={(e) => updateRow(idx, "description", e.target.value)} placeholder="Wire from..." className="h-8 text-sm" onPaste={(e) => handlePaste(e, idx, "description")} />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Accounting Notes</Label>
-                <Input value={row.accounting_notes} onChange={(e) => updateRow(idx, "accounting_notes", e.target.value)} placeholder="Internal notes..." className="h-8 text-sm" onPaste={(e) => handlePaste(e, idx, "accounting_notes")} />
-              </div>
-            </div>
-          ))}
+        {/* Batch account toggle */}
+        <div className="flex items-center gap-3 text-sm">
+          <span className="text-muted-foreground font-medium">Batch account:</span>
+          <Select value={batchAccount || "__per_row__"} onValueChange={(v) => setBatchAccount(v === "__per_row__" ? "" : v)}>
+            <SelectTrigger className="h-8 w-[220px] text-sm font-mono"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__per_row__">Per-row (individual)</SelectItem>
+              <SelectItem value="WF-8022">WF-8022 (XXXX-8022)</SelectItem>
+              <SelectItem value="WF-3694">WF-3694 (XXXX-3694)</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="ghost" size="sm" className="ml-auto text-xs text-muted-foreground" onClick={clearGrid}>
+            Clear grid
+          </Button>
+        </div>
 
+        {/* Spreadsheet Grid */}
+        <div className="flex-1 overflow-auto border rounded-md" onPaste={handleGridPaste}>
+          <table className="w-full text-sm border-collapse">
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-muted/60 border-b">
+                <th className="px-1 py-1.5 text-center text-[10px] font-medium text-muted-foreground w-8">#</th>
+                {GRID_COLUMNS.map((col, ci) => (
+                  <th key={col.key} className={`px-1.5 py-1.5 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ${col.width} ${batchAccount && col.key === "wf_account" ? "opacity-40" : ""}`}>
+                    {col.label}
+                  </th>
+                ))}
+                <th className="w-8" />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, ri) => (
+                <tr key={ri} data-row={ri} className="border-b border-border/50 hover:bg-muted/20 group">
+                  <td className="px-1 py-0.5 text-center text-[10px] text-muted-foreground tabular-nums">{ri + 1}</td>
+                  {GRID_COLUMNS.map((col, ci) => (
+                    <td key={col.key} className="px-0.5 py-0.5">
+                      {col.key === "status" ? (
+                        <select
+                          className="w-full h-7 text-xs bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1"
+                          value={row.status}
+                          onChange={(e) => updateCell(ri, "status", e.target.value)}
+                          data-col={ci}
+                        >
+                          <option value="Needs TRX ID">Needs TRX ID</option>
+                          <option value="Waiting on Settlement">Waiting on Settlement</option>
+                        </select>
+                      ) : col.key === "wf_account" ? (
+                        <select
+                          className="w-full h-7 text-xs font-mono bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1"
+                          value={row.wf_account}
+                          onChange={(e) => updateCell(ri, "wf_account", e.target.value)}
+                          disabled={!!batchAccount}
+                          data-col={ci}
+                        >
+                          <option value="WF-8022">XXXX-8022</option>
+                          <option value="WF-3694">XXXX-3694</option>
+                        </select>
+                      ) : (
+                        <input
+                          className="w-full h-7 text-xs bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/40"
+                          type={col.key === "amount" ? "number" : col.key === "wiring_date" ? "date" : "text"}
+                          step={col.key === "amount" ? "0.01" : undefined}
+                          value={(row as any)[col.key]}
+                          onChange={(e) => updateCell(ri, col.key, e.target.value)}
+                          placeholder={col.key === "amount" ? "0.00" : ""}
+                          data-col={ci}
+                        />
+                      )}
+                    </td>
+                  ))}
+                  <td className="px-0.5 py-0.5">
+                    <button
+                      className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center text-destructive/60 hover:text-destructive rounded transition-opacity"
+                      onClick={() => setRows((prev) => prev.length > 1 ? prev.filter((_, i) => i !== ri) : prev)}
+                      tabIndex={-1}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex items-center justify-between pt-1">
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={addRow} className="gap-1">
-              <Plus className="h-3 w-3" /> Add Row
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setRows((prev) => [...prev, ...makeEmptyRows(10)])}>
+              <Plus className="h-3 w-3" /> Add 10 Rows
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setRows((prev) => [...prev, ...Array(5).fill(null).map(() => ({ ...EMPTY_ROW }))])} className="gap-1">
-              <Copy className="h-3 w-3" /> Add 5 Rows
+            <span className="text-[11px] text-muted-foreground self-center">
+              Tip: Select a cell and paste from Excel/Sheets — rows &amp; columns auto-map.
+            </span>
+          </div>
+          <div className="flex gap-2 items-center">
+            <span className="text-xs text-muted-foreground tabular-nums">{filledCount} row{filledCount !== 1 ? "s" : ""} with data</span>
+            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button size="sm" onClick={handleSave} disabled={create.isPending || filledCount === 0}>
+              {create.isPending ? "Saving..." : `Save ${filledCount} Wire${filledCount !== 1 ? "s" : ""}`}
             </Button>
           </div>
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave} disabled={create.isPending}>
-            {create.isPending ? "Saving..." : `Save ${rows.filter((r) => r.amount || r.description || r.receipt_number).length} Wire(s)`}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
