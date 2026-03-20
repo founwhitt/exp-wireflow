@@ -697,7 +697,7 @@ function InlineEditCell({
       : value || "—";
     return (
       <button
-        className="w-full min-w-[40px] h-7 rounded px-1 text-left text-[13px] transition-colors hover:bg-muted/60 truncate"
+        className="w-full min-w-[40px] h-7 rounded px-1 text-left text-[14px] transition-colors hover:bg-muted/60 break-words text-wrap"
         onClick={() => { setLocal(value); setEditing(true); }}
         data-gridrow={gridRow}
         data-gridcol={gridCol}
