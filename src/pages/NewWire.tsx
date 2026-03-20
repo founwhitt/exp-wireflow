@@ -371,7 +371,7 @@ export default function NewWire() {
 
         {/* Skeleton Loading State */}
         {isLookingUp && (
-          <Card className="border-0 bg-white rounded-2xl shadow-xl animate-fade-in mt-8">
+          <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in mt-8">
             <CardHeader className="pb-4 px-6 pt-6">
               <Skeleton className="h-6 w-32" />
               <Skeleton className="h-4 w-56 mt-1" />
