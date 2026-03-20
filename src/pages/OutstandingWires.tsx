@@ -414,7 +414,7 @@ function rowHasData(r: EmptyRow): boolean {
 }
 
 function LiveGrid({
-  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo,
+  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows,
 }: {
   records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string;
@@ -422,6 +422,7 @@ function LiveGrid({
   userId: string | null;
   onSaving: () => void; onSaved: () => void;
   pushUndo: (e: UndoEntry) => void;
+  maxRows?: number;
 }) {
   const create = useCreateOutstandingWires();
   const update = useUpdateOutstandingWire();
