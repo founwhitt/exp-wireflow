@@ -8,6 +8,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 
 export function AppNav() {
   const { user, isAdmin, displayName, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   if (!user) return null;
 
