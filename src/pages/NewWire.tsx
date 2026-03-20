@@ -526,7 +526,7 @@ export default function NewWire() {
               </CardHeader>
               <CardContent className="space-y-4 px-6 pb-6">
                 {/* Skip Email Checkbox */}
-                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-[#F1F5F9] p-3">
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3">
                   <Checkbox
                     id="skip-email"
                     checked={skipEmail}
