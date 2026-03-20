@@ -1,6 +1,7 @@
 import { NavLink } from "@/components/NavLink";
-import { Send, LayoutDashboard, Shield, LogOut, User, FileText } from "lucide-react";
+import { Send, LayoutDashboard, Shield, LogOut, User, FileText, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NotificationBell } from "@/components/NotificationBell";
