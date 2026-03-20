@@ -412,6 +412,7 @@ function LiveGrid({
       }
     }
 
+    // Save existing row updates
     existingUpdates.forEach((u) => {
       onSaving();
       update.mutate({ id: u.id, [u.field]: u.value }, {
@@ -420,17 +421,49 @@ function LiveGrid({
       });
     });
 
-    setEmptyRows(() => {
-      const updated = [...currentEmpty];
-      newEmptyUpdates.forEach((u) => {
-        const idx = updated.findIndex((r) => r._key === u.key);
-        if (idx >= 0) updated[idx] = { ...updated[idx], [u.field]: u.value };
-      });
-      return updated;
+    // Apply updates to empty rows, then auto-save any that have data
+    const updated = [...currentEmpty];
+    newEmptyUpdates.forEach((u) => {
+      const idx = updated.findIndex((r) => r._key === u.key);
+      if (idx >= 0) updated[idx] = { ...updated[idx], [u.field]: u.value };
     });
 
+    // Find filled rows and auto-commit them
+    const filledFromPaste = updated.filter(rowHasData);
+    if (filledFromPaste.length > 0) {
+      onSaving();
+      const inserts: OutstandingWireInsert[] = filledFromPaste.map((r) => ({
+        status: r.status,
+        wf_account: r.wf_account,
+        wiring_date: r.wiring_date || null,
+        amount: r.amount ? parseFloat(r.amount.replace(/[^0-9.\-]/g, "")) : null,
+        receipt_number: r.receipt_number || null,
+        invoice_number: r.invoice_number || null,
+        description: r.description || null,
+        accounting_notes: r.accounting_notes || null,
+        trx_notes: r.trx_notes || null,
+        category,
+        created_by: userId,
+      }));
+      const filledKeys = new Set(filledFromPaste.map((r) => r._key));
+      create.mutate(inserts, {
+        onSuccess: () => {
+          setEmptyRows((prev) => {
+            const remaining = prev.filter((r) => !filledKeys.has(r._key));
+            const needed = Math.max(0, EMPTY_ROWS_COUNT - remaining.length);
+            return [...remaining, ...makeEmptyRows(needed, defaultAccount)];
+          });
+          onSaved();
+          toast.success(`${inserts.length} wire${inserts.length > 1 ? "s" : ""} auto-saved`);
+        },
+        onError: (err: any) => { onSaved(); toast.error("Failed", { description: err.message }); },
+      });
+    } else {
+      setEmptyRows(updated);
+    }
+
     toast.success(`Pasted ${lines.length} row${lines.length > 1 ? "s" : ""}`);
-  }, [records, emptyRows, defaultAccount, canEditCol, update, onSaving, onSaved]);
+  }, [records, emptyRows, defaultAccount, canEditCol, update, create, category, userId, onSaving, onSaved]);
 
   const commitAllFilled = useCallback(() => {
     const filled = emptyRows.filter(rowHasData);
