@@ -328,7 +328,7 @@ export default function NewWire() {
                       value={tid}
                       onChange={(e) => setTid(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && entryMode === "lookup" && handleLookup()}
-                      className="h-11 rounded-[10px] pl-10 pr-20 text-sm border-0 bg-[#F1F5F9] focus:bg-white focus-visible:ring-2 focus-visible:ring-[#0056D2] focus-visible:ring-offset-0 transition-all"
+                      className="h-11 rounded-[10px] pl-10 pr-20 text-sm border-0 bg-muted/30 focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all"
                     />
                     {department && wfAccount && (
                       <span className={`absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold font-mono ${
