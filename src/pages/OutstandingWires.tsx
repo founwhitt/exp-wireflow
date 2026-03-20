@@ -734,7 +734,7 @@ function LiveGrid({
                     else saveField(row.id, col.key, e.target.value, value);
                   }}
                 >
-                  <option value="">— Select —</option>
+                  <option value=""></option>
                   <option value="Needs TRX ID">Needs TRX ID</option>
                   <option value="Waiting on Settlement">Waiting on Settlement</option>
                 </select>
