@@ -503,8 +503,10 @@ function LiveGrid({
   }, [records, columnFilters, sortCol, sortDir]);
 
   const displayRows: DisplayRow[] = useMemo(() => {
-    return [...filteredRecords, ...emptyRows];
-  }, [filteredRecords, emptyRows]);
+    const all: DisplayRow[] = [...filteredRecords, ...emptyRows];
+    if (maxRows !== undefined) return all.slice(0, maxRows);
+    return all;
+  }, [filteredRecords, emptyRows, maxRows]);
 
   const activeFilterCount = Object.keys(columnFilters).length;
 
