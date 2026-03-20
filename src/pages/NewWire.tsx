@@ -173,7 +173,7 @@ export default function NewWire() {
     try {
       const result: any = await createRecord.mutateAsync(buildRecordPayload(true));
       toast.success(`Record ${tid.toUpperCase().trim()} saved to dashboard`);
-      navigate("/dashboard", { state: { highlightWireId: result.id } });
+      navigate("/expected-wires", { state: { highlightWireId: result.id } });
     } catch (err: any) {
       toast.error("Failed to save record", { description: err.message });
     }
