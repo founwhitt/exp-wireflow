@@ -732,10 +732,15 @@ function LiveGrid({
       resizingRef.current = null;
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
+      // Persist widths to localStorage
+      setColWidths((current) => {
+        try { localStorage.setItem(storageKey, JSON.stringify(current)); } catch {}
+        return current;
+      });
     };
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
-  }, [colWidths, cols]);
+  }, [colWidths, cols, storageKey]);
 
   const renderRow = (row: DisplayRow, ri: number) => {
     const empty = isEmptyRow(row);
