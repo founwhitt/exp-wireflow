@@ -323,6 +323,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                forceCollapsed={allCollapsed}
               />
             )}
           </TabsContent>
