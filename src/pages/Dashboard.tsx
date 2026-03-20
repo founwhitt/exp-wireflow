@@ -74,7 +74,8 @@ type SortDir = "asc" | "desc" | null;
 
 export default function Dashboard() {
   const { data: records, isLoading, error } = useWireRecords();
-  const { isAdmin } = useAuth();
+  const createRecord = useCreateWireRecord();
+  const { isAdmin, user } = useAuth();
   const location = useLocation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -86,6 +87,17 @@ export default function Dashboard() {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   const [hideReconciled, setHideReconciled] = useState(false);
+  const [showAddEntry, setShowAddEntry] = useState(false);
+  const [addEntryData, setAddEntryData] = useState({
+    tid: "",
+    department: "" as Department | "",
+    customerName: "",
+    propertyAddress: "",
+    agentName: "",
+    balanceDue: "",
+    invoiceNumber: "",
+    dealNotes: "",
+  });
 
   // Highlight wire after creation
   useEffect(() => {
