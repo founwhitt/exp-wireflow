@@ -148,6 +148,7 @@ export default function OutstandingWires() {
   const { isAccounting, isAdmin, user } = useAuth();
   const [tab, setTab] = useState("realty");
   const [allCollapsed, setAllCollapsed] = useState(false);
+  const [collapseSignal, setCollapseSignal] = useState<{ value: boolean; ts: number } | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
