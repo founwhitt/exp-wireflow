@@ -366,6 +366,7 @@ export default function AdminWireInstructions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ManageOptionsDialog open={manageAccountsOpen} onOpenChange={setManageAccountsOpen} />
     </div>
   );
 }
