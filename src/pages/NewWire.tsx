@@ -98,10 +98,11 @@ export default function NewWire() {
   };
 
   const buildRecordPayload = () => {
+    const isPayloadRecord = isPayload;
     return {
       tid: tid.toUpperCase().trim(),
-      department: department as string,
-      wf_account: wfAccount as string,
+      department: isPayloadRecord ? "Payload" : (department as string),
+      wf_account: isPayloadRecord ? "N/A" : (wfAccount as string),
       invoice_number: tidData!.invoiceNumber,
       invoice_date: tidData!.invoiceDate || null,
       original_amount: tidData!.originalAmount || null,
@@ -115,12 +116,30 @@ export default function NewWire() {
       agent_name: tidData!.agentName || null,
       assigned_analyst: tidData!.assignedAnalyst || null,
       deal_notes: tidData!.dealNotes || null,
-      email_sent: !testMode,
-      email_sent_at: testMode ? null : new Date().toISOString(),
-      email_recipient: emailRecipient,
-      status: "Sent",
+      email_sent: isPayloadRecord ? false : !testMode,
+      email_sent_at: (isPayloadRecord || testMode) ? null : new Date().toISOString(),
+      email_recipient: isPayloadRecord ? null : emailRecipient,
+      status: isPayloadRecord ? "Pending" : "Sent",
       created_by: user?.id ?? null,
     };
+  };
+
+  const handleSavePayload = async () => {
+    if (!tidData) return;
+    try {
+      const result: any = await createRecord.mutateAsync(buildRecordPayload());
+      setLastSentData({
+        email: "N/A (Payload)",
+        pdf: "None",
+        tid: tid.toUpperCase().trim(),
+        address: tidData.propertyAddress,
+        agent: tidData.agentName,
+        wireId: result.id,
+      });
+      setShowSuccess(true);
+    } catch (err: any) {
+      toast.error("Failed to save payload record", { description: err.message });
+    }
   };
 
   const handleConfirmSend = async () => {
