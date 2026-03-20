@@ -27,13 +27,13 @@ const STATUS_OPTIONS = ["All", "Needs TRX ID", "Waiting on Settlement"];
 const GRID_COLS = [
   { key: "status", label: "Status", width: "w-[140px]", type: "status" },
   { key: "wf_account", label: "Account", width: "w-[130px]", type: "account" },
-  { key: "wiring_date", label: "Date", width: "w-[120px]", type: "date" },
-  { key: "amount", label: "Amount", width: "w-[110px]", type: "number" },
-  { key: "receipt_number", label: "Receipt #", width: "w-[110px]", type: "text" },
-  { key: "invoice_number", label: "Invoice #", width: "w-[110px]", type: "text" },
-  { key: "description", label: "Description", width: "w-[180px]", type: "text" },
-  { key: "accounting_notes", label: "Acct. Notes", width: "w-[180px]", type: "text" },
-  { key: "trx_notes", label: "TRX Notes", width: "w-[180px]", type: "text" },
+  { key: "wiring_date", label: "Date", width: "w-[130px]", type: "text" },
+  { key: "amount", label: "Amount", width: "w-[120px]", type: "text" },
+  { key: "receipt_number", label: "Receipt #", width: "w-[120px]", type: "text" },
+  { key: "invoice_number", label: "Invoice #", width: "w-[120px]", type: "text" },
+  { key: "description", label: "Description", width: "w-[190px]", type: "text" },
+  { key: "accounting_notes", label: "Acct. Notes", width: "w-[190px]", type: "text" },
+  { key: "trx_notes", label: "TRX Notes", width: "w-[190px]", type: "text" },
 ] as const;
 
 type ColKey = typeof GRID_COLS[number]["key"];
@@ -72,15 +72,15 @@ type SaveStatus = "idle" | "saving" | "saved";
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === "idle") return null;
   return (
-    <div className="flex items-center gap-1.5 text-xs animate-in fade-in duration-200">
+    <div className="flex items-center gap-1.5 text-[13px] animate-in fade-in duration-200">
       {status === "saving" ? (
         <>
-          <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
           <span className="text-muted-foreground">Saving…</span>
         </>
       ) : (
         <>
-          <Check className="h-3 w-3 text-emerald-500" />
+          <Check className="h-3.5 w-3.5 text-emerald-500" />
           <span className="text-emerald-600 dark:text-emerald-400">All changes saved</span>
         </>
       )}
@@ -127,20 +127,17 @@ export default function OutstandingWires() {
     return result;
   }, [records, tab, statusFilter, search]);
 
-  // Realty sub-filter
-  const [realtyAccount, setRealtyAccount] = useState("all");
-  const realtyFiltered = useMemo(() => {
-    if (realtyAccount === "all") return filtered;
-    return filtered.filter((r) => r.wf_account === realtyAccount);
-  }, [filtered, realtyAccount]);
+  // Realty split by account
+  const realty8022 = useMemo(() => filtered.filter((r) => r.wf_account === "WF-8022"), [filtered]);
+  const realty3694 = useMemo(() => filtered.filter((r) => r.wf_account === "WF-3694"), [filtered]);
 
   return (
     <div className="mx-auto flex h-full max-w-[98vw] flex-col gap-4 p-3 sm:p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Outstanding Wires</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-[1.65rem] font-bold tracking-tight text-foreground">Outstanding Wires</h1>
+          <p className="text-[13px] text-muted-foreground">
             Live editable grid — paste from Excel or edit inline. Independent from Expected Wires.
           </p>
         </div>
@@ -151,56 +148,70 @@ export default function OutstandingWires() {
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search description, invoice, receipt..." className="h-8 pl-9 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Search description, invoice, receipt..." className="h-9 pl-9 text-[13px]" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex items-center gap-1">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-8 w-[180px] text-sm"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[180px] text-[13px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" size="sm" className="h-8" onClick={() => exportCSV(filtered, tab)} disabled={filtered.length === 0}>
+        <Button variant="outline" size="sm" className="h-9 text-[13px]" onClick={() => exportCSV(filtered, tab)} disabled={filtered.length === 0}>
           <Download className="h-4 w-4 mr-1" />Export
         </Button>
       </div>
 
       {/* Sub-tabs */}
-      <Tabs value={tab} onValueChange={(v) => { setTab(v); setRealtyAccount("all"); }}>
+      <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-fit">
-          <TabsTrigger value="realty">Realty</TabsTrigger>
-          <TabsTrigger value="payload">Payload</TabsTrigger>
-          <TabsTrigger value="commercial">Commercial</TabsTrigger>
-          <TabsTrigger value="international">International</TabsTrigger>
+          <TabsTrigger value="realty" className="text-[13px]">Realty</TabsTrigger>
+          <TabsTrigger value="payload" className="text-[13px]">Payload</TabsTrigger>
+          <TabsTrigger value="commercial" className="text-[13px]">Commercial</TabsTrigger>
+          <TabsTrigger value="international" className="text-[13px]">International</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="realty" className="mt-4 space-y-3">
-          {/* Realty account filter */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Filter account:</span>
-            {["all", "WF-8022", "WF-3694"].map((v) => (
-              <Button
-                key={v}
-                variant={realtyAccount === v ? "default" : "outline"}
-                size="sm"
-                className="h-7 text-xs"
-                onClick={() => setRealtyAccount(v)}
-              >
-                {v === "all" ? "All" : v === "WF-8022" ? "XXXX-8022" : "XXXX-3694"}
-              </Button>
-            ))}
-          </div>
+        <TabsContent value="realty" className="mt-4 space-y-6">
           {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
-            <LiveGrid
-              records={realtyFiltered}
-              category="realty"
-              isAccounting={isAccounting}
-              userId={user?.id ?? null}
-              onSaving={markSaving}
-              onSaved={markSaved}
-            />
+            <>
+              {/* WF-8022 Section */}
+              <div>
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <div className="h-3 w-3 rounded-full bg-[hsl(213,100%,41%)]" />
+                  <h2 className="text-[15px] font-semibold text-foreground">Wells Fargo — XXXX-8022</h2>
+                  <span className="text-[12px] text-muted-foreground ml-1 tabular-nums">({realty8022.length} records)</span>
+                </div>
+                <LiveGrid
+                  records={realty8022}
+                  category="realty"
+                  defaultAccount="WF-8022"
+                  isAccounting={isAccounting}
+                  userId={user?.id ?? null}
+                  onSaving={markSaving}
+                  onSaved={markSaved}
+                />
+              </div>
+
+              {/* WF-3694 Section */}
+              <div>
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <div className="h-3 w-3 rounded-full bg-[hsl(152,60%,40%)]" />
+                  <h2 className="text-[15px] font-semibold text-foreground">Wells Fargo — XXXX-3694</h2>
+                  <span className="text-[12px] text-muted-foreground ml-1 tabular-nums">({realty3694.length} records)</span>
+                </div>
+                <LiveGrid
+                  records={realty3694}
+                  category="realty"
+                  defaultAccount="WF-3694"
+                  isAccounting={isAccounting}
+                  userId={user?.id ?? null}
+                  onSaving={markSaving}
+                  onSaved={markSaved}
+                />
+              </div>
+            </>
           )}
         </TabsContent>
 
@@ -210,6 +221,7 @@ export default function OutstandingWires() {
               <LiveGrid
                 records={filtered}
                 category={t}
+                defaultAccount="WF-8022"
                 isAccounting={isAccounting}
                 userId={user?.id ?? null}
                 onSaving={markSaving}
@@ -242,12 +254,12 @@ interface EmptyRow {
 }
 
 let emptyKeyCounter = 0;
-function makeEmptyRow(): EmptyRow {
+function makeEmptyRow(defaultAccount: string): EmptyRow {
   return {
     _empty: true,
     _key: `empty-${++emptyKeyCounter}`,
     status: "Needs TRX ID",
-    wf_account: "WF-8022",
+    wf_account: defaultAccount,
     wiring_date: "",
     amount: "",
     receipt_number: "",
@@ -258,8 +270,8 @@ function makeEmptyRow(): EmptyRow {
   };
 }
 
-function makeEmptyRows(count: number): EmptyRow[] {
-  return Array.from({ length: count }, () => makeEmptyRow());
+function makeEmptyRows(count: number, defaultAccount: string): EmptyRow[] {
+  return Array.from({ length: count }, () => makeEmptyRow(defaultAccount));
 }
 
 type DisplayRow = (OutstandingWire & { _empty?: false }) | EmptyRow;
@@ -275,6 +287,7 @@ function rowHasData(r: EmptyRow): boolean {
 function LiveGrid({
   records,
   category,
+  defaultAccount,
   isAccounting,
   userId,
   onSaving,
@@ -282,6 +295,7 @@ function LiveGrid({
 }: {
   records: OutstandingWire[];
   category: string;
+  defaultAccount: string;
   isAccounting: boolean;
   userId: string | null;
   onSaving: () => void;
@@ -291,10 +305,9 @@ function LiveGrid({
   const update = useUpdateOutstandingWire();
   const remove = useDeleteOutstandingWire();
 
-  const [emptyRows, setEmptyRows] = useState<EmptyRow[]>(() => makeEmptyRows(EMPTY_ROWS_COUNT));
+  const [emptyRows, setEmptyRows] = useState<EmptyRow[]>(() => makeEmptyRows(EMPTY_ROWS_COUNT, defaultAccount));
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // Combined display: saved records first, then empty rows
   const displayRows: DisplayRow[] = useMemo(() => [...records, ...emptyRows], [records, emptyRows]);
 
   const canEditCol = useCallback((col: ColKey) => {
@@ -302,7 +315,6 @@ function LiveGrid({
     return isAccounting && ACCOUNTING_COLS.includes(col);
   }, [isAccounting]);
 
-  // Save existing record field
   const saveField = useCallback((id: string, field: string, value: any) => {
     onSaving();
     update.mutate(
@@ -314,7 +326,6 @@ function LiveGrid({
     );
   }, [update, onSaving, onSaved]);
 
-  // Commit an empty row to the database
   const commitEmptyRow = useCallback((row: EmptyRow) => {
     if (!rowHasData(row)) return;
     onSaving();
@@ -322,7 +333,7 @@ function LiveGrid({
       status: row.status,
       wf_account: row.wf_account,
       wiring_date: row.wiring_date || null,
-      amount: row.amount ? parseFloat(row.amount) : null,
+      amount: row.amount ? parseFloat(row.amount.replace(/[^0-9.\-]/g, "")) : null,
       receipt_number: row.receipt_number || null,
       invoice_number: row.invoice_number || null,
       description: row.description || null,
@@ -333,28 +344,24 @@ function LiveGrid({
     };
     create.mutate([insert], {
       onSuccess: () => {
-        // Remove committed row and append a fresh empty
-        setEmptyRows((prev) => [...prev.filter((r) => r._key !== row._key), makeEmptyRow()]);
+        setEmptyRows((prev) => [...prev.filter((r) => r._key !== row._key), makeEmptyRow(defaultAccount)]);
         onSaved();
       },
       onError: (err: any) => { onSaved(); toast.error("Failed to save", { description: err.message }); },
     });
-  }, [create, category, userId, onSaving, onSaved]);
+  }, [create, category, defaultAccount, userId, onSaving, onSaved]);
 
-  // Update empty row cell
   const updateEmptyCell = useCallback((key: string, field: ColKey, value: string) => {
     setEmptyRows((prev) => prev.map((r) => r._key === key ? { ...r, [field]: value } : r));
   }, []);
 
-  // Handle paste on the grid
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     const text = e.clipboardData.getData("text");
     const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-    if (lines.length <= 1 && !text.includes("\t")) return; // single value, let default behavior
+    if (lines.length <= 1 && !text.includes("\t")) return;
 
     e.preventDefault();
 
-    // Find active cell position
     const active = document.activeElement as HTMLElement | null;
     let startRow = 0;
     let startCol = 0;
@@ -362,11 +369,8 @@ function LiveGrid({
     if (active?.dataset.gridcol) startCol = parseInt(active.dataset.gridcol, 10) || 0;
 
     const fieldKeys = GRID_COLS.map((c) => c.key);
-
-    // Batch: collect new empty rows to create and existing rows to update
     const existingUpdates: { id: string; field: string; value: any }[] = [];
     const newEmptyUpdates: { key: string; field: ColKey; value: string }[] = [];
-    let extraEmptyNeeded = 0;
 
     const currentEmpty = [...emptyRows];
 
@@ -375,7 +379,6 @@ function LiveGrid({
       const cols = lines[i].split("\t");
 
       if (rowIdx < records.length) {
-        // Pasting into an existing saved row
         const rec = records[rowIdx];
         cols.forEach((val, ci) => {
           const colIdx = startCol + ci;
@@ -385,18 +388,15 @@ function LiveGrid({
           let normalized: any = val.trim();
           if (field === "wf_account") normalized = normalizeAccount(normalized);
           else if (field === "status") normalized = normalizeStatus(normalized);
-          else if (field === "amount") normalized = parseFloat(normalized) || null;
+          else if (field === "amount") normalized = parseFloat(normalized.replace(/[^0-9.\-]/g, "")) || null;
           else normalized = normalized || null;
           existingUpdates.push({ id: rec.id, field, value: normalized });
         });
       } else {
-        // Pasting into an empty row
         const emptyIdx = rowIdx - records.length;
         if (emptyIdx >= currentEmpty.length) {
-          // Need more empty rows
           const needed = emptyIdx - currentEmpty.length + 1;
-          for (let n = 0; n < needed; n++) currentEmpty.push(makeEmptyRow());
-          extraEmptyNeeded += needed;
+          for (let n = 0; n < needed; n++) currentEmpty.push(makeEmptyRow(defaultAccount));
         }
         const emptyRow = currentEmpty[emptyIdx];
         cols.forEach((val, ci) => {
@@ -412,7 +412,6 @@ function LiveGrid({
       }
     }
 
-    // Apply updates
     existingUpdates.forEach((u) => {
       onSaving();
       update.mutate({ id: u.id, [u.field]: u.value }, {
@@ -421,7 +420,6 @@ function LiveGrid({
       });
     });
 
-    // Update empty rows state
     setEmptyRows(() => {
       const updated = [...currentEmpty];
       newEmptyUpdates.forEach((u) => {
@@ -432,9 +430,8 @@ function LiveGrid({
     });
 
     toast.success(`Pasted ${lines.length} row${lines.length > 1 ? "s" : ""}`);
-  }, [records, emptyRows, canEditCol, update, onSaving, onSaved]);
+  }, [records, emptyRows, defaultAccount, canEditCol, update, onSaving, onSaved]);
 
-  // Commit all filled empty rows
   const commitAllFilled = useCallback(() => {
     const filled = emptyRows.filter(rowHasData);
     if (filled.length === 0) return;
@@ -443,7 +440,7 @@ function LiveGrid({
       status: r.status,
       wf_account: r.wf_account,
       wiring_date: r.wiring_date || null,
-      amount: r.amount ? parseFloat(r.amount) : null,
+      amount: r.amount ? parseFloat(r.amount.replace(/[^0-9.\-]/g, "")) : null,
       receipt_number: r.receipt_number || null,
       invoice_number: r.invoice_number || null,
       description: r.description || null,
@@ -456,43 +453,41 @@ function LiveGrid({
       onSuccess: () => {
         setEmptyRows((prev) => {
           const remaining = prev.filter((r) => !rowHasData(r));
-          // Ensure we keep at least EMPTY_ROWS_COUNT
           const needed = Math.max(0, EMPTY_ROWS_COUNT - remaining.length);
-          return [...remaining, ...makeEmptyRows(needed)];
+          return [...remaining, ...makeEmptyRows(needed, defaultAccount)];
         });
         onSaved();
         toast.success(`${inserts.length} wire${inserts.length > 1 ? "s" : ""} saved`);
       },
       onError: (err: any) => { onSaved(); toast.error("Failed", { description: err.message }); },
     });
-  }, [emptyRows, create, category, userId, onSaving, onSaved]);
+  }, [emptyRows, create, category, defaultAccount, userId, onSaving, onSaved]);
 
   const filledCount = emptyRows.filter(rowHasData).length;
 
   return (
     <Card className="bg-card shadow-sm overflow-hidden">
       <CardContent className="p-0">
-        {/* Grid toolbar */}
         {isAccounting && filledCount > 0 && (
           <div className="flex items-center justify-between border-b bg-muted/30 px-3 py-1.5">
-            <span className="text-xs text-muted-foreground tabular-nums">
+            <span className="text-[12px] text-muted-foreground tabular-nums">
               {filledCount} unsaved row{filledCount !== 1 ? "s" : ""} with data
             </span>
-            <Button size="sm" className="h-7 text-xs" onClick={commitAllFilled} disabled={create.isPending}>
+            <Button size="sm" className="h-7 text-[12px]" onClick={commitAllFilled} disabled={create.isPending}>
               {create.isPending ? "Saving…" : `Save ${filledCount} row${filledCount !== 1 ? "s" : ""}`}
             </Button>
           </div>
         )}
 
         <div ref={gridRef} className="overflow-auto max-h-[70vh]" onPaste={handlePaste}>
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-[13px] border-collapse">
             <thead className="sticky top-0 z-10">
               <tr className="bg-muted/60 border-b">
-                <th className="px-1 py-2 text-center text-[10px] font-medium text-muted-foreground w-8">#</th>
+                <th className="px-1 py-2 text-center text-[11px] font-medium text-muted-foreground w-8">#</th>
                 {GRID_COLS.map((col) => {
                   const locked = ACCOUNTING_COLS.includes(col.key) && !isAccounting;
                   return (
-                    <th key={col.key} className={`px-1.5 py-2 text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ${col.width}`}>
+                    <th key={col.key} className={`px-1.5 py-2 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider ${col.width}`}>
                       {col.label}{locked ? " 🔒" : ""}
                     </th>
                   );
@@ -510,7 +505,7 @@ function LiveGrid({
                     key={rowKey}
                     className={`border-b border-border/40 group transition-colors ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
                   >
-                    <td className="px-1 py-0.5 text-center text-[10px] text-muted-foreground tabular-nums select-none">
+                    <td className="px-1 py-0.5 text-center text-[11px] text-muted-foreground tabular-nums select-none">
                       {ri + 1}
                     </td>
 
@@ -519,26 +514,24 @@ function LiveGrid({
                       const value = (row as any)[col.key] ?? "";
 
                       if (!editable) {
-                        // Read-only cell
                         return (
                           <td key={col.key} className="px-1.5 py-0.5">
                             {col.key === "status" ? (
-                              empty ? <span className="text-xs text-muted-foreground/40">—</span> : <StatusBadge status={value} />
+                              empty ? <span className="text-[13px] text-muted-foreground/40">—</span> : <StatusBadge status={value} />
                             ) : col.key === "amount" && value ? (
-                              <span className="font-mono text-xs">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                              <span className="font-mono text-[13px]">${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             ) : (
-                              <span className="text-xs text-muted-foreground">{value || "—"}</span>
+                              <span className="text-[13px] text-muted-foreground">{value || "—"}</span>
                             )}
                           </td>
                         );
                       }
 
-                      // Editable cell
                       if (col.type === "status") {
                         return (
                           <td key={col.key} className="px-0.5 py-0.5">
                             <select
-                              className="w-full h-7 text-xs bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
+                              className="w-full h-7 text-[13px] bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
                               value={value || "Needs TRX ID"}
                               data-gridrow={ri}
                               data-gridcol={ci}
@@ -558,8 +551,8 @@ function LiveGrid({
                         return (
                           <td key={col.key} className="px-0.5 py-0.5">
                             <select
-                              className="w-full h-7 text-xs font-mono bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
-                              value={value || "WF-8022"}
+                              className="w-full h-7 text-[13px] font-mono bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
+                              value={value || defaultAccount}
                               data-gridrow={ri}
                               data-gridcol={ci}
                               onChange={(e) => {
@@ -574,34 +567,28 @@ function LiveGrid({
                         );
                       }
 
-                      // Text / number / date input
+                      // All fields are plain text inputs — no date pickers or number spinners
                       return (
                         <td key={col.key} className="px-0.5 py-0.5">
                           {empty ? (
                             <input
-                              className="w-full h-7 text-xs bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
-                              type={col.type === "number" ? "number" : col.type === "date" ? "date" : "text"}
-                              step={col.type === "number" ? "0.01" : undefined}
+                              className="w-full h-7 text-[13px] bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
+                              type="text"
                               value={value}
                               data-gridrow={ri}
                               data-gridcol={ci}
-                              placeholder={col.type === "number" ? "0.00" : ""}
+                              placeholder={col.key === "amount" ? "0.00" : col.key === "wiring_date" ? "MM/DD/YYYY" : ""}
                               onChange={(e) => updateEmptyCell(row._key, col.key, e.target.value)}
-                              onBlur={() => {
-                                // Auto-commit on blur if row has data
-                                const currentRow = emptyRows.find((r) => r._key === row._key);
-                                // Don't auto-commit, let user click Save
-                              }}
                             />
                           ) : (
                             <InlineEditCell
                               value={String(value ?? "")}
-                              type={col.type}
+                              isAmount={col.key === "amount"}
                               gridRow={ri}
                               gridCol={ci}
                               onSave={(v) => {
                                 let parsed: any = v || null;
-                                if (col.type === "number") parsed = parseFloat(v) || null;
+                                if (col.key === "amount") parsed = parseFloat((v || "").replace(/[^0-9.\-]/g, "")) || null;
                                 saveField(row.id, col.key, parsed);
                               }}
                             />
@@ -610,7 +597,6 @@ function LiveGrid({
                       );
                     })}
 
-                    {/* Delete button for saved rows */}
                     {isAccounting && (
                       <td className="px-0.5 py-0.5 w-8">
                         {!empty && (
@@ -649,12 +635,11 @@ function LiveGrid({
           </table>
         </div>
 
-        {/* Tip bar */}
         <div className="flex items-center justify-between border-t bg-muted/20 px-3 py-1.5">
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-[12px] text-muted-foreground">
             Tip: Select a cell and paste from Excel — rows & columns auto-map
           </span>
-          <span className="text-[11px] text-muted-foreground tabular-nums">
+          <span className="text-[12px] text-muted-foreground tabular-nums">
             {records.length} saved · {emptyRows.length} blank rows
           </span>
         </div>
@@ -667,13 +652,13 @@ function LiveGrid({
 
 function InlineEditCell({
   value,
-  type,
+  isAmount,
   gridRow,
   gridCol,
   onSave,
 }: {
   value: string;
-  type: string;
+  isAmount: boolean;
   gridRow: number;
   gridCol: number;
   onSave: (v: string) => void;
@@ -684,12 +669,12 @@ function InlineEditCell({
   useEffect(() => { setLocal(value); }, [value]);
 
   if (!editing) {
-    const display = type === "number" && value
+    const display = isAmount && value
       ? `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`
       : value || "—";
     return (
       <button
-        className="w-full min-w-[40px] h-7 rounded px-1 text-left text-xs transition-colors hover:bg-muted/60 truncate"
+        className="w-full min-w-[40px] h-7 rounded px-1 text-left text-[13px] transition-colors hover:bg-muted/60 truncate"
         onClick={() => { setLocal(value); setEditing(true); }}
         data-gridrow={gridRow}
         data-gridcol={gridCol}
@@ -701,9 +686,8 @@ function InlineEditCell({
 
   return (
     <input
-      className="w-full h-7 text-xs bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1"
-      type={type === "number" ? "number" : type === "date" ? "date" : "text"}
-      step={type === "number" ? "0.01" : undefined}
+      className="w-full h-7 text-[13px] bg-background border border-input outline-none focus:ring-1 focus:ring-ring rounded px-1"
+      type="text"
       value={local}
       data-gridrow={gridRow}
       data-gridcol={gridCol}
@@ -729,5 +713,5 @@ function LoadingSkeleton() {
 }
 
 function ErrorMsg({ error }: { error: unknown }) {
-  return <p className="p-4 text-center text-sm text-destructive">Error: {(error as Error).message}</p>;
+  return <p className="p-4 text-center text-[13px] text-destructive">Error: {(error as Error).message}</p>;
 }
