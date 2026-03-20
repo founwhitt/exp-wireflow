@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, Download, Trash2, Check, Loader2, ChevronDown, ChevronUp, Eye, EyeOff, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
+import { Search, Filter, Download, Trash2, Check, Loader2, ChevronDown, ChevronUp, Eye, EyeOff, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
