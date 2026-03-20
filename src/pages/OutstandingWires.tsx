@@ -298,6 +298,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                wrapText={wrapText}
               />
               <CollapsibleAccountSection
                 title="Wells Fargo — XXXX-3694"
