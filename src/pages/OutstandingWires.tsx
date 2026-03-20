@@ -736,5 +736,5 @@ function LoadingSkeleton() {
 }
 
 function ErrorMsg({ error }: { error: unknown }) {
-  return <p className="p-4 text-center text-[13px] text-destructive">Error: {(error as Error).message}</p>;
+  return <p className="p-4 text-center text-[14px] text-destructive">Error: {(error as Error).message}</p>;
 }
