@@ -371,6 +371,10 @@ export default function Dashboard() {
           <Download className="h-4 w-4" />
           Export
         </Button>
+        <Button size="sm" className="h-8" onClick={() => setShowAddEntry(true)}>
+          <Plus className="h-4 w-4 mr-1" />
+          Add Entry
+        </Button>
       </div>
 
       {/* Data table */}
