@@ -336,14 +336,21 @@ export default function OutstandingWires() {
 // ---- Collapsible Account Section ----
 
 function CollapsibleAccountSection({
-  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit,
+  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapsed,
 }: {
   title: string; dotColor: string; records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string; isAccounting: boolean; isAdmin: boolean;
   userId: string | null; onSaving: () => void; onSaved: () => void;
-  pushUndo: (e: UndoEntry) => void; initialLimit: number;
+  pushUndo: (e: UndoEntry) => void; initialLimit: number; forceCollapsed?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+
+  // Respond to global collapse/expand
+  useEffect(() => {
+    if (forceCollapsed === true) setExpanded(false);
+    if (forceCollapsed === false) setExpanded(true);
+  }, [forceCollapsed]);
+
   const maxRows = expanded ? undefined : initialLimit;
 
   return (
