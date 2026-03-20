@@ -544,8 +544,24 @@ export default function Dashboard() {
               <Input placeholder="Company LLC" value={addEntryData.customerName} onChange={(e) => setAddEntryData(d => ({ ...d, customerName: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">Invoice #</Label>
-              <Input placeholder="INV-2026-..." value={addEntryData.invoiceNumber} onChange={(e) => setAddEntryData(d => ({ ...d, invoiceNumber: e.target.value }))} />
+              <Label className="text-xs font-semibold text-muted-foreground">Wiring Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !addEntryData.wiringDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {addEntryData.wiringDate ? format(addEntryData.wiringDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={addEntryData.wiringDate}
+                    onSelect={(d) => setAddEntryData(prev => ({ ...prev, wiringDate: d }))}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
