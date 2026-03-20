@@ -148,7 +148,7 @@ export default function OutstandingWires() {
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search description, invoice, receipt..." className="h-9 pl-9 text-[13px]" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Search description, invoice, receipt..." className="h-9 pl-9 text-[14px]" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div className="flex items-center gap-1">
           <Filter className="h-4 w-4 text-muted-foreground" />
