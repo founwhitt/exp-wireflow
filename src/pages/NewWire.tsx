@@ -301,7 +301,7 @@ export default function NewWire() {
                 <div className="relative">
                   <Layers className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 z-10 pointer-events-none" />
                   <Select value={department} onValueChange={(v) => setDepartment(v as Department)}>
-                    <SelectTrigger className="h-11 rounded-[10px] pl-10 text-sm border-0 bg-[#F1F5F9] focus:bg-white focus:ring-2 focus:ring-[#0056D2] transition-all">
+                    <SelectTrigger className="h-11 rounded-[10px] pl-10 text-sm border-0 bg-muted/30 focus:bg-card focus:ring-2 focus:ring-primary transition-all">
                       <SelectValue placeholder="Select department..." />
                     </SelectTrigger>
                     <SelectContent>
