@@ -24,6 +24,7 @@ import {
   type CustomWireInstruction,
 } from "@/hooks/useCustomWireInstructions";
 import { WIRE_INSTRUCTIONS } from "@/lib/wire-instructions";
+import { ManageOptionsDialog } from "@/components/ManageOptionsDialog";
 
 const EMPTY_FORM = {
   name: "",
@@ -48,7 +49,7 @@ export default function AdminWireInstructions() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-
+  const [manageAccountsOpen, setManageAccountsOpen] = useState(false);
   if (!isAdmin) return <Navigate to="/" replace />;
 
   const openCreate = () => {
@@ -138,12 +139,16 @@ export default function AdminWireInstructions() {
             Manage default and custom wire instructions. All sensitive data is masked for demo purposes.
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Custom
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setManageAccountsOpen(true)}>
+            Manage Accounts
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Custom
+          </Button>
+        </div>
       </div>
-
       {/* Built-in instructions */}
       <Card>
         <CardHeader className="pb-3">
@@ -361,6 +366,7 @@ export default function AdminWireInstructions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ManageOptionsDialog open={manageAccountsOpen} onOpenChange={setManageAccountsOpen} />
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function AppNav() {
           </span>
         </div>
 
-        <nav className="flex items-center gap-1">
+        <nav className="flex flex-1 items-center justify-center gap-4">
           <NavLink
             to="/"
             end

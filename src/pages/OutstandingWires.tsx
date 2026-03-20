@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, Download, Check, Loader2, ChevronDown, ChevronUp, Eye, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft } from "lucide-react";
+import { Search, Filter, Download, Check, Loader2, ChevronDown, ChevronUp, Eye, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft, Settings2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,8 @@ import {
 } from "@/hooks/useOutstandingWires";
 import { useAuth } from "@/hooks/useAuth";
 import { StatusBadge } from "@/components/StatusBadge";
+import { useOwAccounts, useOwStatuses, useOwConfig, useCreateOwConfig, useUpdateOwConfig, useDeleteOwConfig } from "@/hooks/useOwConfig";
+import { ManageOptionsDialog } from "@/components/ManageOptionsDialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -145,6 +147,7 @@ export default function OutstandingWires() {
   const { isAccounting, isAdmin, user } = useAuth();
   const [tab, setTab] = useState("realty");
   const [allCollapsed, setAllCollapsed] = useState(false);
+  const [collapseSignal, setCollapseSignal] = useState<{ value: boolean; ts: number } | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -215,6 +218,20 @@ export default function OutstandingWires() {
   const realty8022 = useMemo(() => filtered.filter((r) => r.wf_account === "WF-8022"), [filtered]);
   const realty3694 = useMemo(() => filtered.filter((r) => r.wf_account === "WF-3694"), [filtered]);
 
+  // Dynamic grouping for commercial/international by wf_account
+  const owAccounts = useOwAccounts();
+  const groupedByAccount = useMemo(() => {
+    const map = new Map<string, OutstandingWire[]>();
+    filtered.forEach((r) => {
+      const acct = r.wf_account || "WF-8022";
+      if (!map.has(acct)) map.set(acct, []);
+      map.get(acct)!.push(r);
+    });
+    return map;
+  }, [filtered]);
+
+  const [manageOptionsOpen, setManageOptionsOpen] = useState(false);
+
   const activeCols = tab === "payload" ? PAYLOAD_COLS : DEFAULT_COLS;
 
   return (
@@ -229,12 +246,17 @@ export default function OutstandingWires() {
         </div>
         <div className="flex items-center gap-3">
           <SaveIndicator status={saveStatus} />
-          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setAllCollapsed(false)}>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCollapseSignal({ value: false, ts: Date.now() })}>
             <ChevronDown className="h-3.5 w-3.5 mr-1" />Expand All
           </Button>
-          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setAllCollapsed(true)}>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCollapseSignal({ value: true, ts: Date.now() })}>
             <ChevronUp className="h-3.5 w-3.5 mr-1" />Collapse All
           </Button>
+          {(isAccounting || isAdmin) && (
+            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setManageOptionsOpen(true)}>
+              <Settings2 className="h-3.5 w-3.5 mr-1" />Manage Options
+            </Button>
+          )}
         </div>
       </div>
 
@@ -284,7 +306,8 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
-                forceCollapsed={allCollapsed}
+                forceCollapseSignal={collapseSignal}
+                owAccounts={owAccounts}
               />
               <CollapsibleAccountSection
                 title="Wells Fargo — XXXX-3694"
@@ -300,35 +323,88 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
-                forceCollapsed={allCollapsed}
+                forceCollapseSignal={collapseSignal}
+                owAccounts={owAccounts}
               />
             </>
           )}
         </TabsContent>
 
-        {["payload", "commercial", "international"].map((t) => (
-          <TabsContent key={t} value={t} className="mt-4">
+        {/* Payload: single section, no account column */}
+        <TabsContent value="payload" className="mt-4">
+          {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
+            <CollapsibleAccountSection
+              title="Payload"
+              dotColor="bg-accent"
+              records={filtered}
+              cols={PAYLOAD_COLS}
+              category="payload"
+              defaultAccount="WF-8022"
+              isAccounting={isAccounting}
+              isAdmin={isAdmin}
+              userId={user?.id ?? null}
+              onSaving={markSaving}
+              onSaved={markSaved}
+              pushUndo={pushUndo}
+              initialLimit={10}
+              forceCollapseSignal={collapseSignal}
+              owAccounts={owAccounts}
+            />
+          )}
+        </TabsContent>
+
+        {/* Commercial & International: dynamic grouping by account */}
+        {["commercial", "international"].map((t) => (
+          <TabsContent key={t} value={t} className="mt-4 space-y-6">
             {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
-              <CollapsibleAccountSection
-                title={t.charAt(0).toUpperCase() + t.slice(1)}
-                dotColor="bg-accent"
-                records={filtered}
-                cols={t === "payload" ? PAYLOAD_COLS : DEFAULT_COLS}
-                category={t}
-                defaultAccount="WF-8022"
-                isAccounting={isAccounting}
-                isAdmin={isAdmin}
-                userId={user?.id ?? null}
-                onSaving={markSaving}
-                onSaved={markSaved}
-                pushUndo={pushUndo}
-                initialLimit={10}
-                forceCollapsed={allCollapsed}
-              />
+              <>
+                {[...groupedByAccount.entries()].map(([acct, recs]) => (
+                  <CollapsibleAccountSection
+                    key={acct}
+                    title={`${t.charAt(0).toUpperCase() + t.slice(1)} — ${acct}`}
+                    dotColor="bg-accent"
+                    records={recs}
+                    cols={DEFAULT_COLS}
+                    category={t}
+                    defaultAccount={acct}
+                    isAccounting={isAccounting}
+                    isAdmin={isAdmin}
+                    userId={user?.id ?? null}
+                    onSaving={markSaving}
+                    onSaved={markSaved}
+                    pushUndo={pushUndo}
+                    initialLimit={10}
+                    forceCollapseSignal={collapseSignal}
+                    owAccounts={owAccounts}
+                  />
+                ))}
+                {groupedByAccount.size === 0 && (
+                  <CollapsibleAccountSection
+                    title={`${t.charAt(0).toUpperCase() + t.slice(1)}`}
+                    dotColor="bg-accent"
+                    records={[]}
+                    cols={DEFAULT_COLS}
+                    category={t}
+                    defaultAccount={owAccounts[0]?.value || "WF-8022"}
+                    isAccounting={isAccounting}
+                    isAdmin={isAdmin}
+                    userId={user?.id ?? null}
+                    onSaving={markSaving}
+                    onSaved={markSaved}
+                    pushUndo={pushUndo}
+                    initialLimit={10}
+                    forceCollapseSignal={collapseSignal}
+                    owAccounts={owAccounts}
+                  />
+                )}
+              </>
             )}
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Manage Options Dialog */}
+      <ManageOptionsDialog open={manageOptionsOpen} onOpenChange={setManageOptionsOpen} />
     </div>
   );
 }
@@ -336,20 +412,37 @@ export default function OutstandingWires() {
 // ---- Collapsible Account Section ----
 
 function CollapsibleAccountSection({
-  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapsed,
+  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapseSignal, owAccounts,
 }: {
   title: string; dotColor: string; records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string; isAccounting: boolean; isAdmin: boolean;
   userId: string | null; onSaving: () => void; onSaved: () => void;
-  pushUndo: (e: UndoEntry) => void; initialLimit: number; forceCollapsed?: boolean;
+  pushUndo: (e: UndoEntry) => void; initialLimit: number;
+  forceCollapseSignal?: { value: boolean; ts: number } | null;
+  owAccounts: { value: string; label: string }[];
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const lsKey = `ow-expanded-${title}`;
+  const [expanded, setExpanded] = useState(() => {
+    try {
+      const saved = localStorage.getItem(lsKey);
+      if (saved !== null) return saved === "true";
+    } catch {}
+    return false;
+  });
 
-  // Respond to global collapse/expand
+  // Persist to localStorage
+  const toggleExpanded = useCallback((val: boolean) => {
+    setExpanded(val);
+    try { localStorage.setItem(lsKey, String(val)); } catch {}
+  }, [lsKey]);
+
+  // Respond to global collapse/expand signal
   useEffect(() => {
-    if (forceCollapsed === true) setExpanded(false);
-    if (forceCollapsed === false) setExpanded(true);
-  }, [forceCollapsed]);
+    if (!forceCollapseSignal) return;
+    const val = !forceCollapseSignal.value;
+    setExpanded(val);
+    try { localStorage.setItem(lsKey, String(val)); } catch {}
+  }, [forceCollapseSignal, lsKey]);
 
   const maxRows = expanded ? undefined : initialLimit;
 
@@ -372,13 +465,14 @@ function CollapsibleAccountSection({
         onSaved={onSaved}
         pushUndo={pushUndo}
         maxRows={maxRows}
+        owAccounts={owAccounts}
       />
       {!expanded && (
         <Button
           variant="ghost"
           size="sm"
           className="mt-1 w-full text-muted-foreground hover:text-foreground"
-          onClick={() => setExpanded(true)}
+          onClick={() => toggleExpanded(true)}
         >
           <ChevronDown className="h-4 w-4 mr-1" />Expand{records.length > initialLimit ? ` (${records.length} records)` : ""}
         </Button>
@@ -388,7 +482,7 @@ function CollapsibleAccountSection({
           variant="ghost"
           size="sm"
           className="mt-1 w-full text-muted-foreground hover:text-foreground"
-          onClick={() => setExpanded(false)}
+          onClick={() => toggleExpanded(false)}
         >
           <ChevronUp className="h-4 w-4 mr-1" />Collapse to {initialLimit} rows
         </Button>
@@ -462,7 +556,7 @@ interface CtxMenuState {
 }
 
 function LiveGrid({
-  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows,
+  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows, owAccounts,
 }: {
   records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string;
@@ -471,6 +565,7 @@ function LiveGrid({
   onSaving: () => void; onSaved: () => void;
   pushUndo: (e: UndoEntry) => void;
   maxRows?: number;
+  owAccounts: { value: string; label: string }[];
 }) {
   const create = useCreateOutstandingWires();
   const update = useUpdateOutstandingWire();
@@ -1097,8 +1192,14 @@ function LiveGrid({
                     else saveField(row.id, col.key, e.target.value, value);
                   }}
                 >
-                  <option value="WF-8022">XXXX-8022</option>
-                  <option value="WF-3694">XXXX-3694</option>
+                  {owAccounts.length > 0 ? owAccounts.map((a) => (
+                    <option key={a.value} value={a.value}>{a.label}</option>
+                  )) : (
+                    <>
+                      <option value="WF-8022">XXXX-8022</option>
+                      <option value="WF-3694">XXXX-3694</option>
+                    </>
+                  )}
                 </select>
               </td>
             );
