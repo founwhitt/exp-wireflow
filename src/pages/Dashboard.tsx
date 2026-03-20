@@ -6,15 +6,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
-import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X, Columns3, Eye, EyeOff } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Search, Filter, Download, ArrowUp, ArrowDown, ArrowUpDown, X, Columns3, Eye, EyeOff, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { useWireRecords, type WireRecord } from "@/hooks/useWireRecords";
+import { useWireRecords, useCreateWireRecord, type WireRecord } from "@/hooks/useWireRecords";
 import { InlineEditRow } from "@/components/InlineEditRow";
 import { WireDetailDialog } from "@/components/WireDetailDialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { type Department, DEPARTMENTS } from "@/lib/department-config";
+import { toast } from "sonner";
 
 const DEFAULT_COL_WIDTHS: Record<string, number> = {
   tid: 100, department: 130, sent_by: 120, customer: 130, address: 180, balance: 110,
@@ -69,7 +74,8 @@ type SortDir = "asc" | "desc" | null;
 
 export default function Dashboard() {
   const { data: records, isLoading, error } = useWireRecords();
-  const { isAdmin } = useAuth();
+  const createRecord = useCreateWireRecord();
+  const { isAdmin, user } = useAuth();
   const location = useLocation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -81,6 +87,17 @@ export default function Dashboard() {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   const [hideReconciled, setHideReconciled] = useState(false);
+  const [showAddEntry, setShowAddEntry] = useState(false);
+  const [addEntryData, setAddEntryData] = useState({
+    tid: "",
+    department: "" as Department | "",
+    customerName: "",
+    propertyAddress: "",
+    agentName: "",
+    balanceDue: "",
+    invoiceNumber: "",
+    dealNotes: "",
+  });
 
   // Highlight wire after creation
   useEffect(() => {
@@ -200,9 +217,42 @@ export default function Dashboard() {
     return [arr[idx], ...arr.slice(0, idx), ...arr.slice(idx + 1)];
   };
 
-  const filtered3694 = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.wf_account === "3694"));
-  const filtered8022 = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.wf_account === "8022"));
-  const filteredOther = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.wf_account !== "3694" && r.wf_account !== "8022"));
+  const filteredNonPayload = filtered.filter((r) => r.department !== "Payload");
+  const filteredPayload = isSorted ? [] : sortWithHighlightFirst(filtered.filter((r) => r.department === "Payload"));
+  const filtered3694 = isSorted ? [] : sortWithHighlightFirst(filteredNonPayload.filter((r) => r.wf_account === "3694"));
+  const filtered8022 = isSorted ? [] : sortWithHighlightFirst(filteredNonPayload.filter((r) => r.wf_account === "8022"));
+  const filteredOther = isSorted ? [] : sortWithHighlightFirst(filteredNonPayload.filter((r) => r.wf_account !== "3694" && r.wf_account !== "8022"));
+
+  const handleAddEntry = async () => {
+    if (!addEntryData.tid.trim() || !addEntryData.department) {
+      toast.error("TID and Department are required");
+      return;
+    }
+    const dept = addEntryData.department as Department;
+    const wfAccount = DEPARTMENTS[dept].wfAccount;
+    try {
+      const result: any = await createRecord.mutateAsync({
+        tid: addEntryData.tid.toUpperCase().trim(),
+        department: dept,
+        wf_account: wfAccount ?? "N/A",
+        customer_name: addEntryData.customerName || null,
+        property_address: addEntryData.propertyAddress || null,
+        agent_name: addEntryData.agentName || null,
+        balance_due: addEntryData.balanceDue ? parseFloat(addEntryData.balanceDue) : null,
+        invoice_number: addEntryData.invoiceNumber || null,
+        deal_notes: addEntryData.dealNotes || null,
+        status: "Pending",
+        created_by: user?.id ?? null,
+      });
+      toast.success(`Record ${addEntryData.tid.toUpperCase().trim()} added`);
+      setHighlightId(result.id);
+      setTimeout(() => setHighlightId(null), 9000);
+      setShowAddEntry(false);
+      setAddEntryData({ tid: "", department: "", customerName: "", propertyAddress: "", agentName: "", balanceDue: "", invoiceNumber: "", dealNotes: "" });
+    } catch (err: any) {
+      toast.error("Failed to add record", { description: err.message });
+    }
+  };
 
   const counts = {
     total: records?.length ?? 0,
@@ -321,6 +371,10 @@ export default function Dashboard() {
           <Download className="h-4 w-4" />
           Export
         </Button>
+        <Button size="sm" className="h-8" onClick={() => setShowAddEntry(true)}>
+          <Plus className="h-4 w-4 mr-1" />
+          Add Entry
+        </Button>
       </div>
 
       {/* Data table */}
@@ -426,6 +480,18 @@ export default function Dashboard() {
                           ))}
                         </>
                       )}
+                      {filteredPayload.length > 0 && (
+                        <>
+                          <TableRow>
+                            <TableCell colSpan={visibleColCount} className="bg-violet-50 dark:bg-violet-950/30 py-2 font-semibold text-violet-800 dark:text-violet-300 border-b-2 border-violet-200 dark:border-violet-800">
+                              Payload ({filteredPayload.length} records)
+                            </TableCell>
+                          </TableRow>
+                          {filteredPayload.map((record) => (
+                            <InlineEditRow key={record.id} record={record} onSelectRecord={setSelectedRecord} isHighlighted={record.id === highlightId} hiddenCols={hiddenCols} />
+                          ))}
+                        </>
+                      )}
                     </>
                   )}
                 </TableBody>
@@ -441,6 +507,69 @@ export default function Dashboard() {
       open={!!selectedRecord}
       onOpenChange={(open) => { if (!open) setSelectedRecord(null); }}
     />
+
+    {/* Add Entry Dialog */}
+    <Dialog open={showAddEntry} onOpenChange={setShowAddEntry}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add Wire Record</DialogTitle>
+          <DialogDescription>Manually add an expected wire entry. Status will be set to Pending.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">TID *</Label>
+              <Input placeholder="TID-XXXXX" value={addEntryData.tid} onChange={(e) => setAddEntryData(d => ({ ...d, tid: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Department *</Label>
+              <Select value={addEntryData.department} onValueChange={(v) => setAddEntryData(d => ({ ...d, department: v as Department }))}>
+                <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(DEPARTMENTS).map(([key, cfg]) => (
+                    <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Customer Name</Label>
+              <Input placeholder="Company LLC" value={addEntryData.customerName} onChange={(e) => setAddEntryData(d => ({ ...d, customerName: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Invoice #</Label>
+              <Input placeholder="INV-2026-..." value={addEntryData.invoiceNumber} onChange={(e) => setAddEntryData(d => ({ ...d, invoiceNumber: e.target.value }))} />
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Property Address</Label>
+              <Input placeholder="123 Main St" value={addEntryData.propertyAddress} onChange={(e) => setAddEntryData(d => ({ ...d, propertyAddress: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-muted-foreground">Agent Name</Label>
+              <Input placeholder="Agent name" value={addEntryData.agentName} onChange={(e) => setAddEntryData(d => ({ ...d, agentName: e.target.value }))} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-muted-foreground">Balance Due</Label>
+            <Input type="number" placeholder="0.00" value={addEntryData.balanceDue} onChange={(e) => setAddEntryData(d => ({ ...d, balanceDue: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-muted-foreground">Notes</Label>
+            <Textarea rows={2} placeholder="Deal notes..." value={addEntryData.dealNotes} onChange={(e) => setAddEntryData(d => ({ ...d, dealNotes: e.target.value }))} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowAddEntry(false)}>Cancel</Button>
+          <Button onClick={handleAddEntry} disabled={createRecord.isPending}>
+            {createRecord.isPending ? "Adding..." : "Add Record"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </>
   );
 }

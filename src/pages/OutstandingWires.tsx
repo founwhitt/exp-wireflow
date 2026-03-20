@@ -144,6 +144,7 @@ export default function OutstandingWires() {
   const { data: records, isLoading, error } = useOutstandingWires();
   const { isAccounting, isAdmin, user } = useAuth();
   const [tab, setTab] = useState("realty");
+  const [allCollapsed, setAllCollapsed] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -228,6 +229,12 @@ export default function OutstandingWires() {
         </div>
         <div className="flex items-center gap-3">
           <SaveIndicator status={saveStatus} />
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setAllCollapsed(false)}>
+            <ChevronDown className="h-3.5 w-3.5 mr-1" />Expand All
+          </Button>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setAllCollapsed(true)}>
+            <ChevronUp className="h-3.5 w-3.5 mr-1" />Collapse All
+          </Button>
         </div>
       </div>
 
@@ -253,11 +260,11 @@ export default function OutstandingWires() {
 
       {/* Sub-tabs */}
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-fit">
-          <TabsTrigger value="realty">Realty</TabsTrigger>
-          <TabsTrigger value="payload">Payload</TabsTrigger>
-          <TabsTrigger value="commercial">Commercial</TabsTrigger>
-          <TabsTrigger value="international">International</TabsTrigger>
+        <TabsList className="w-full">
+          <TabsTrigger value="realty" className="flex-1">Realty</TabsTrigger>
+          <TabsTrigger value="payload" className="flex-1">Payload</TabsTrigger>
+          <TabsTrigger value="commercial" className="flex-1">Commercial</TabsTrigger>
+          <TabsTrigger value="international" className="flex-1">International</TabsTrigger>
         </TabsList>
 
         <TabsContent value="realty" className="mt-4 space-y-6">
@@ -277,6 +284,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                forceCollapsed={allCollapsed}
               />
               <CollapsibleAccountSection
                 title="Wells Fargo — XXXX-3694"
@@ -292,6 +300,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                forceCollapsed={allCollapsed}
               />
             </>
           )}
@@ -314,6 +323,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                forceCollapsed={allCollapsed}
               />
             )}
           </TabsContent>
@@ -326,14 +336,21 @@ export default function OutstandingWires() {
 // ---- Collapsible Account Section ----
 
 function CollapsibleAccountSection({
-  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit,
+  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapsed,
 }: {
   title: string; dotColor: string; records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string; isAccounting: boolean; isAdmin: boolean;
   userId: string | null; onSaving: () => void; onSaved: () => void;
-  pushUndo: (e: UndoEntry) => void; initialLimit: number;
+  pushUndo: (e: UndoEntry) => void; initialLimit: number; forceCollapsed?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+
+  // Respond to global collapse/expand
+  useEffect(() => {
+    if (forceCollapsed === true) setExpanded(false);
+    if (forceCollapsed === false) setExpanded(true);
+  }, [forceCollapsed]);
+
   const maxRows = expanded ? undefined : initialLimit;
 
   return (

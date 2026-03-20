@@ -8,9 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical, CheckCircle2, Layers, Hash, PenLine, MailX } from "lucide-react";
+import { Send, Search, Building2, FileText, MapPin, User, DollarSign, AlertCircle, FlaskConical, CheckCircle2, Layers, Hash } from "lucide-react";
 import { toast } from "sonner";
 import { lookupTID, type TIDData } from "@/lib/mock-data";
 import { type Department, DEPARTMENTS, getWFAccount } from "@/lib/department-config";
@@ -19,14 +18,11 @@ import { useCreateWireRecord } from "@/hooks/useWireRecords";
 import { EmailPreviewDialog } from "@/components/EmailPreviewDialog";
 import { useAuth } from "@/hooks/useAuth";
 
-type EntryMode = "lookup" | "manual";
-
 export default function NewWire() {
   const navigate = useNavigate();
   const createRecord = useCreateWireRecord();
   const { user } = useAuth();
   const [department, setDepartment] = useState<Department | "">("");
-  const [entryMode, setEntryMode] = useState<EntryMode>("lookup");
   const [tid, setTid] = useState("");
   const [tidData, setTidData] = useState<TIDData | null>(null);
   const [emailRecipient, setEmailRecipient] = useState("");
@@ -35,29 +31,7 @@ export default function NewWire() {
   const [showPreview, setShowPreview] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [skipEmail, setSkipEmail] = useState(false);
   const [lastSentData, setLastSentData] = useState<{ email: string; pdf: string; tid: string; address: string; agent: string; wireId: string } | null>(null);
-
-  // Manual entry fields
-  const [manualData, setManualData] = useState({
-    invoiceNumber: "",
-    invoiceDate: "",
-    originalAmount: "",
-    balanceDue: "",
-    customerName: "",
-    entity: "",
-    customerIdPrefix: "",
-    customerIdSuffix: "",
-    propertyAddress: "",
-    transactionState: "",
-    agentName: "",
-    assignedAnalyst: "",
-    dealNotes: "",
-  });
-
-  const updateManual = (field: string, value: string) => {
-    setManualData((prev) => ({ ...prev, [field]: value }));
-  };
 
   const handleLookup = () => {
     setLookupError("");
@@ -80,26 +54,8 @@ export default function NewWire() {
     }, 800);
   };
 
-  // Resolved data from either lookup or manual entry
-  const resolvedData: TIDData | null = entryMode === "lookup"
-    ? tidData
-    : (tid.trim() && manualData.customerName.trim())
-      ? {
-          invoiceNumber: manualData.invoiceNumber,
-          invoiceDate: manualData.invoiceDate,
-          originalAmount: parseFloat(manualData.originalAmount) || 0,
-          balanceDue: parseFloat(manualData.balanceDue) || 0,
-          customerName: manualData.customerName,
-          entity: manualData.entity,
-          customerIdPrefix: manualData.customerIdPrefix,
-          customerIdSuffix: manualData.customerIdSuffix,
-          propertyAddress: manualData.propertyAddress,
-          transactionState: manualData.transactionState,
-          agentName: manualData.agentName,
-          assignedAnalyst: manualData.assignedAnalyst,
-          dealNotes: manualData.dealNotes,
-        }
-      : null;
+  // Only departments with wire accounts can be used here
+  const wireDepartments = Object.entries(DEPARTMENTS).filter(([, cfg]) => cfg.wfAccount !== null);
 
   const wfAccount = department ? getWFAccount(department as Department) : null;
 
@@ -111,20 +67,20 @@ export default function NewWire() {
     pdfFileName = wfAccount === "8022" ? "8022_wire_instructions.pdf" : "3694_wire_instructions.pdf";
   }
 
-  const emailBody = resolvedData && wireDetails
+  const emailBody = tidData && wireDetails
     ? formatEmailBody({
         tid: tid.toUpperCase().trim(),
-        propertyAddress: resolvedData.propertyAddress,
-        agentName: resolvedData.agentName,
-        balanceDue: resolvedData.balanceDue,
-        customerName: resolvedData.customerName,
+        propertyAddress: tidData.propertyAddress,
+        agentName: tidData.agentName,
+        balanceDue: tidData.balanceDue,
+        customerName: tidData.customerName,
         wire: wireDetails,
       })
     : "";
 
   const handlePreviewOrSend = () => {
-    if (!department || !resolvedData) {
-      toast.error("Please select a department and enter deal data first");
+    if (!department || !tidData) {
+      toast.error("Please select a department and look up deal data first");
       return;
     }
     if (!tid.trim()) {
@@ -138,57 +94,43 @@ export default function NewWire() {
     setShowPreview(true);
   };
 
-  const buildRecordPayload = (isSaveOnly: boolean) => {
+  const buildRecordPayload = () => {
     return {
       tid: tid.toUpperCase().trim(),
       department: department as string,
       wf_account: wfAccount as string,
-      invoice_number: resolvedData!.invoiceNumber,
-      invoice_date: resolvedData!.invoiceDate || null,
-      original_amount: resolvedData!.originalAmount || null,
-      balance_due: resolvedData!.balanceDue || null,
-      customer_name: resolvedData!.customerName,
-      entity: resolvedData!.entity || null,
-      customer_id_prefix: resolvedData!.customerIdPrefix || null,
-      customer_id_suffix: resolvedData!.customerIdSuffix || null,
-      property_address: resolvedData!.propertyAddress || null,
-      transaction_state: resolvedData!.transactionState || null,
-      agent_name: resolvedData!.agentName || null,
-      assigned_analyst: resolvedData!.assignedAnalyst || null,
-      deal_notes: resolvedData!.dealNotes || null,
-      email_sent: isSaveOnly ? false : !testMode,
-      email_sent_at: isSaveOnly || testMode ? null : new Date().toISOString(),
-      email_recipient: isSaveOnly ? null : emailRecipient,
-      status: isSaveOnly ? "Pending" : "Sent",
+      invoice_number: tidData!.invoiceNumber,
+      invoice_date: tidData!.invoiceDate || null,
+      original_amount: tidData!.originalAmount || null,
+      balance_due: tidData!.balanceDue || null,
+      customer_name: tidData!.customerName,
+      entity: tidData!.entity || null,
+      customer_id_prefix: tidData!.customerIdPrefix || null,
+      customer_id_suffix: tidData!.customerIdSuffix || null,
+      property_address: tidData!.propertyAddress || null,
+      transaction_state: tidData!.transactionState || null,
+      agent_name: tidData!.agentName || null,
+      assigned_analyst: tidData!.assignedAnalyst || null,
+      deal_notes: tidData!.dealNotes || null,
+      email_sent: !testMode,
+      email_sent_at: testMode ? null : new Date().toISOString(),
+      email_recipient: emailRecipient,
+      status: "Sent",
       created_by: user?.id ?? null,
     };
   };
 
-  const handleSaveOnly = async () => {
-    if (!department || !resolvedData || !tid.trim()) {
-      toast.error("Please fill in department, TID, and deal data");
-      return;
-    }
-    try {
-      const result: any = await createRecord.mutateAsync(buildRecordPayload(true));
-      toast.success(`Record ${tid.toUpperCase().trim()} saved to dashboard`);
-      navigate("/expected-wires", { state: { highlightWireId: result.id } });
-    } catch (err: any) {
-      toast.error("Failed to save record", { description: err.message });
-    }
-  };
-
   const handleConfirmSend = async () => {
-    if (!department || !resolvedData) return;
+    if (!department || !tidData) return;
     try {
-      const result: any = await createRecord.mutateAsync(buildRecordPayload(false));
+      const result: any = await createRecord.mutateAsync(buildRecordPayload());
       setShowPreview(false);
       setLastSentData({
         email: emailRecipient,
         pdf: pdfFileName,
         tid: tid.toUpperCase().trim(),
-        address: resolvedData.propertyAddress,
-        agent: resolvedData.agentName,
+        address: tidData.propertyAddress,
+        agent: tidData.agentName,
         wireId: result.id,
       });
       setShowSuccess(true);
@@ -202,7 +144,7 @@ export default function NewWire() {
     navigate("/expected-wires", { state: { highlightWireId: lastSentData?.wireId } });
   };
 
-  const canDispatch = resolvedData && department && wireDetails && tid.trim();
+  const canDispatch = tidData && department && wireDetails && tid.trim();
 
   const getDeptBorderColor = (dept: string) => {
     switch (dept) {
@@ -214,39 +156,28 @@ export default function NewWire() {
 
   const deptRing = department ? getDeptBorderColor(department) : "";
 
-  // Determine if we have data to show below the first card
-  const hasDataBelow = isLookingUp || (entryMode === "lookup" && tidData) || (entryMode === "manual" && tid.trim()) || canDispatch;
+  const hasDataBelow = isLookingUp || tidData || canDispatch;
 
   return (
     <div className="relative min-h-full p-4 sm:p-8 overflow-hidden bg-background">
       {/* eXp watermark */}
-      <div
-        className="pointer-events-none absolute inset-0 flex items-center justify-center select-none"
-        aria-hidden="true"
-      >
-        <span
-          className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.03]"
-        >
-          eXp
-        </span>
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center select-none" aria-hidden="true">
+        <span className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.03]">eXp</span>
       </div>
 
       <div className={`relative z-10 mx-auto max-w-4xl transition-all duration-500 ${!hasDataBelow ? "flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center" : "space-y-8"}`}>
-        {/* Header — always visible */}
+        {/* Header */}
         <div className={`w-full ${!hasDataBelow ? "mb-6" : "mb-0"}`}>
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-primary">Send Wire Instructions</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Select department, {entryMode === "lookup" ? "look up the TID" : "enter deal data manually"}, and dispatch wire instructions.
+                Select department, look up the TID, and dispatch wire instructions.
               </p>
             </div>
-
             <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
               <FlaskConical className="h-4 w-4 text-amber-600" />
-              <Label htmlFor="test-mode" className="text-sm font-medium text-amber-800 cursor-pointer">
-                Test Mode
-              </Label>
+              <Label htmlFor="test-mode" className="text-sm font-medium text-amber-800 cursor-pointer">Test Mode</Label>
               <Switch id="test-mode" checked={testMode} onCheckedChange={setTestMode} />
             </div>
           </div>
@@ -258,42 +189,16 @@ export default function NewWire() {
           )}
         </div>
 
-        {/* Step 1: Department + Entry Mode + TID */}
+        {/* Step 1: Department + TID Lookup */}
         <Card className={`w-full border-0 bg-card rounded-2xl shadow-xl transition-all duration-300 p-2 ${department ? `ring-2 ${deptRing}` : ""}`}>
           <CardHeader className="pb-4 px-6 pt-6">
             <CardTitle className="flex items-center gap-2 text-lg text-primary">
               <Building2 className="h-5 w-5 text-primary" />
-              Department & Transaction Entry
+              Department & TID Lookup
             </CardTitle>
-            <CardDescription>Choose department and how you want to enter deal data.</CardDescription>
+            <CardDescription>Choose department and look up the transaction ID.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 px-6 pb-6">
-            {/* Entry Mode Toggle */}
-            <div className="flex items-center gap-1 rounded-lg bg-muted/30 p-1">
-              <button
-                onClick={() => { setEntryMode("lookup"); setTidData(null); setLookupError(""); }}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
-                  entryMode === "lookup"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Search className="h-3.5 w-3.5" />
-                TID Lookup
-              </button>
-              <button
-                onClick={() => { setEntryMode("manual"); setTidData(null); setLookupError(""); }}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all ${
-                  entryMode === "manual"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <PenLine className="h-3.5 w-3.5" />
-                Manual Entry
-              </button>
-            </div>
-
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Department</Label>
@@ -304,7 +209,7 @@ export default function NewWire() {
                       <SelectValue placeholder="Select department..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(DEPARTMENTS).map(([key, cfg]) => (
+                      {wireDepartments.map(([key, cfg]) => (
                         <SelectItem key={key} value={key}>{cfg.label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -326,7 +231,7 @@ export default function NewWire() {
                       placeholder="e.g. TID-10001"
                       value={tid}
                       onChange={(e) => setTid(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && entryMode === "lookup" && handleLookup()}
+                      onKeyDown={(e) => e.key === "Enter" && handleLookup()}
                       className="h-11 rounded-[10px] pl-10 pr-20 text-sm border-0 bg-muted/30 focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all"
                     />
                     {department && wfAccount && (
@@ -339,24 +244,22 @@ export default function NewWire() {
                       </span>
                     )}
                   </div>
-                  {entryMode === "lookup" && (
-                    <button
-                      onClick={handleLookup}
-                      disabled={isLookingUp}
-                      className="shrink-0 h-11 px-5 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
-                      style={{
-                        background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
-                        boxShadow: '0 2px 8px rgba(0, 86, 210, 0.25)',
-                      }}
-                      onMouseEnter={(e) => { (e.target as HTMLElement).style.boxShadow = '0 4px 20px rgba(0, 86, 210, 0.45)'; }}
-                      onMouseLeave={(e) => { (e.target as HTMLElement).style.boxShadow = '0 2px 8px rgba(0, 86, 210, 0.25)'; }}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <Search className="h-4 w-4" />
-                        {isLookingUp ? "Looking up..." : "Lookup"}
-                      </span>
-                    </button>
-                  )}
+                  <button
+                    onClick={handleLookup}
+                    disabled={isLookingUp}
+                    className="shrink-0 h-11 px-5 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
+                    style={{
+                      background: 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
+                      boxShadow: '0 2px 8px rgba(0, 86, 210, 0.25)',
+                    }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.boxShadow = '0 4px 20px rgba(0, 86, 210, 0.45)'; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.boxShadow = '0 2px 8px rgba(0, 86, 210, 0.25)'; }}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Search className="h-4 w-4" />
+                      {isLookingUp ? "Looking up..." : "Lookup"}
+                    </span>
+                  </button>
                 </div>
                 {lookupError && (
                   <p className="flex items-center gap-1 text-sm text-destructive">
@@ -388,73 +291,10 @@ export default function NewWire() {
           </Card>
         )}
 
-        {/* Manual Entry Form */}
-        <div className={`transition-all duration-500 ease-out mt-8 ${entryMode === "manual" && tid.trim() ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
-          {entryMode === "manual" && (
-             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
-              <CardHeader className="pb-4 px-6 pt-6">
-                <CardTitle className="flex items-center gap-2 text-lg text-primary">
-                  <PenLine className="h-5 w-5 text-primary" />
-                  Manual Deal Entry
-                </CardTitle>
-                <CardDescription>Enter the deal data manually. Fields marked with * are required.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 px-6 pb-6">
-                <div>
-                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                    <DollarSign className="h-4 w-4 text-emerald-600" /> Financials
-                  </h4>
-                  <div className="grid gap-3 sm:grid-cols-4">
-                    <ManualField label="Invoice #" value={manualData.invoiceNumber} onChange={(v) => updateManual("invoiceNumber", v)} placeholder="INV-2026-..." />
-                    <ManualField label="Invoice Date" value={manualData.invoiceDate} onChange={(v) => updateManual("invoiceDate", v)} type="date" />
-                    <ManualField label="Original Amount" value={manualData.originalAmount} onChange={(v) => updateManual("originalAmount", v)} type="number" placeholder="0.00" />
-                    <ManualField label="Balance Due *" value={manualData.balanceDue} onChange={(v) => updateManual("balanceDue", v)} type="number" placeholder="0.00" highlight />
-                  </div>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                    <User className="h-4 w-4 text-primary" /> Identity
-                  </h4>
-                  <div className="grid gap-3 sm:grid-cols-4">
-                    <ManualField label="Customer Name *" value={manualData.customerName} onChange={(v) => updateManual("customerName", v)} placeholder="Company LLC" />
-                    <ManualField label="Entity" value={manualData.entity} onChange={(v) => updateManual("entity", v)} placeholder="Parent entity" />
-                    <ManualField label="ID Prefix" value={manualData.customerIdPrefix} onChange={(v) => updateManual("customerIdPrefix", v)} placeholder="ABC" />
-                    <ManualField label="ID Suffix" value={manualData.customerIdSuffix} onChange={(v) => updateManual("customerIdSuffix", v)} placeholder="1234" />
-                  </div>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                    <MapPin className="h-4 w-4 text-rose-500" /> Logistics
-                  </h4>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <ManualField label="Property Address" value={manualData.propertyAddress} onChange={(v) => updateManual("propertyAddress", v)} placeholder="123 Main St, City, ST 00000" />
-                    <ManualField label="Transaction State" value={manualData.transactionState} onChange={(v) => updateManual("transactionState", v)} placeholder="State" />
-                    <ManualField label="Agent Name" value={manualData.agentName} onChange={(v) => updateManual("agentName", v)} placeholder="Agent name" />
-                    <ManualField label="Assigned Analyst" value={manualData.assignedAnalyst} onChange={(v) => updateManual("assignedAnalyst", v)} placeholder="Analyst name" />
-                  </div>
-                </div>
-                <Separator />
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Notes</Label>
-                  <Textarea
-                    value={manualData.dealNotes}
-                    onChange={(e) => updateManual("dealNotes", e.target.value)}
-                    placeholder="Any additional deal notes..."
-                    className="rounded-[10px] border-0 bg-muted/30 focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all"
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Lookup Result — Deal Data (read-only display) */}
-        <div className={`transition-all duration-500 ease-out mt-8 ${entryMode === "lookup" && tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
-          {tidData && entryMode === "lookup" && (
-             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
+        {/* Lookup Result — Deal Data */}
+        <div className={`transition-all duration-500 ease-out mt-8 ${tidData ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
+          {tidData && (
+            <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
               <CardHeader className="pb-4 px-6 pt-6">
                 <CardTitle className="flex items-center gap-2 text-lg text-primary">
                   <FileText className="h-5 w-5 text-primary" />
@@ -508,7 +348,7 @@ export default function NewWire() {
           )}
         </div>
 
-        {/* Step 3: Dispatch — Animated reveal */}
+        {/* Step 3: Dispatch */}
         <div className={`transition-all duration-500 ease-out delay-150 mt-8 ${canDispatch ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none h-0 overflow-hidden"}`}>
           {canDispatch && (
             <Card className="border-0 bg-card rounded-2xl shadow-xl animate-fade-in">
@@ -524,96 +364,51 @@ export default function NewWire() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 px-6 pb-6">
-                {/* Skip Email Toggle */}
-                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3">
-                  <Switch
-                    id="skip-email"
-                    checked={skipEmail}
-                    onCheckedChange={setSkipEmail}
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recipient Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="recipient@example.com"
+                    value={emailRecipient}
+                    onChange={(e) => setEmailRecipient(e.target.value)}
+                    className="h-11 rounded-[10px] border-0 bg-muted/30 focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all"
                   />
-                  <div className="flex items-center gap-2">
-                    <MailX className="h-4 w-4 text-muted-foreground" />
-                    <Label htmlFor="skip-email" className="text-sm font-medium cursor-pointer">
-                      Save to Dashboard Only
-                    </Label>
-                  </div>
-                  <span className="ml-auto text-xs text-muted-foreground">Log record without sending email</span>
                 </div>
 
-                {!skipEmail && (
-                  <>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Recipient Email</Label>
-                      <Input
-                        type="email"
-                        placeholder="recipient@example.com"
-                        value={emailRecipient}
-                        onChange={(e) => setEmailRecipient(e.target.value)}
-                        className="h-11 rounded-[10px] border-0 bg-muted/30 focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all"
-                      />
-                    </div>
-
-                    {wireDetails && (
-                      <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm space-y-1">
-                        <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
-                        <p className="text-muted-foreground">
-                          Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
-                        </p>
-                        <p className="text-muted-foreground">
-                          {wireDetails.bankName}, {wireDetails.bankAddress}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                      <strong>Fee Disclosure:</strong> All bank fees (wire transfer fees) are to be paid by the
-                      Originator (remitter). This will be included in the email body.
-                    </div>
-                  </>
-                )}
-
-                {skipEmail ? (
-                  <button
-                    onClick={handleSaveOnly}
-                    disabled={createRecord.isPending}
-                    className="w-full h-12 rounded-[10px] text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-all disabled:opacity-60 shadow-md"
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Save to Dashboard
-                    </span>
-                  </button>
-                ) : (
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleSaveOnly}
-                      disabled={createRecord.isPending}
-                      className="flex-1 h-12 rounded-[10px] text-sm font-semibold transition-all disabled:opacity-60 border-2 border-accent text-accent bg-transparent hover:bg-accent/10"
-                    >
-                      <span className="flex items-center justify-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        Save to Dashboard
-                      </span>
-                    </button>
-                    <button
-                      onClick={handlePreviewOrSend}
-                      disabled={createRecord.isPending}
-                      className={`flex-1 h-12 rounded-[10px] text-sm font-semibold text-primary-foreground transition-all disabled:opacity-60 shadow-md ${testMode ? 'bg-secondary' : 'bg-primary hover:bg-primary/90'}`}
-                    >
-                      {testMode ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <FlaskConical className="h-4 w-4" />
-                          Preview & Test
-                        </span>
-                      ) : (
-                        <span className="flex items-center justify-center gap-2">
-                          <Send className="h-4 w-4" />
-                          Preview & Send
-                        </span>
-                      )}
-                    </button>
+                {wireDetails && (
+                  <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm space-y-1">
+                    <p className="font-semibold text-foreground">{wireDetails.accountLabel}</p>
+                    <p className="text-muted-foreground">
+                      Routing: {wireDetails.routingNumber} · Account: {wireDetails.accountNumber}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {wireDetails.bankName}, {wireDetails.bankAddress}
+                    </p>
                   </div>
                 )}
+
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                  <strong>Fee Disclosure:</strong> All bank fees (wire transfer fees) are to be paid by the
+                  Originator (remitter). This will be included in the email body.
+                </div>
+
+                <button
+                  onClick={handlePreviewOrSend}
+                  disabled={createRecord.isPending}
+                  className={`w-full h-12 rounded-[10px] text-sm font-semibold text-primary-foreground transition-all disabled:opacity-60 shadow-md ${testMode ? 'bg-secondary' : 'bg-primary hover:bg-primary/90'}`}
+                >
+                  {testMode ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <FlaskConical className="h-4 w-4" />
+                      Preview & Test
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Send className="h-4 w-4" />
+                      Preview & Send
+                    </span>
+                  )}
+                </button>
               </CardContent>
             </Card>
           )}
@@ -693,28 +488,6 @@ function Field({ label, value, highlight, icon }: { label: string; value: string
       <p className={`mt-0.5 text-sm font-medium ${highlight ? "text-primary font-bold" : "text-foreground"}`}>
         {value}
       </p>
-    </div>
-  );
-}
-
-function ManualField({ label, value, onChange, placeholder = "", type = "text", highlight }: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  type?: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="space-y-1">
-      <Label className={`text-xs ${highlight ? "font-semibold" : ""} text-muted-foreground`}>{label}</Label>
-      <Input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={`h-9 rounded-[10px] border-0 bg-muted/30 text-sm focus:bg-card focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0 transition-all ${highlight ? "ring-1 ring-primary/30" : ""}`}
-      />
     </div>
   );
 }

@@ -163,6 +163,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ow_config: {
+        Row: {
+          config_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          sort_order: number
+          value: string
+        }
+        Insert: {
+          config_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          sort_order?: number
+          value: string
+        }
+        Update: {
+          config_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          sort_order?: number
+          value?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
