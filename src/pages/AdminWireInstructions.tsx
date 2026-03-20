@@ -24,6 +24,7 @@ import {
   type CustomWireInstruction,
 } from "@/hooks/useCustomWireInstructions";
 import { WIRE_INSTRUCTIONS } from "@/lib/wire-instructions";
+import { ManageOptionsDialog } from "@/components/ManageOptionsDialog";
 
 const EMPTY_FORM = {
   name: "",
