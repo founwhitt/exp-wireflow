@@ -284,6 +284,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                forceCollapsed={allCollapsed}
               />
               <CollapsibleAccountSection
                 title="Wells Fargo — XXXX-3694"
@@ -299,6 +300,7 @@ export default function OutstandingWires() {
                 onSaved={markSaved}
                 pushUndo={pushUndo}
                 initialLimit={10}
+                forceCollapsed={allCollapsed}
               />
             </>
           )}
