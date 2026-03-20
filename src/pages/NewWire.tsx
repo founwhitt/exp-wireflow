@@ -599,11 +599,7 @@ export default function NewWire() {
                     <button
                       onClick={handlePreviewOrSend}
                       disabled={createRecord.isPending}
-                      className="flex-1 h-12 rounded-[10px] text-sm font-semibold text-white transition-all disabled:opacity-60"
-                      style={{
-                        background: testMode ? '#475569' : 'linear-gradient(135deg, #00245D 0%, #0056D2 100%)',
-                        boxShadow: testMode ? 'none' : '0 2px 8px rgba(0, 86, 210, 0.25)',
-                      }}
+                      className={`flex-1 h-12 rounded-[10px] text-sm font-semibold text-primary-foreground transition-all disabled:opacity-60 shadow-md ${testMode ? 'bg-secondary' : 'bg-primary hover:bg-primary/90'}`}
                     >
                       {testMode ? (
                         <span className="flex items-center justify-center gap-2">
