@@ -822,7 +822,7 @@ function LiveGrid({
           }
 
           return (
-            <td key={col.key} className="px-0.5 py-0.5 break-words" style={{ overflowWrap: "break-word", width: colWidths[col.key] ?? col.width }}>
+            <td key={col.key} className={`px-0.5 py-0.5 ${cellClip}`} style={cellStyle}>
               {empty ? (
                 <input
                   className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 placeholder:text-muted-foreground/30"
