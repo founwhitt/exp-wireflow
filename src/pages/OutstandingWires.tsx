@@ -554,7 +554,7 @@ interface CtxMenuState {
 }
 
 function LiveGrid({
-  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows,
+  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows, owAccounts,
 }: {
   records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string;
@@ -563,6 +563,7 @@ function LiveGrid({
   onSaving: () => void; onSaved: () => void;
   pushUndo: (e: UndoEntry) => void;
   maxRows?: number;
+  owAccounts: { value: string; label: string }[];
 }) {
   const create = useCreateOutstandingWires();
   const update = useUpdateOutstandingWire();
