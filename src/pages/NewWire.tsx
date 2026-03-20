@@ -477,7 +477,7 @@ export default function NewWire() {
                 <Separator />
                 <div>
                   <h4 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                    <User className="h-4 w-4 text-accent-foreground" /> Identity
+                    <User className="h-4 w-4 text-primary" /> Identity
                   </h4>
                   <div className="grid gap-3 sm:grid-cols-4">
                     <Field icon={<User className="h-3.5 w-3.5 text-muted-foreground" />} label="Customer Name" value={tidData.customerName} />
