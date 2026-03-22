@@ -1304,6 +1304,12 @@ function LiveGrid({
                 Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
               </Button>
             )}
+            {isAdmin && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={selectAll}>
+                Select All
+                <span className="ml-1 text-muted-foreground">Ctrl+A</span>
+              </Button>
+            )}
           </div>
         </div>
 
