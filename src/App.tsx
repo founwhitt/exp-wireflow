@@ -35,8 +35,8 @@ function ProtectedRoutes() {
     <>
       <AppNav />
       <main className="relative h-[calc(100vh-3.5rem)] overflow-auto">
-        {/* eXp watermark */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center select-none z-0" aria-hidden="true">
+        {/* eXp watermark — fixed so it floats above page backgrounds */}
+        <div className="pointer-events-none fixed inset-0 flex items-center justify-center select-none z-[60]" aria-hidden="true">
           <span className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.05]">eXp</span>
         </div>
         <Routes>
