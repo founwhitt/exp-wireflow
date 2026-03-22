@@ -361,7 +361,7 @@ export default function OutstandingWires() {
                 {[...groupedByAccount.entries()].map(([acct, recs]) => (
                   <CollapsibleAccountSection
                     key={acct}
-                    title={`${t.charAt(0).toUpperCase() + t.slice(1)} — ${acct}`}
+                    title={`${t.charAt(0).toUpperCase() + t.slice(1)} — ${acct.replace(/^.*?(\d{4})$/, "$1").slice(-4)}`}
                     dotColor="bg-accent"
                     records={recs}
                     cols={DEFAULT_COLS}
