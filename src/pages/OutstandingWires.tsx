@@ -1406,6 +1406,41 @@ function LiveGrid({
               >
                 Delete Row
               </button>
+              {isAdmin && selection && (selection.r2 - selection.r1 > 0) && (
+                <>
+                  <div className="-mx-1 my-1 h-px bg-border" />
+                  <button
+                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    onClick={() => {
+                      const toDelete: string[] = [];
+                      for (let r = selection!.r1; r <= selection!.r2; r++) {
+                        const row = displayRows[r];
+                        if (row && !isEmptyRow(row)) toDelete.push(row.id);
+                      }
+                      if (toDelete.length === 0) { toast.info("No saved rows in selection"); setCtxMenu(null); return; }
+                      toDelete.forEach((id) => {
+                        remove.mutate(id, {
+                          onSuccess: () => {},
+                          onError: (err: any) => toast.error("Delete failed", { description: err.message }),
+                        });
+                      });
+                      toast.success(`Deleted ${toDelete.length} row${toDelete.length > 1 ? "s" : ""}`);
+                      setAnchor(null);
+                      setCurrent(null);
+                      setCtxMenu(null);
+                    }}
+                  >
+                    Delete Selected ({(() => {
+                      let count = 0;
+                      for (let r = selection!.r1; r <= selection!.r2; r++) {
+                        const row = displayRows[r];
+                        if (row && !isEmptyRow(row)) count++;
+                      }
+                      return count;
+                    })()} rows)
+                  </button>
+                </>
+              )}
 
               {/* Text Display toggle for column */}
               <div className="-mx-1 my-1 h-px bg-border" />
