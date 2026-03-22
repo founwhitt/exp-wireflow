@@ -235,7 +235,11 @@ export default function OutstandingWires() {
   const activeCols = tab === "payload" ? PAYLOAD_COLS : DEFAULT_COLS;
 
   return (
-    <div className="flex h-full w-full flex-col gap-4 p-3 sm:p-4">
+    <div className="relative flex h-full w-full flex-col gap-4 p-3 sm:p-4 overflow-hidden">
+      {/* eXp watermark */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center select-none" aria-hidden="true">
+        <span className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.05]">eXp</span>
+      </div>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -293,7 +297,7 @@ export default function OutstandingWires() {
           {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
             <>
               <CollapsibleAccountSection
-                title="Wells Fargo — XXXX-8022"
+                title="8022"
                 dotColor="bg-accent"
                 records={realty8022}
                 cols={DEFAULT_COLS}
@@ -310,7 +314,7 @@ export default function OutstandingWires() {
                 owAccounts={owAccounts}
               />
               <CollapsibleAccountSection
-                title="Wells Fargo — XXXX-3694"
+                title="3694"
                 dotColor="bg-[hsl(var(--success))]"
                 records={realty3694}
                 cols={DEFAULT_COLS}
@@ -361,7 +365,7 @@ export default function OutstandingWires() {
                 {[...groupedByAccount.entries()].map(([acct, recs]) => (
                   <CollapsibleAccountSection
                     key={acct}
-                    title={`${t.charAt(0).toUpperCase() + t.slice(1)} — ${acct}`}
+                    title={`${t.charAt(0).toUpperCase() + t.slice(1)} — ${acct.replace(/^.*?(\d{4})$/, "$1").slice(-4)}`}
                     dotColor="bg-accent"
                     records={recs}
                     cols={DEFAULT_COLS}
@@ -897,7 +901,17 @@ function LiveGrid({
     toast.success(`Pasted ${lines.length} row${lines.length > 1 ? "s" : ""}`);
   }, [filteredRecords, emptyRows, defaultAccount, canEditCol, update, create, category, userId, onSaving, onSaved, pushUndo, visibleCols, selection]);
 
-  // ---- Keyboard: Ctrl+C ----
+  // ---- Keyboard: Ctrl+C & Ctrl+A ----
+  const selectAll = useCallback(() => {
+    if (!isAdmin) return;
+    const totalRows = displayRows.length;
+    const totalCols = visibleCols.length;
+    if (totalRows === 0 || totalCols === 0) return;
+    setAnchor({ row: 0, col: 0 });
+    setCurrent({ row: totalRows - 1, col: totalCols - 1 });
+    toast.success("All cells selected");
+  }, [isAdmin, displayRows.length, visibleCols.length]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!gridRef.current?.contains(document.activeElement) && !gridRef.current?.contains(e.target as Node)) return;
@@ -907,10 +921,16 @@ function LiveGrid({
         e.preventDefault();
         copySelection();
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === "a" && isAdmin) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        e.preventDefault();
+        selectAll();
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [copySelection]);
+  }, [copySelection, selectAll, isAdmin]);
 
   // ---- Context menu: clear cell ----
   const clearCell = useCallback((rowIdx: number, colIdx: number) => {
@@ -1193,11 +1213,11 @@ function LiveGrid({
                   }}
                 >
                   {owAccounts.length > 0 ? owAccounts.map((a) => (
-                    <option key={a.value} value={a.value}>{a.label}</option>
+                    <option key={a.value} value={a.value}>{a.value.replace(/^.*?(\d{4})$/, "$1").slice(-4)}</option>
                   )) : (
                     <>
-                      <option value="WF-8022">XXXX-8022</option>
-                      <option value="WF-3694">XXXX-3694</option>
+                      <option value="WF-8022">8022</option>
+                      <option value="WF-3694">3694</option>
                     </>
                   )}
                 </select>
@@ -1282,6 +1302,12 @@ function LiveGrid({
               <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setColumnFilters({})}>
                 <X className="mr-1 h-3 w-3" />
                 Clear {activeFilterCount} filter{activeFilterCount > 1 ? "s" : ""}
+              </Button>
+            )}
+            {isAdmin && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={selectAll}>
+                Select All
+                <span className="ml-1 text-muted-foreground">Ctrl+A</span>
               </Button>
             )}
           </div>
@@ -1380,6 +1406,41 @@ function LiveGrid({
               >
                 Delete Row
               </button>
+              {isAdmin && selection && (selection.r2 - selection.r1 > 0) && (
+                <>
+                  <div className="-mx-1 my-1 h-px bg-border" />
+                  <button
+                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+                    onClick={() => {
+                      const toDelete: string[] = [];
+                      for (let r = selection!.r1; r <= selection!.r2; r++) {
+                        const row = displayRows[r];
+                        if (row && !isEmptyRow(row)) toDelete.push(row.id);
+                      }
+                      if (toDelete.length === 0) { toast.info("No saved rows in selection"); setCtxMenu(null); return; }
+                      toDelete.forEach((id) => {
+                        remove.mutate(id, {
+                          onSuccess: () => {},
+                          onError: (err: any) => toast.error("Delete failed", { description: err.message }),
+                        });
+                      });
+                      toast.success(`Deleted ${toDelete.length} row${toDelete.length > 1 ? "s" : ""}`);
+                      setAnchor(null);
+                      setCurrent(null);
+                      setCtxMenu(null);
+                    }}
+                  >
+                    Delete Selected ({(() => {
+                      let count = 0;
+                      for (let r = selection!.r1; r <= selection!.r2; r++) {
+                        const row = displayRows[r];
+                        if (row && !isEmptyRow(row)) count++;
+                      }
+                      return count;
+                    })()} rows)
+                  </button>
+                </>
+              )}
 
               {/* Text Display toggle for column */}
               <div className="-mx-1 my-1 h-px bg-border" />

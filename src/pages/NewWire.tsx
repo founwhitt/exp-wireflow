@@ -184,7 +184,7 @@ export default function NewWire() {
     <div className="relative min-h-full p-4 sm:p-8 overflow-hidden bg-background">
       {/* eXp watermark */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center select-none" aria-hidden="true">
-        <span className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.03]">eXp</span>
+        <span className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.05]">eXp</span>
       </div>
 
       <div className={`relative z-10 mx-auto max-w-4xl transition-all duration-500 ${!hasDataBelow ? "flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center" : "space-y-8"}`}>
