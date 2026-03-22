@@ -34,7 +34,11 @@ function ProtectedRoutes() {
   return (
     <>
       <AppNav />
-      <main className="h-[calc(100vh-3.5rem)] overflow-auto">
+      <main className="relative h-[calc(100vh-3.5rem)] overflow-auto">
+        {/* eXp watermark */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center select-none z-0" aria-hidden="true">
+          <span className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.05]">eXp</span>
+        </div>
         <Routes>
           <Route path="/" element={<NewWire />} />
           <Route path="/expected-wires" element={<Dashboard />} />

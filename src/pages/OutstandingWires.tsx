@@ -236,10 +236,6 @@ export default function OutstandingWires() {
 
   return (
     <div className="relative flex h-full w-full flex-col gap-4 p-3 sm:p-4 overflow-hidden">
-      {/* eXp watermark */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center select-none" aria-hidden="true">
-        <span className="text-[12rem] sm:text-[18rem] font-black tracking-tighter text-foreground/[0.05]">eXp</span>
-      </div>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
