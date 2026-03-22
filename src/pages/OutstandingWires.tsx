@@ -310,7 +310,7 @@ export default function OutstandingWires() {
                 owAccounts={owAccounts}
               />
               <CollapsibleAccountSection
-                title="Wells Fargo — XXXX-3694"
+                title="3694"
                 dotColor="bg-[hsl(var(--success))]"
                 records={realty3694}
                 cols={DEFAULT_COLS}
