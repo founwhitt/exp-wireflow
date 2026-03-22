@@ -901,7 +901,17 @@ function LiveGrid({
     toast.success(`Pasted ${lines.length} row${lines.length > 1 ? "s" : ""}`);
   }, [filteredRecords, emptyRows, defaultAccount, canEditCol, update, create, category, userId, onSaving, onSaved, pushUndo, visibleCols, selection]);
 
-  // ---- Keyboard: Ctrl+C ----
+  // ---- Keyboard: Ctrl+C & Ctrl+A ----
+  const selectAll = useCallback(() => {
+    if (!isAdmin) return;
+    const totalRows = displayRows.length;
+    const totalCols = visibleCols.length;
+    if (totalRows === 0 || totalCols === 0) return;
+    setAnchor({ row: 0, col: 0 });
+    setCurrent({ row: totalRows - 1, col: totalCols - 1 });
+    toast.success("All cells selected");
+  }, [isAdmin, displayRows.length, visibleCols.length]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!gridRef.current?.contains(document.activeElement) && !gridRef.current?.contains(e.target as Node)) return;
@@ -911,10 +921,16 @@ function LiveGrid({
         e.preventDefault();
         copySelection();
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === "a" && isAdmin) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        e.preventDefault();
+        selectAll();
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [copySelection]);
+  }, [copySelection, selectAll, isAdmin]);
 
   // ---- Context menu: clear cell ----
   const clearCell = useCallback((rowIdx: number, colIdx: number) => {
