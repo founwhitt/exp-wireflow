@@ -1193,11 +1193,11 @@ function LiveGrid({
                   }}
                 >
                   {owAccounts.length > 0 ? owAccounts.map((a) => (
-                    <option key={a.value} value={a.value}>{a.label}</option>
+                    <option key={a.value} value={a.value}>{a.value.replace(/^.*?(\d{4})$/, "$1").slice(-4)}</option>
                   )) : (
                     <>
-                      <option value="WF-8022">XXXX-8022</option>
-                      <option value="WF-3694">XXXX-3694</option>
+                      <option value="WF-8022">8022</option>
+                      <option value="WF-3694">3694</option>
                     </>
                   )}
                 </select>
