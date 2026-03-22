@@ -293,7 +293,7 @@ export default function OutstandingWires() {
           {isLoading ? <LoadingSkeleton /> : error ? <ErrorMsg error={error} /> : (
             <>
               <CollapsibleAccountSection
-                title="Wells Fargo — XXXX-8022"
+                title="8022"
                 dotColor="bg-accent"
                 records={realty8022}
                 cols={DEFAULT_COLS}
