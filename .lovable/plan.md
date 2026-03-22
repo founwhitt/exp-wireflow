@@ -1,62 +1,39 @@
 
 
-## Plan: Spread Nav + Persist Collapse + Dynamic Accounts for Commercial/International
+## Plan: Shorten Account Labels, Add Select-All/Delete for Admin, Fix eXp Watermark
 
-### 1. Spread navigation links across header bar
-
-**File: `src/components/AppNav.tsx`**
-
-Change the `<nav>` element (line 27) from `flex items-center gap-1` to `flex-1 flex items-center justify-center gap-4`. This distributes links evenly between the logo and user controls instead of clustering them on the left.
-
----
-
-### 2. Persist collapse/expand state in Outstanding Wires
+### 1. Shorten account labels to last 4 digits only
 
 **File: `src/pages/OutstandingWires.tsx`**
 
-In `CollapsibleAccountSection` (line 346):
-- Replace `useState(false)` with initialization from `localStorage` using key `ow-expanded-${title}`
-- On toggle, persist value to `localStorage`
-- When "Collapse All" / "Expand All" buttons are clicked (lines 232-237), also write to localStorage for all active section keys
+- Change section titles from `"Wells Fargo — XXXX-8022"` → `"8022"` and `"Wells Fargo — XXXX-3694"` → `"3694"` (lines 296, 313)
+- For commercial/international dynamic titles, change from `"Commercial — WF-8022"` → `"Commercial — 8022"` (line 364)
+- In account dropdown options (lines 1195-1201), show just the last 4 digits (e.g., `"8022"` instead of `"XXXX-8022"`)
 
----
+### 2. Add Select All + bulk copy/paste/delete for admin users
 
-### 3. Remove hardcoded account dropdown from Commercial & International tabs
+**File: `src/pages/OutstandingWires.tsx`**
 
-Currently Commercial and International tabs render a single `CollapsibleAccountSection` with `defaultAccount="WF-8022"` (lines 309-330). The Account column shows a hardcoded dropdown with only WF-8022 and WF-3694.
+- Add a "Select All" keyboard shortcut (Ctrl+A) that selects all cells in the grid, gated behind `isAdmin`
+- Add a "Delete Selected" option to the right-click context menu that deletes all selected rows (existing saved records), only visible for admin users
+- The existing copy (Ctrl+C) and paste (Ctrl+V) already work for selections — just ensure they function properly when all rows are selected
+- Add a "Select All" button in the grid toolbar for admin users
 
-**Changes in `src/pages/OutstandingWires.tsx`:**
+### 3. Fix eXp watermark visibility and add to Outstanding Wires
 
-- For Commercial and International tabs, group records by their `wf_account` value and render a separate `CollapsibleAccountSection` per account (similar to how Realty splits into 8022/3694)
-- The Account column dropdown in these tabs should pull options from the `ow_config` table (accounts with `config_type === "account"`) instead of hardcoded values
-- When accounting creates a new row, the account is set at entry time from the dynamic dropdown
-- Non-accounting users see the account as read-only text
+Currently the eXp watermark only exists on `NewWire.tsx` with `text-foreground/[0.03]` (3% opacity — nearly invisible).
 
----
+**File: `src/pages/OutstandingWires.tsx`**
+- Add the same eXp watermark background `div` as NewWire uses
+- Increase opacity from `0.03` to `0.04` or `0.05` so it's subtly visible
 
-### 4. Allow accounting to manage accounts in Outstanding Wires and Wire Instructions
-
-**File: `src/pages/OutstandingWires.tsx`:**
-- Add a "Manage Options" button (visible to accounting/admin) that opens a dialog to add/remove/edit account options in the `ow_config` table
-- This already exists as a pattern in the codebase via `useOwConfig`, `useCreateOwConfig`, `useUpdateOwConfig`, `useDeleteOwConfig` hooks
-
-**File: `src/pages/AdminWireInstructions.tsx`:**
-- Add a similar "Manage Accounts" section or button that lets accounting/admin users manage the same `ow_config` account entries, so account options are consistent across both Outstanding Wires and Wire Instructions pages
-
----
+**File: `src/pages/NewWire.tsx`**
+- Also increase opacity on the existing watermark to match
 
 ### Files to modify
 
 | File | Change |
 |------|--------|
-| `src/components/AppNav.tsx` | Add `flex-1 justify-center gap-4` to nav element |
-| `src/pages/OutstandingWires.tsx` | localStorage persistence for collapse state; dynamic account grouping for Commercial/International; Manage Options dialog for accounting |
-| `src/pages/AdminWireInstructions.tsx` | Add Manage Accounts section using ow_config |
-
-### Technical details
-
-- `ow_config` table already stores accounts (`config_type = "account"`) and has full CRUD hooks in `src/hooks/useOwConfig.ts`
-- The `useOwAccounts()` hook returns active account options — will be used for dynamic dropdowns
-- Commercial/International sections will use `useMemo` to group `filtered` records by `wf_account`, then render one `CollapsibleAccountSection` per group plus a catch-all for new entries
-- localStorage keys follow pattern `ow-expanded-{sectionTitle}` for collapse persistence
+| `src/pages/OutstandingWires.tsx` | Shorten account labels; add Ctrl+A select-all and bulk delete for admin; add eXp watermark |
+| `src/pages/NewWire.tsx` | Increase watermark opacity |
 
