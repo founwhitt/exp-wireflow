@@ -152,6 +152,8 @@ export default function OutstandingWires() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [treasuryImportOpen, setTreasuryImportOpen] = useState(false);
+  const [importHighlightTs, setImportHighlightTs] = useState<number | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const undoStackRef = useRef<UndoEntry[]>([]);
   const update = useUpdateOutstandingWire();
