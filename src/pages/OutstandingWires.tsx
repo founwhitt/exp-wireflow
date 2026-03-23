@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, Download, Check, Loader2, ChevronDown, ChevronUp, Eye, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft, Settings2 } from "lucide-react";
+import { Search, Filter, Download, Check, Loader2, ChevronDown, ChevronUp, Eye, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft, Settings2, Upload } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { TreasuryImportDialog } from "@/components/TreasuryImportDialog";
 
 const STATUS_OPTIONS = ["All", "Needs TRX ID", "Waiting on Settlement"];
 
@@ -151,6 +152,8 @@ export default function OutstandingWires() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [treasuryImportOpen, setTreasuryImportOpen] = useState(false);
+  const [importHighlightTs, setImportHighlightTs] = useState<number | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const undoStackRef = useRef<UndoEntry[]>([]);
   const update = useUpdateOutstandingWire();
@@ -246,6 +249,9 @@ export default function OutstandingWires() {
         </div>
         <div className="flex items-center gap-3">
           <SaveIndicator status={saveStatus} />
+          <Button variant="outline" size="sm" className="h-8 text-xs border-accent text-accent hover:bg-accent/10" onClick={() => setTreasuryImportOpen(true)}>
+            <Upload className="h-3.5 w-3.5 mr-1" />Treasury Import
+          </Button>
           <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCollapseSignal({ value: false, ts: Date.now() })}>
             <ChevronDown className="h-3.5 w-3.5 mr-1" />Expand All
           </Button>
@@ -405,6 +411,14 @@ export default function OutstandingWires() {
 
       {/* Manage Options Dialog */}
       <ManageOptionsDialog open={manageOptionsOpen} onOpenChange={setManageOptionsOpen} />
+
+      {/* Treasury Import Dialog */}
+      <TreasuryImportDialog
+        open={treasuryImportOpen}
+        onOpenChange={setTreasuryImportOpen}
+        userId={user?.id ?? null}
+        onImportComplete={() => setImportHighlightTs(Date.now())}
+      />
     </div>
   );
 }
@@ -1116,11 +1130,14 @@ function LiveGrid({
     const rowKey = empty ? row._key : row.id;
     const highlightColor = empty ? null : (row as OutstandingWire).highlight_color;
     const highlightClass = getHighlightClass(highlightColor);
+    // Pulse newly imported rows (created within last 30 seconds)
+    const isNew = !empty && (Date.now() - new Date((row as OutstandingWire).created_at).getTime()) < 30000;
+    const pulseClass = isNew ? "animate-highlight-pulse" : "";
 
     return (
       <tr
         key={rowKey}
-        className={`border-b border-border/40 group transition-colors ${highlightClass} ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
+        className={`border-b border-border/40 group transition-colors ${highlightClass} ${pulseClass} ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
       >
         <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none">
           {ri + 1}
