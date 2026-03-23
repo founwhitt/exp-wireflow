@@ -5,7 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Filter, Download, Check, Loader2, ChevronDown, ChevronUp, Eye, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft, Settings2, ArrowRight } from "lucide-react";
+import { Search, Filter, Download, Check, Loader2, ChevronDown, ChevronUp, Eye, ArrowUp, ArrowDown, ArrowUpDown, X, WrapText, AlignLeft, Settings2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,6 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { ConvertToExpectedDialog } from "@/components/ConvertToExpectedDialog";
 
 const STATUS_OPTIONS = ["All", "Needs TRX ID", "Waiting on Settlement"];
 
@@ -155,8 +154,6 @@ export default function OutstandingWires() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const undoStackRef = useRef<UndoEntry[]>([]);
   const update = useUpdateOutstandingWire();
-  
-  const [convertWire, setConvertWire] = useState<OutstandingWire | null>(null);
 
   const markSaving = useCallback(() => {
     setSaveStatus("saving");
@@ -238,7 +235,6 @@ export default function OutstandingWires() {
   const activeCols = tab === "payload" ? PAYLOAD_COLS : DEFAULT_COLS;
 
   return (
-    
     <div className="relative flex h-full w-full flex-col gap-4 p-3 sm:p-4 overflow-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -312,7 +308,6 @@ export default function OutstandingWires() {
                 initialLimit={10}
                 forceCollapseSignal={collapseSignal}
                 owAccounts={owAccounts}
-                onConvertWire={setConvertWire}
               />
               <CollapsibleAccountSection
                 title="3694"
@@ -330,7 +325,6 @@ export default function OutstandingWires() {
                 initialLimit={10}
                 forceCollapseSignal={collapseSignal}
                 owAccounts={owAccounts}
-                onConvertWire={setConvertWire}
               />
             </>
           )}
@@ -355,7 +349,6 @@ export default function OutstandingWires() {
               initialLimit={10}
               forceCollapseSignal={collapseSignal}
               owAccounts={owAccounts}
-              onConvertWire={setConvertWire}
             />
           )}
         </TabsContent>
@@ -383,7 +376,6 @@ export default function OutstandingWires() {
                     initialLimit={10}
                     forceCollapseSignal={collapseSignal}
                     owAccounts={owAccounts}
-                    onConvertWire={setConvertWire}
                   />
                 ))}
                 {groupedByAccount.size === 0 && (
@@ -403,7 +395,6 @@ export default function OutstandingWires() {
                     initialLimit={10}
                     forceCollapseSignal={collapseSignal}
                     owAccounts={owAccounts}
-                    onConvertWire={setConvertWire}
                   />
                 )}
               </>
@@ -414,16 +405,14 @@ export default function OutstandingWires() {
 
       {/* Manage Options Dialog */}
       <ManageOptionsDialog open={manageOptionsOpen} onOpenChange={setManageOptionsOpen} />
-      <ConvertToExpectedDialog open={!!convertWire} onOpenChange={(o) => { if (!o) setConvertWire(null); }} wire={convertWire} />
     </div>
-    
   );
 }
 
 // ---- Collapsible Account Section ----
 
 function CollapsibleAccountSection({
-  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapseSignal, owAccounts, onConvertWire,
+  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapseSignal, owAccounts,
 }: {
   title: string; dotColor: string; records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string; isAccounting: boolean; isAdmin: boolean;
@@ -431,7 +420,6 @@ function CollapsibleAccountSection({
   pushUndo: (e: UndoEntry) => void; initialLimit: number;
   forceCollapseSignal?: { value: boolean; ts: number } | null;
   owAccounts: { value: string; label: string }[];
-  onConvertWire: (wire: OutstandingWire) => void;
 }) {
   const lsKey = `ow-expanded-${title}`;
   const [expanded, setExpanded] = useState(() => {
@@ -478,7 +466,6 @@ function CollapsibleAccountSection({
         pushUndo={pushUndo}
         maxRows={maxRows}
         owAccounts={owAccounts}
-        onConvertWire={onConvertWire}
       />
       {!expanded && (
         <Button
@@ -569,7 +556,7 @@ interface CtxMenuState {
 }
 
 function LiveGrid({
-  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows, owAccounts, onConvertWire,
+  records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, maxRows, owAccounts,
 }: {
   records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string;
@@ -579,7 +566,6 @@ function LiveGrid({
   pushUndo: (e: UndoEntry) => void;
   maxRows?: number;
   owAccounts: { value: string; label: string }[];
-  onConvertWire: (wire: OutstandingWire) => void;
 }) {
   const create = useCreateOutstandingWires();
   const update = useUpdateOutstandingWire();
@@ -1137,9 +1123,7 @@ function LiveGrid({
         className={`border-b border-border/40 group transition-colors ${highlightClass} ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
       >
         <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none">
-          <div className="flex flex-col items-center gap-0.5">
-            <span>{ri + 1}</span>
-          </div>
+          {ri + 1}
         </td>
 
         {visibleCols.map((col, ci) => {
@@ -1419,18 +1403,6 @@ function LiveGrid({
               >
                 Delete Row
               </button>
-              {(isAccounting || isAdmin) && !isEmptyRow(ctxMenu.rowData) && (
-                <>
-                  <div className="-mx-1 my-1 h-px bg-border" />
-                  <button
-                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-primary hover:bg-primary/10 transition-colors"
-                    onClick={() => { onConvertWire(ctxMenu.rowData as OutstandingWire); setCtxMenu(null); }}
-                  >
-                    <ArrowRight className="h-3.5 w-3.5" />
-                    Convert to Expected Wire
-                  </button>
-                </>
-              )}
               {isAdmin && selection && (selection.r2 - selection.r1 > 0) && (
                 <>
                   <div className="-mx-1 my-1 h-px bg-border" />
