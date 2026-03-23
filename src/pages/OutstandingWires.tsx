@@ -1199,8 +1199,8 @@ function LiveGrid({
                 onContextMenu={(e) => onCellContextMenu(e, ri, ci, row)}
               >
                 <select
-                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
-                  value={value || defaultAccount}
+                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer text-foreground [&>option]:bg-popover [&>option]:text-popover-foreground"
+                  value={value || (category === "commercial" || category === "international" ? "" : defaultAccount)}
                   data-gridrow={ri}
                   data-gridcol={ci}
                   onChange={(e) => {
@@ -1208,6 +1208,7 @@ function LiveGrid({
                     else saveField(row.id, col.key, e.target.value, value);
                   }}
                 >
+                  <option value="">—</option>
                   {owAccounts.length > 0 ? owAccounts.map((a) => (
                     <option key={a.value} value={a.value}>{a.value.replace(/^.*?(\d{4})$/, "$1").slice(-4)}</option>
                   )) : (
