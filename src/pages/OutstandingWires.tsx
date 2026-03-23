@@ -1158,7 +1158,13 @@ function LiveGrid({
         className={`border-b border-border/40 group transition-colors ${highlightClass} ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
       >
         <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none">
-          {ri + 1}
+          <div className="flex flex-col items-center gap-0.5">
+            <span>{ri + 1}</span>
+            {!empty && (() => {
+              const match = getMatchForWire((row as OutstandingWire).id);
+              return match ? <AIMatchBadge match={match} onClick={() => onConvertWire(row as OutstandingWire)} /> : null;
+            })()}
+          </div>
         </td>
 
         {visibleCols.map((col, ci) => {
