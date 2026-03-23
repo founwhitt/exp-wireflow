@@ -249,6 +249,9 @@ export default function OutstandingWires() {
         </div>
         <div className="flex items-center gap-3">
           <SaveIndicator status={saveStatus} />
+          <Button variant="outline" size="sm" className="h-8 text-xs border-accent text-accent hover:bg-accent/10" onClick={() => setTreasuryImportOpen(true)}>
+            <Upload className="h-3.5 w-3.5 mr-1" />Treasury Import
+          </Button>
           <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCollapseSignal({ value: false, ts: Date.now() })}>
             <ChevronDown className="h-3.5 w-3.5 mr-1" />Expand All
           </Button>
