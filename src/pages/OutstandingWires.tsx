@@ -1171,7 +1171,7 @@ function LiveGrid({
                 onContextMenu={(e) => onCellContextMenu(e, ri, ci, row)}
               >
                 <select
-                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer"
+                  className="w-full h-7 bg-transparent border-0 outline-none focus:ring-1 focus:ring-ring rounded px-1 cursor-pointer text-foreground [&>option]:bg-popover [&>option]:text-popover-foreground"
                   value={value}
                   data-gridrow={ri}
                   data-gridcol={ci}
