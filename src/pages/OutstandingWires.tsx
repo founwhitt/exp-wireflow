@@ -1130,11 +1130,14 @@ function LiveGrid({
     const rowKey = empty ? row._key : row.id;
     const highlightColor = empty ? null : (row as OutstandingWire).highlight_color;
     const highlightClass = getHighlightClass(highlightColor);
+    // Pulse newly imported rows (created within last 30 seconds)
+    const isNew = !empty && (Date.now() - new Date((row as OutstandingWire).created_at).getTime()) < 30000;
+    const pulseClass = isNew ? "animate-highlight-pulse" : "";
 
     return (
       <tr
         key={rowKey}
-        className={`border-b border-border/40 group transition-colors ${highlightClass} ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
+        className={`border-b border-border/40 group transition-colors ${highlightClass} ${pulseClass} ${empty ? "bg-transparent hover:bg-muted/10" : "hover:bg-muted/20"}`}
       >
         <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none">
           {ri + 1}
