@@ -1444,6 +1444,18 @@ function LiveGrid({
               >
                 Delete Row
               </button>
+              {(isAccounting || isAdmin) && !isEmptyRow(ctxMenu.rowData) && (
+                <>
+                  <div className="-mx-1 my-1 h-px bg-border" />
+                  <button
+                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-primary hover:bg-primary/10 transition-colors"
+                    onClick={() => { onConvertWire(ctxMenu.rowData as OutstandingWire); setCtxMenu(null); }}
+                  >
+                    <ArrowRight className="h-3.5 w-3.5" />
+                    Convert to Expected Wire
+                  </button>
+                </>
+              )}
               {isAdmin && selection && (selection.r2 - selection.r1 > 0) && (
                 <>
                   <div className="-mx-1 my-1 h-px bg-border" />
