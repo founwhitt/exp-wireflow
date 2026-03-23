@@ -431,7 +431,7 @@ export default function OutstandingWires() {
 // ---- Collapsible Account Section ----
 
 function CollapsibleAccountSection({
-  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapseSignal, owAccounts,
+  title, dotColor, records, cols, category, defaultAccount, isAccounting, isAdmin, userId, onSaving, onSaved, pushUndo, initialLimit, forceCollapseSignal, owAccounts, getMatchForWire, onConvertWire,
 }: {
   title: string; dotColor: string; records: OutstandingWire[]; cols: ColDef[];
   category: string; defaultAccount: string; isAccounting: boolean; isAdmin: boolean;
@@ -439,6 +439,8 @@ function CollapsibleAccountSection({
   pushUndo: (e: UndoEntry) => void; initialLimit: number;
   forceCollapseSignal?: { value: boolean; ts: number } | null;
   owAccounts: { value: string; label: string }[];
+  getMatchForWire: (owId: string) => AIMatch | null;
+  onConvertWire: (wire: OutstandingWire) => void;
 }) {
   const lsKey = `ow-expanded-${title}`;
   const [expanded, setExpanded] = useState(() => {
