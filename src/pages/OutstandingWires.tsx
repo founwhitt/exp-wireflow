@@ -326,6 +326,8 @@ export default function OutstandingWires() {
                 initialLimit={10}
                 forceCollapseSignal={collapseSignal}
                 owAccounts={owAccounts}
+                getMatchForWire={aiMatching.getMatchForWire}
+                onConvertWire={setConvertWire}
               />
               <CollapsibleAccountSection
                 title="3694"
@@ -343,6 +345,8 @@ export default function OutstandingWires() {
                 initialLimit={10}
                 forceCollapseSignal={collapseSignal}
                 owAccounts={owAccounts}
+                getMatchForWire={aiMatching.getMatchForWire}
+                onConvertWire={setConvertWire}
               />
             </>
           )}
@@ -367,6 +371,8 @@ export default function OutstandingWires() {
               initialLimit={10}
               forceCollapseSignal={collapseSignal}
               owAccounts={owAccounts}
+              getMatchForWire={aiMatching.getMatchForWire}
+              onConvertWire={setConvertWire}
             />
           )}
         </TabsContent>
@@ -394,6 +400,8 @@ export default function OutstandingWires() {
                     initialLimit={10}
                     forceCollapseSignal={collapseSignal}
                     owAccounts={owAccounts}
+                    getMatchForWire={aiMatching.getMatchForWire}
+                    onConvertWire={setConvertWire}
                   />
                 ))}
                 {groupedByAccount.size === 0 && (
@@ -413,6 +421,8 @@ export default function OutstandingWires() {
                     initialLimit={10}
                     forceCollapseSignal={collapseSignal}
                     owAccounts={owAccounts}
+                    getMatchForWire={aiMatching.getMatchForWire}
+                    onConvertWire={setConvertWire}
                   />
                 )}
               </>
