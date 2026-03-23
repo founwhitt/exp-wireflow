@@ -155,7 +155,7 @@ export default function OutstandingWires() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const undoStackRef = useRef<UndoEntry[]>([]);
   const update = useUpdateOutstandingWire();
-  const aiMatching = useAIMatching();
+  
   const [convertWire, setConvertWire] = useState<OutstandingWire | null>(null);
 
   const markSaving = useCallback(() => {
