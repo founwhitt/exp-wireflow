@@ -423,6 +423,7 @@ export default function OutstandingWires() {
 
       {/* Manage Options Dialog */}
       <ManageOptionsDialog open={manageOptionsOpen} onOpenChange={setManageOptionsOpen} />
+      <ConvertToExpectedDialog open={!!convertWire} onOpenChange={(o) => { if (!o) setConvertWire(null); }} wire={convertWire} />
     </div>
   );
 }
