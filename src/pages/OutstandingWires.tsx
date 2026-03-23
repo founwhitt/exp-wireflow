@@ -261,18 +261,6 @@ export default function OutstandingWires() {
               <Settings2 className="h-3.5 w-3.5 mr-1" />Manage Options
             </Button>
           )}
-          {(isAccounting || isAdmin) && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() => aiMatching.findMatches()}
-              disabled={aiMatching.isLoading}
-            >
-              {aiMatching.isLoading ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
-              {aiMatching.isLoading ? "Matching…" : aiMatching.matches.length > 0 ? `${aiMatching.matches.length} Matches` : "AI Match"}
-            </Button>
-          )}
         </div>
       </div>
 
