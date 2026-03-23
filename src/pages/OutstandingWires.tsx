@@ -1139,10 +1139,6 @@ function LiveGrid({
         <td className="px-1 py-0.5 text-center text-muted-foreground tabular-nums select-none">
           <div className="flex flex-col items-center gap-0.5">
             <span>{ri + 1}</span>
-            {!empty && (() => {
-              const match = getMatchForWire((row as OutstandingWire).id);
-              return match ? <AIMatchBadge match={match} onClick={() => onConvertWire(row as OutstandingWire)} /> : null;
-            })()}
           </div>
         </td>
 
