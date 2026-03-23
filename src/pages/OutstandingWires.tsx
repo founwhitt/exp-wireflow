@@ -28,6 +28,10 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useAIMatching, type AIMatch } from "@/hooks/useAIMatching";
+import { AIMatchBadge } from "@/components/AIMatchBadge";
+import { ConvertToExpectedDialog } from "@/components/ConvertToExpectedDialog";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const STATUS_OPTIONS = ["All", "Needs TRX ID", "Waiting on Settlement"];
 
