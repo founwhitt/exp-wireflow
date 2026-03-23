@@ -411,6 +411,14 @@ export default function OutstandingWires() {
 
       {/* Manage Options Dialog */}
       <ManageOptionsDialog open={manageOptionsOpen} onOpenChange={setManageOptionsOpen} />
+
+      {/* Treasury Import Dialog */}
+      <TreasuryImportDialog
+        open={treasuryImportOpen}
+        onOpenChange={setTreasuryImportOpen}
+        userId={user?.id ?? null}
+        onImportComplete={() => setImportHighlightTs(Date.now())}
+      />
     </div>
   );
 }
