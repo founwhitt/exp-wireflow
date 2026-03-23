@@ -487,6 +487,8 @@ function CollapsibleAccountSection({
         pushUndo={pushUndo}
         maxRows={maxRows}
         owAccounts={owAccounts}
+        getMatchForWire={getMatchForWire}
+        onConvertWire={onConvertWire}
       />
       {!expanded && (
         <Button
