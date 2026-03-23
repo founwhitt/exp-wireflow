@@ -28,6 +28,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { TreasuryImportDialog } from "@/components/TreasuryImportDialog";
 
 const STATUS_OPTIONS = ["All", "Needs TRX ID", "Waiting on Settlement"];
 
