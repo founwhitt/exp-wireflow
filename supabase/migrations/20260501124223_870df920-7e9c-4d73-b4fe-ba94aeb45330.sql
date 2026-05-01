@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Anyone can read wire instruction files" ON storage.objects;
