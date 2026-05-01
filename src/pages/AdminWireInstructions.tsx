@@ -222,9 +222,20 @@ export default function AdminWireInstructions() {
                     <TableCell>
                       {inst.pdf_path ? (
                         <div className="flex items-center gap-2">
-                          <a href={inst.pdf_path} target="_blank" rel="noreferrer" className="text-primary hover:underline text-sm">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const url = await getWireInstructionSignedUrl(inst.pdf_path!);
+                                window.open(url, "_blank", "noreferrer");
+                              } catch (err: any) {
+                                toast.error("Could not open PDF", { description: err.message });
+                              }
+                            }}
+                            className="text-primary hover:underline text-sm"
+                          >
                             <FileText className="inline h-4 w-4 mr-1" />View
-                          </a>
+                          </button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive">
