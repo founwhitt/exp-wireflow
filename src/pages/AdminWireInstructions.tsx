@@ -21,6 +21,7 @@ import {
   useDeleteCustomWireInstruction,
   uploadWireInstructionPDF,
   deleteWireInstructionPDF,
+  getWireInstructionSignedUrl,
   type CustomWireInstruction,
 } from "@/hooks/useCustomWireInstructions";
 import { WIRE_INSTRUCTIONS } from "@/lib/wire-instructions";
