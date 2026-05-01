@@ -85,19 +85,29 @@ export async function uploadWireInstructionPDF(file: File): Promise<string> {
     .from("wire-instructions")
     .upload(fileName, file, { contentType: file.type });
   if (error) throw error;
-  const { data: urlData } = supabase.storage
-    .from("wire-instructions")
-    .getPublicUrl(fileName);
-  return urlData.publicUrl;
+  // Store the storage path (not a public URL) since the bucket is private.
+  return fileName;
 }
 
-export async function deleteWireInstructionPDF(publicUrl: string): Promise<void> {
-  // Extract the file name from the public URL
-  const parts = publicUrl.split("/wire-instructions/");
-  const fileName = parts[parts.length - 1];
-  if (!fileName) throw new Error("Could not determine file path from URL");
+export async function getWireInstructionSignedUrl(pathOrUrl: string, expiresIn = 300): Promise<string> {
+  // Backwards compatibility: legacy records may have a full public URL stored.
+  const path = pathOrUrl.includes("/wire-instructions/")
+    ? pathOrUrl.split("/wire-instructions/").pop()!
+    : pathOrUrl;
+  const { data, error } = await supabase.storage
+    .from("wire-instructions")
+    .createSignedUrl(path, expiresIn);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+export async function deleteWireInstructionPDF(pathOrUrl: string): Promise<void> {
+  const path = pathOrUrl.includes("/wire-instructions/")
+    ? pathOrUrl.split("/wire-instructions/").pop()!
+    : pathOrUrl;
+  if (!path) throw new Error("Could not determine file path");
   const { error } = await supabase.storage
     .from("wire-instructions")
-    .remove([fileName]);
+    .remove([path]);
   if (error) throw error;
 }
