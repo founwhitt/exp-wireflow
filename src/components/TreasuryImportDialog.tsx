@@ -101,11 +101,11 @@ export function TreasuryImportDialog({ open, onOpenChange, userId, onImportCompl
   }, [runSimulation]);
 
   const stageLabel = stage === "parsing"
-    ? "Parsing Treasury Report…"
+    ? "Parsing Treasury Report & sorting accounts…"
     : stage === "routing"
-    ? "Auto-routing records to sections…"
+    ? "Committing sorted records to PostgreSQL tables…"
     : stage === "complete"
-    ? "Import Complete: 9 records routed to 3 sections"
+    ? "Import Complete: 9 records committed to PostgreSQL"
     : "";
 
   return (
