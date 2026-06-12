@@ -135,7 +135,7 @@ export function TreasuryImportDialog({ open, onOpenChange, userId, onImportCompl
             </div>
             <div className="text-center">
               <p className="font-medium text-foreground">Drop treasury report here</p>
-              <p className="text-sm text-muted-foreground mt-1">or click to simulate import</p>
+              <p className="text-sm text-muted-foreground mt-1">Parses multi-account bank data (8022, 3694 & Payload) directly into PostgreSQL tables — no manual spreadsheets needed</p>
             </div>
             <p className="text-xs text-muted-foreground">.xlsx, .csv, .txt</p>
           </div>
