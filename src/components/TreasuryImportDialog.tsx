@@ -114,7 +114,7 @@ export function TreasuryImportDialog({ open, onOpenChange, userId, onImportCompl
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5 text-accent" />
-            Treasury Import
+            Smart Treasury Import
           </DialogTitle>
         </DialogHeader>
 
