@@ -83,7 +83,7 @@ export function TreasuryImportDialog({ open, onOpenChange, userId, onImportCompl
         setProgress(i);
       }
       setStage("complete");
-      toast.success("Import Complete: 9 records routed to 3 sections", {
+      toast.success("Import Complete: 9 records committed to PostgreSQL", {
         description: "5 → Realty 8022 · 3 → Realty 3694 · 1 → Payload",
         duration: 6000,
       });
@@ -101,11 +101,11 @@ export function TreasuryImportDialog({ open, onOpenChange, userId, onImportCompl
   }, [runSimulation]);
 
   const stageLabel = stage === "parsing"
-    ? "Parsing Treasury Report…"
+    ? "Parsing Treasury Report & sorting accounts…"
     : stage === "routing"
-    ? "Auto-routing records to sections…"
+    ? "Committing sorted records to PostgreSQL tables…"
     : stage === "complete"
-    ? "Import Complete: 9 records routed to 3 sections"
+    ? "Import Complete: 9 records committed to PostgreSQL"
     : "";
 
   return (
@@ -114,7 +114,7 @@ export function TreasuryImportDialog({ open, onOpenChange, userId, onImportCompl
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5 text-accent" />
-            Treasury Import
+            Smart Treasury Import
           </DialogTitle>
         </DialogHeader>
 
@@ -135,7 +135,7 @@ export function TreasuryImportDialog({ open, onOpenChange, userId, onImportCompl
             </div>
             <div className="text-center">
               <p className="font-medium text-foreground">Drop treasury report here</p>
-              <p className="text-sm text-muted-foreground mt-1">or click to simulate import</p>
+              <p className="text-sm text-muted-foreground mt-1">Parses multi-account bank data (8022, 3694 & Payload) directly into PostgreSQL tables — no manual spreadsheets needed</p>
             </div>
             <p className="text-xs text-muted-foreground">.xlsx, .csv, .txt</p>
           </div>

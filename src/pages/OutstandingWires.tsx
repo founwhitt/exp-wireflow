@@ -244,13 +244,13 @@ export default function OutstandingWires() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Outstanding Wires</h1>
           <p className="text-sm text-muted-foreground">
-            Live editable grid — paste from Excel or edit inline. Ctrl+Z to undo.
+            Secure, department-scoped replacement for legacy Google Sheets. Treasury data ingested directly into PostgreSQL — no manual copy-pasting required.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <SaveIndicator status={saveStatus} />
           <Button variant="outline" size="sm" className="h-8 text-xs border-accent text-accent hover:bg-accent/10" onClick={() => setTreasuryImportOpen(true)}>
-            <Upload className="h-3.5 w-3.5 mr-1" />Treasury Import
+            <Upload className="h-3.5 w-3.5 mr-1" />Smart Treasury Import
           </Button>
           <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCollapseSignal({ value: false, ts: Date.now() })}>
             <ChevronDown className="h-3.5 w-3.5 mr-1" />Expand All
