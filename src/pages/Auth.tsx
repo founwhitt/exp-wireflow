@@ -39,17 +39,23 @@ export default function Auth() {
 
     try {
       if (isSignUp) {
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!normalizedEmail.endsWith("@exprealty.com")) {
+          toast.error("Only @exprealty.com corporate email addresses are permitted to register.");
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
-          email,
+          email: normalizedEmail,
           password,
           options: {
-            data: { display_name: displayName || email },
+            data: { display_name: displayName || normalizedEmail },
             emailRedirectTo: window.location.origin,
           },
         });
         if (error) throw error;
-        toast.success("Account created! You're now signed in.");
-        navigate("/");
+        toast.success("Account created. Please check your email to verify your address before signing in.");
+        setIsSignUp(false);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
