@@ -83,7 +83,7 @@ export function TreasuryImportDialog({ open, onOpenChange, userId, onImportCompl
         setProgress(i);
       }
       setStage("complete");
-      toast.success("Import Complete: 9 records routed to 3 sections", {
+      toast.success("Import Complete: 9 records committed to PostgreSQL", {
         description: "5 → Realty 8022 · 3 → Realty 3694 · 1 → Payload",
         duration: 6000,
       });
