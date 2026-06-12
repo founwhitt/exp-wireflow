@@ -244,7 +244,7 @@ export default function OutstandingWires() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Outstanding Wires</h1>
           <p className="text-sm text-muted-foreground">
-            Live editable grid — paste from Excel or edit inline. Ctrl+Z to undo.
+            Secure, department-scoped replacement for legacy Google Sheets. Treasury data ingested directly into PostgreSQL — no manual copy-pasting required.
           </p>
         </div>
         <div className="flex items-center gap-3">
